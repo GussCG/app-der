@@ -1,0 +1,256 @@
+@use "../variables" as *;
+
+.barra__nav {
+  width: auto;
+  height: 64px;
+  background-color: $header-bg-color;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+
+  border: 1px solid $body-border-color;
+
+  grid-area: header;
+
+  .nav__menu {
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    svg {
+      color: $header-logo-color;
+      width: 32px;
+      height: 32px;
+    }
+
+    input {
+      width: auto;
+      height: auto;
+      background-color: $header-input-bg-color;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 0;
+
+      color: white;
+      font-family: $font-primary;
+      font-weight: bold;
+      font-size: 15px;
+      line-height: 145%;
+      letter-spacing: -0.5%;
+      text-align: center;
+    }
+
+    .nav__tabs {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-left: 10px;
+
+      font-family: $font-primary;
+      font-weight: 500;
+      font-size: 15px;
+      color: $header-nav-tab-color;
+      line-height: 145%;
+      letter-spacing: -0.5%;
+      text-align: center;
+
+      .nav__tab {
+        position: relative;
+      }
+
+      p {
+        transition: color 0.2s ease-in-out;
+
+        &:hover {
+          color: white;
+          cursor: pointer;
+        }
+      }
+    }
+  }
+
+  .nav__actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .nav__validation_progress {
+      position: relative;
+
+      min-width: 140px;
+      min-height: 36px;
+      height: auto;
+
+      font-family: $font-primary;
+      font-size: 14px;
+      border-radius: 8px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+
+      padding: 5px 10px;
+
+      border: 1px solid $header-nav-loading-border;
+      background-color: transparent;
+      color: $header-nav-loading-color;
+
+      overflow: hidden;
+
+      p {
+        position: relative;
+        z-index: 2;
+        margin: 0;
+      }
+
+      svg {
+        height: 20px;
+        width: auto;
+        color: $header-nav-valid-color;
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        width: var(--progress, 0%);
+        background-color: $header-nav-loading-fill;
+        transition: width 0.4s ease;
+        z-index: 1;
+      }
+
+      &.invalid {
+        background-color: $header-nav-invalid-bg;
+        border-color: $header-nav-invalid-bg;
+        color: $header-nav-invalid-color;
+
+        &::before {
+          display: none;
+        }
+
+        svg {
+          color: $header-nav-invalid-color;
+        }
+      }
+
+      &.valid {
+        background-color: $header-nav-valid-bg;
+        border-color: $header-nav-valid-bg;
+        color: $header-nav-valid-color;
+
+        &::before {
+          display: none;
+        }
+
+        svg {
+          color: $header-nav-valid-color;
+        }
+      }
+    }
+
+    .nav__button {
+      height: 36px;
+      background-color: $header-nav-button-bg;
+      font-family: $font-primary;
+      color: white;
+      font-size: 15px;
+      border: none;
+      border-radius: 8px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 5px 10px;
+
+      transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+
+      &:hover {
+        background-color: $header-nav-button-hover-bg;
+        color: $header-nav-button-hover-color;
+        cursor: pointer;
+
+        svg {
+          color: $header-nav-button-hover-color;
+        }
+      }
+
+      svg {
+        height: 20px;
+        width: auto;
+        color: $header-nav-button-color;
+
+        transition: color 0.2s ease-in-out;
+      }
+    }
+  }
+}
+
+.nav__desplegable {
+  background-color: $header-bg-color;
+  border: 1px solid $body-border-color;
+  border-radius: 10px;
+  width: 200px;
+  padding: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  position: absolute;
+  top: 100%;
+  left: 0;
+
+  pointer-events: auto;
+
+  .nav__item {
+    position: relative;
+    padding: 8px 10px;
+    font-family: $font-primary;
+    font-size: 12px;
+    color: white;
+    font-weight: 400;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    transition: background-color 0.2s ease-in-out;
+
+    &.divider:not(:first-child)::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 10px;
+      right: 10px;
+      height: 1px;
+      background-color: $body-border-color;
+      opacity: 0.5;
+    }
+
+    &.divider:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 10px;
+      right: 10px;
+      height: 1px;
+      background-color: $body-border-color;
+      opacity: 0.5;
+    }
+
+    svg {
+      height: 18px;
+      width: auto;
+      color: $desplegable-icon-color;
+    }
+
+    &:hover {
+      background-color: $toolbar-bg-color;
+      cursor: pointer;
+    }
+  }
+}

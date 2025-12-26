@@ -1,0 +1,50 @@
+// Fuentes
+@import url("https://fonts.googleapis.com/css2?family=Geom:ital,wght@0,300..900;1,300..900&family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap");
+
+// Variables
+$font-primary: "Google Sans Flex", sans-serif;
+$font-secondary: "Geom", sans-serif;
+
+$body-bg-color: #0f1419;
+$body-border-color: #323c4c;
+
+$header-bg-color: #1a1a1a;
+$header-logo-color: #2679ff;
+$header-input-bg-color: #4f596830;
+$header-nav-tab-color: #6d7c84;
+$header-nav-valid-bg: #00bb0025;
+$header-nav-valid-color: #00bb00;
+$header-nav-invalid-bg: #ff000025;
+$header-nav-invalid-color: #ff0000;
+$header-nav-loading-border: #eeeeee;
+$header-nav-loading-color: #eeeeee;
+$header-nav-loading-fill: #eeeeee40;
+$header-nav-button-bg: #9810fa67;
+$header-nav-button-hover-bg: #f2e1ff;
+$header-nav-button-color: #ffffff;
+$header-nav-button-hover-color: #2d174f;
+
+$desplegable-icon-color: #717182;
+
+$toolbar-bg-color: #242424;
+$toolbar-icon-color: #ffffff;
+
+$properties-h1-color: #ffffff;
+$properties-label-color: #99a1af;
+$properties-input-bg-color: #1f2937;
+$properties-input-color: #ffffff;
+$properties-h2-color: #99a1af;
+$properties-button-color: #2679ff;
+
+$entities-input-bg-color: #23272a;
+$entities-item-hover-bg-color: #373c44;
+
+$error-validation-modal-bg-color: #202b36;
+$error-validation-modal-h1-color: #ffffff;
+$error-validation-modal-p-color: #99a1af;
+$error-validation-modal-suggest-color: #1383f3;
+$error-validation-modal-icon-color: #f54645;
+$error-validation-modal-close-button-bg: #137fec;
+$error-validation-modal-btn-accept-color: #ffffff;
+$error-validation-modal-close-button-hover-bg: #bedcff;
+$error-validation-modal-btn-accept-hover-color: #0b132c;
