@@ -1,0 +1,122 @@
+@use "../variables" as *;
+
+.toolbar {
+  width: 40px;
+  height: max-content;
+  background-color: $header-bg-color;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  margin: 50px 30px;
+  border: 1px $body-border-color solid;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* overflow: hidden; */
+  grid-area: main;
+
+  .toolbar__item {
+    width: 100%;
+    height: auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+
+    border-bottom: 1px $body-border-color solid;
+
+    cursor: pointer;
+
+    &:last-child {
+      border-bottom: none;
+      border-radius: 0 0 10px 10px;
+    }
+
+    &:first-child {
+      border-radius: 10px 10px 0 0;
+    }
+
+    &.active {
+      background-color: $toolbar-active-bg-color;
+    }
+
+    .toolbar__icon {
+      svg {
+        width: 20px;
+        height: 20px;
+        color: $toolbar-icon-color;
+
+        transition: transform 0.2s ease;
+      }
+    }
+
+    &:hover:not(:has(.variants:hover)) > .toolbar__icon svg {
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+  }
+
+  .tool--has-variants {
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 2px;
+      right: 1px;
+
+      width: 0px;
+      height: 0px;
+      border-left: 6px solid transparent;
+      border-bottom: 6px solid $toolbar-icon-color;
+    }
+
+    &:hover .variants {
+      display: flex;
+    }
+
+    &.open .variants {
+      display: flex;
+    }
+  }
+
+  .variants {
+    width: max-content;
+    height: auto;
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+
+    display: none;
+    flex-direction: row;
+    gap: 4px;
+
+    background-color: $toolbar-bg-color;
+    border: 1px $body-border-color solid;
+    border-radius: 8px;
+
+    .toolbar__item_variant {
+      width: 100%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 6px 8px;
+      border-right: 1px $body-border-color solid;
+
+      &:last-child {
+        border-right: none;
+      }
+
+      &:hover > .toolbar__icon svg {
+        transform: scale(1.2);
+        cursor: pointer;
+      }
+    }
+  }
+}

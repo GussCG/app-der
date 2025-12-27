@@ -1,1 +1,13 @@
+.app__layout {
+  height: 100vh;
+  display: grid;
 
+  &.relational {
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto 1fr;
+
+    grid-template-areas:
+      "nav nav nav"
+      "entities main inspector";
+  }
+}

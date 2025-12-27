@@ -1,0 +1,35 @@
+@use "../variables" as *;
+
+.panel__toggle_button {
+  all: unset;
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border: none;
+
+  background-color: transparent;
+
+  top: 16px;
+  right: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  &:hover {
+    svg {
+      opacity: 0.8;
+    }
+  }
+
+  svg {
+    width: auto;
+    height: 24px;
+    color: $properties-h1-color;
+
+    transition: opacity 0.2s ease-in-out;
+  }
+}

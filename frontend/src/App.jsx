@@ -1,11 +1,15 @@
 import "./styles/App.scss";
-import BarraNav from "./components/BarraNavegacion/BarraNav.jsx";
+import { EditorModeProvider } from "./context/EditorModeContext.jsx";
+import Layout from "./layouts/Layout.jsx";
+import { ToolProvider } from "./context/ToolContext.jsx";
 
 function App() {
   return (
-    <>
-      <BarraNav />
-    </>
+    <EditorModeProvider>
+      <ToolProvider>
+        <Layout />
+      </ToolProvider>
+    </EditorModeProvider>
   );
 }
 

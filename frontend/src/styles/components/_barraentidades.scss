@@ -1,0 +1,139 @@
+@use "../variables" as *;
+
+.entities {
+  position: relative;
+  width: 300px;
+  height: 100dvh;
+
+  background-color: $entities-bg-color;
+  border: 1px solid $body-border-color;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-y: auto;
+
+  grid-area: entities;
+
+  transition: width 0.3s ease-in-out;
+
+  &.hidden {
+    width: 40px;
+
+    .entities__list {
+      display: none;
+    }
+
+    button {
+      right: 2px;
+    }
+  }
+
+  h1 {
+    font-family: $font-primary;
+    font-size: 20px;
+    color: $properties-h1-color;
+    margin: 16px 14px;
+    font-weight: 500;
+    line-height: 145%;
+    letter-spacing: -0.5%;
+  }
+
+  .entities__container {
+    border-top: 1px solid $body-border-color;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 20px;
+
+    .entities__searchbar {
+      width: 85%;
+      height: 36px;
+      background-color: $entities-input-bg-color;
+
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 10px;
+
+      border-radius: 8px;
+
+      svg {
+        height: 20px;
+        width: auto;
+        color: $desplegable-icon-color;
+      }
+
+      input {
+        width: 100%;
+        height: auto;
+        background-color: transparent;
+        border: none;
+        outline: none;
+
+        color: $properties-input-color;
+        font-family: $font-primary;
+        font-size: 14px;
+        font-weight: 200;
+        line-height: 145%;
+        letter-spacing: -0.5%;
+
+        &::placeholder {
+          color: $properties-label-color;
+          opacity: 0.5;
+        }
+      }
+    }
+
+    .entities__list {
+      width: 90%;
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      overflow: auto;
+
+      .entities__item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+
+        font-family: $font-primary;
+        font-size: 14px;
+        color: $properties-input-color;
+        font-weight: 400;
+        line-height: 145%;
+
+        transition: background-color 0.2s ease-in-out;
+
+        &:hover {
+          background-color: $entities-item-hover-bg-color;
+          cursor: pointer;
+        }
+
+        svg {
+          height: 24px;
+          width: auto;
+          color: $entities-icon-color;
+        }
+
+        //   &:not(:last-child)::before {
+        //     content: "";
+        //     position: absolute;
+        //     bottom: 0;
+        //     left: 10px;
+        //     right: 10px;
+        //     height: 1px;
+        //     background-color: $body-border-color;
+        //     opacity: 0.9;
+        //   }
+      }
+    }
+  }
+}

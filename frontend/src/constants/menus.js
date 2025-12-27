@@ -13,6 +13,10 @@ const {
   IoMdGrid,
   FaRegKeyboard,
   LuInfo,
+  PiQuestionBold,
+  HiOutlineTableCells,
+  GrInspect,
+  TbTools,
 } = Icons;
 
 const MENUS = {
@@ -32,7 +36,9 @@ const MENUS = {
     { icon: RiExpandDiagonalLine, label: "Ajustar pantalla" },
     { icon: IoMdGrid, label: "Ocultar cuadrícula", divider: true },
   ],
+  ventana: [{ icon: TbTools, label: "Abrir Herramientas", divider: true }],
   ayuda: [
+    { icon: PiQuestionBold, label: "¿Cómo usar?" },
     { icon: FaRegKeyboard, label: "Atajos de teclado" },
     { icon: LuInfo, label: "Acerca de", divider: true },
   ],

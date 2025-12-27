@@ -16,14 +16,14 @@ function ValidationStatus({ state, progress }) {
 
   if (state === "invalid") {
     return (
-      <div class="nav__validation_progress invalid">
+      <div className="nav__validation_progress invalid">
         <p>Inválido</p>
       </div>
     );
   }
 
   return (
-    <div class="nav__validation_progress valid">
+    <div className="nav__validation_progress valid">
       <FaCircleCheck />
       <p>Válido</p>
     </div>
