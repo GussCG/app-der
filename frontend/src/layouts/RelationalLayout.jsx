@@ -1,5 +1,5 @@
 import { useState } from "react";
-import BarraEntidades from "../components/BarraEntidades/BarraEntidades";
+import BarraEntidades from "../components/BarraElementos/BarraElementos";
 import BarraNav from "../components/BarraNavegacion/BarraNav";
 import BarraInspector from "../components/BarraInspector/BarraInspector";
 import BarraHerramientas from "../components/BarraHerramientas/BarraHerramientas";

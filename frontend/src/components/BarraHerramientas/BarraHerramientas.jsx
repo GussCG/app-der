@@ -34,21 +34,21 @@ export default function BarraHerramientas() {
     setOpenVariants(!openVariants);
   };
 
-  const getParentIcon = () => {
-    if (["one-to-one", "one-to-many", "many-to-many"].includes(activeTool)) {
-      switch (activeTool) {
-        case "one-to-one":
-          return <TbRelationOneToOne />;
-        case "one-to-many":
-          return <TbRelationOneToMany />;
-        case "many-to-many":
-          return <TbRelationManyToMany />;
-        default:
-          return <TbRelationOneToOne />;
-      }
-    }
-    return <TbRelationOneToOne />; // default si se abre el panel sin seleccionar
-  };
+  // const getParentIcon = () => {
+  //   if (["one-to-one", "one-to-many", "many-to-many"].includes(activeTool)) {
+  //     switch (activeTool) {
+  //       case "one-to-one":
+  //         return <TbRelationOneToOne />;
+  //       case "one-to-many":
+  //         return <TbRelationOneToMany />;
+  //       case "many-to-many":
+  //         return <TbRelationManyToMany />;
+  //       default:
+  //         return <TbRelationOneToOne />;
+  //     }
+  //   }
+  //   return <TbRelationOneToOne />; // default si se abre el panel sin seleccionar
+  // };
 
   return (
     <div className="toolbar">
@@ -90,7 +90,7 @@ export default function BarraHerramientas() {
               <CgShapeRhombus />
             </div>
           </div>
-          <div
+          {/* <div
             className={`toolbar__item tool--has-variants ${
               openVariants ? "open" : ""
             } ${
@@ -139,7 +139,7 @@ export default function BarraHerramientas() {
                 ))}
               </div>
             )}
-          </div>
+          </div> */}
         </>
       )}
 

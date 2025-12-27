@@ -1,11 +1,11 @@
 @use "../variables" as *;
 
-.entities {
+.elements {
   position: relative;
   width: 300px;
   height: 100dvh;
 
-  background-color: $entities-bg-color;
+  background-color: $elements-bg-color;
   border: 1px solid $body-border-color;
 
   display: flex;
@@ -13,14 +13,14 @@
   justify-content: flex-start;
   overflow-y: auto;
 
-  grid-area: entities;
+  grid-area: elements;
 
   transition: width 0.3s ease-in-out;
 
   &.hidden {
     width: 40px;
 
-    .entities__list {
+    .elements__list {
       display: none;
     }
 
@@ -39,7 +39,7 @@
     letter-spacing: -0.5%;
   }
 
-  .entities__container {
+  .elements__container {
     border-top: 1px solid $body-border-color;
     display: flex;
     flex-direction: column;
@@ -48,10 +48,10 @@
     align-items: center;
     padding-top: 20px;
 
-    .entities__searchbar {
+    .elements__searchbar {
       width: 85%;
       height: 36px;
-      background-color: $entities-input-bg-color;
+      background-color: $elements-input-bg-color;
 
       display: flex;
       align-items: center;
@@ -87,7 +87,7 @@
       }
     }
 
-    .entities__list {
+    .elements__list {
       width: 90%;
       margin-top: 20px;
       display: flex;
@@ -96,7 +96,7 @@
 
       overflow: auto;
 
-      .entities__item {
+      .elements__item {
         position: relative;
         display: flex;
         align-items: center;
@@ -112,15 +112,16 @@
 
         transition: background-color 0.2s ease-in-out;
 
-        &:hover {
-          background-color: $entities-item-hover-bg-color;
+        &:hover,
+        &.selected {
+          background-color: $elements-item-hover-bg-color;
           cursor: pointer;
         }
 
         svg {
           height: 24px;
           width: auto;
-          color: $entities-icon-color;
+          color: $elements-icon-color;
         }
 
         //   &:not(:last-child)::before {

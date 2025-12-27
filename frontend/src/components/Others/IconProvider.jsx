@@ -8,6 +8,8 @@ import { HiOutlineTableCells } from "react-icons/hi2";
 import { LuPanelLeftClose } from "react-icons/lu";
 import { LuPanelLeftOpen } from "react-icons/lu";
 import { IoKeyOutline } from "react-icons/io5";
+import { IoChevronDownOutline } from "react-icons/io5";
+import { IoChevronUp } from "react-icons/io5";
 
 // Menu desplegable
 import { LuFileText } from "react-icons/lu";
@@ -82,6 +84,8 @@ const Icons = {
   TbZoomIn,
   TbZoomOut,
   TbZoomReset,
+  IoChevronDownOutline,
+  IoChevronUp,
 };
 
 export default Icons;
