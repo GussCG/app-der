@@ -124,6 +124,30 @@
           color: $elements-icon-color;
         }
 
+        button {
+          background-color: transparent;
+          border: none;
+          position: absolute;
+          top: 50%;
+          right: 10px;
+          transform: translateY(-50%);
+
+          svg {
+            height: 20px;
+            width: auto;
+            color: $properties-input-color;
+
+            transition: transform 0.2s ease-in-out;
+          }
+
+          &:hover {
+            svg {
+              transform: scale(1.2);
+              cursor: pointer;
+            }
+          }
+        }
+
         //   &:not(:last-child)::before {
         //     content: "";
         //     position: absolute;

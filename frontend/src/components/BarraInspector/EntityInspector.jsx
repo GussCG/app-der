@@ -1,15 +1,21 @@
 import Icons from "../Others/IconProvider.jsx";
 const { IoClose } = Icons;
 
-function EntityInspector({ entity, updateEntity }) {
-  const { name, attributes } = entity.data;
+import { useEditor } from "../../context/EditorContext.jsx";
+
+function EntityInspector() {
+  const { selectedElement, updateElement } = useEditor();
+
+  if (!selectedElement) return null;
+
+  const { name, attributes } = selectedElement.data;
 
   const updateAttribute = (id, field, value) => {
-    updateEntity({
-      ...entity,
+    updateElement({
+      ...selectedElement,
       data: {
-        ...entity.data,
-        attributes: entity.data.attributes.map((attr) =>
+        ...selectedElement.data,
+        attributes: attributes.map((attr) =>
           attr.id === id ? { ...attr, [field]: value } : attr
         ),
       },
@@ -17,12 +23,12 @@ function EntityInspector({ entity, updateEntity }) {
   };
 
   const addAttribute = () => {
-    updateEntity({
-      ...entity,
+    updateElement({
+      ...selectedElement,
       data: {
-        ...entity.data,
+        ...selectedElement.data,
         attributes: [
-          ...attributes,
+          ...selectedElement.data.attributes,
           {
             id: crypto.randomUUID(),
             name: "",
@@ -38,11 +44,13 @@ function EntityInspector({ entity, updateEntity }) {
   };
 
   const removeAttribute = (id) => {
-    updateEntity({
-      ...entity,
+    updateElement({
+      ...selectedElement,
       data: {
-        ...entity.data,
-        attributes: attributes.filter((attr) => attr.id !== id),
+        ...selectedElement.data,
+        attributes: selectedElement.data.attributes.filter(
+          (attr) => attr.id !== id
+        ),
       },
     });
   };
@@ -55,9 +63,9 @@ function EntityInspector({ entity, updateEntity }) {
           type="text"
           value={name}
           onChange={(e) =>
-            updateEntity({
-              ...entity,
-              data: { ...entity.data, name: e.target.value },
+            updateElement({
+              ...selectedElement,
+              data: { ...selectedElement.data, name: e.target.value },
             })
           }
         />
@@ -108,14 +116,14 @@ function EntityInspector({ entity, updateEntity }) {
                   </select>
                 </td>
 
-                {["pk", "nn", "uq", "ai"].map((key) => (
-                  <td key={key}>
+                {["pk", "nn", "uq", "ai"].map((flag) => (
+                  <td key={`${attr.id}-${flag}`}>
                     <label className="checkbox">
                       <input
                         type="checkbox"
-                        checked={attr[key]}
+                        checked={attr[flag]}
                         onChange={(e) =>
-                          updateAttribute(attr.id, key, e.target.checked)
+                          updateAttribute(attr.id, flag, e.target.checked)
                         }
                       />
                       <span className="checkbox__box" />

@@ -1,11 +1,17 @@
-function RelationInspector({ relation, updateRelation }) {
-  const { name, connections } = relation.data;
+import { useEditor } from "../../context/EditorContext";
+
+function RelationInspector() {
+  const { selectedElement, updateElement } = useEditor();
+
+  if (!selectedElement) return null;
+
+  const { name, connections } = selectedElement.data;
 
   const updateConnection = (side, field, value) => {
-    updateRelation({
-      ...relation,
+    updateElement({
+      ...selectedElement,
       data: {
-        ...relation.data,
+        ...selectedElement.data,
         connections: {
           ...connections,
           [side]: {
@@ -25,9 +31,9 @@ function RelationInspector({ relation, updateRelation }) {
           type="text"
           value={name}
           onChange={(e) =>
-            updateRelation({
-              ...relation,
-              data: { ...relation.data, name: e.target.value },
+            updateElement({
+              ...selectedElement,
+              data: { ...selectedElement.data, name: e.target.value },
             })
           }
         />

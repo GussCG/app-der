@@ -16,6 +16,7 @@
 
   /* overflow: hidden; */
   grid-area: main;
+  z-index: 2;
 
   .toolbar__item {
     width: 100%;
@@ -49,12 +50,12 @@
         height: 20px;
         color: $toolbar-icon-color;
 
-        transition: transform 0.2s ease;
+        transition: transform 0.2s ease-in-out;
       }
     }
 
     &:hover:not(:has(.variants:hover)) > .toolbar__icon svg {
-      transform: scale(1.2);
+      transform: scale(1.3);
       cursor: pointer;
     }
   }

@@ -82,9 +82,9 @@ export default function BarraHerramientas() {
           </div>
           <div
             className={`toolbar__item ${
-              activeTool === "relationship" ? "active" : ""
+              activeTool === "relation" ? "active" : ""
             }`}
-            onClick={() => handleClick("relationship")}
+            onClick={() => handleClick("relation")}
           >
             <div className="toolbar__icon" title="Relación">
               <CgShapeRhombus />
@@ -143,7 +143,7 @@ export default function BarraHerramientas() {
         </>
       )}
 
-      <div
+      {/* <div
         className={`toolbar__item ${activeTool === "zoom-in" ? "active" : ""}`}
         onClick={() => handleClick("zoom-in")}
       >
@@ -158,17 +158,15 @@ export default function BarraHerramientas() {
         <div className="toolbar__icon" title="Zoom Out">
           <TbZoomOut />
         </div>
-      </div>
-      <div
-        className={`toolbar__item ${
-          activeTool === "reset-zoom" ? "active" : ""
-        }`}
+      </div> */}
+      {/* <div
+        className={`toolbar__item`}
         onClick={() => handleClick("reset-zoom")}
       >
         <div className="toolbar__icon" title="Restablecer Zoom">
           <TbZoomReset />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

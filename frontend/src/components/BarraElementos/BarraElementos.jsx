@@ -1,20 +1,22 @@
 import Icons from "../Others/IconProvider.jsx";
 import HidePanelButton from "../Others/TogglePanelButton.jsx";
 
+import { useEditor } from "../../context/EditorContext.jsx";
+
 const {
   FaSearch,
   HiOutlineTableCells,
   LuPanelLeftClose,
   LuPanelLeftOpen,
   CgShapeRhombus,
+  IoClose,
 } = Icons;
 
-function BarraElementos({
-  hidden,
-  onToggle,
-  onSelectElement,
-  selectedElement,
-}) {
+function BarraElementos({ hidden, onToggle }) {
+  const { diagram, setSelectedElementId, selectedElementId } = useEditor();
+
+  const { entities, relations } = diagram;
+
   return (
     <div className={`elements ${hidden ? "hidden" : ""}`}>
       <HidePanelButton
@@ -33,64 +35,39 @@ function BarraElementos({
             </div>
             <div className="elements__list">
               {/* Ejemplo de Entidad */}
-              <div
-                className={`elements__item ${
-                  selectedElement === "entity-1" ? "selected" : ""
-                }`}
-                onClick={() =>
-                  onSelectElement({
-                    id: "entity-1",
-                    type: "entity",
-                    data: {
-                      name: "Entidad 1",
-                      attributes: [
-                        {
-                          id: "attr-1",
-                          name: "Atributo 1",
-                          type: "int",
-                          pk: true,
-                          nn: true,
-                          uq: false,
-                          ai: true,
-                        },
-                      ],
-                    },
-                  })
-                }
-              >
-                <HiOutlineTableCells />
-                <span>Entidad 1</span>
-              </div>
-              {/* Ejemplo de Relación */}
-              <div
-                className={`elements__item ${
-                  selectedElement === "relation-1" ? "selected" : ""
-                }`}
-                onClick={() =>
-                  onSelectElement({
-                    id: "relation-1",
-                    type: "relation",
-                    data: {
-                      name: "Relación 1",
-                      connections: {
-                        source: {
-                          entityId: "entity-1",
-                          entityName: "Entidad 1",
-                          cardinality: "1",
-                        },
-                        target: {
-                          entityId: "entity-2",
-                          entityName: "Entidad 2",
-                          cardinality: "N",
-                        },
-                      },
-                    },
-                  })
-                }
-              >
-                <CgShapeRhombus />
-                <span>Relación 1</span>
-              </div>
+              {entities &&
+                entities.map((entity) => (
+                  <div
+                    key={entity.id}
+                    className={`elements__item ${
+                      selectedElementId === entity.id ? "selected" : ""
+                    }`}
+                    onClick={() => setSelectedElementId(entity.id)}
+                  >
+                    <HiOutlineTableCells />
+                    <span>{entity.data?.name || "Entidad sin nombre"}</span>
+                    <button className="elements__item-delete">
+                      <IoClose />
+                    </button>
+                  </div>
+                ))}
+
+              {relations &&
+                relations.map((relation) => (
+                  <div
+                    key={relation.id}
+                    className={`elements__item ${
+                      selectedElementId === relation.id ? "selected" : ""
+                    }`}
+                    onClick={() => setSelectedElementId(relation.id)}
+                  >
+                    <CgShapeRhombus />
+                    <span>{relation.data?.name || "Relación sin nombre"}</span>
+                    <button className="elements__item-delete">
+                      <IoClose />
+                    </button>
+                  </div>
+                ))}
             </div>
           </div>
         </>
