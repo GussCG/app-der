@@ -2,6 +2,7 @@ import Icons from "../Others/IconProvider.jsx";
 import { useState } from "react";
 import { useEditorMode } from "../../context/EditorModeContext.jsx";
 import { useTool } from "../../context/ToolContext.jsx";
+import { useEditor } from "../../context/EditorContext.jsx";
 
 const {
   LuMousePointer2,
@@ -14,12 +15,16 @@ const {
   TbZoomIn,
   TbZoomOut,
   TbZoomReset,
+  MdOutlineTableChart,
+  LuLayoutDashboard,
 } = Icons;
 
 export default function BarraHerramientas() {
   const { activeTool, setActiveTool } = useTool();
-  const { isER } = useEditorMode();
+  const { isER, isRelational } = useEditorMode();
   const [openVariants, setOpenVariants] = useState(false);
+  const { isRelationCreationModalOpen, setIsRelationCreationModalOpen } =
+    useEditor();
 
   const handleClick = (tool, hasVariants = false) => {
     setActiveTool(tool);
@@ -33,22 +38,6 @@ export default function BarraHerramientas() {
   const handleParentClick = () => {
     setOpenVariants(!openVariants);
   };
-
-  // const getParentIcon = () => {
-  //   if (["one-to-one", "one-to-many", "many-to-many"].includes(activeTool)) {
-  //     switch (activeTool) {
-  //       case "one-to-one":
-  //         return <TbRelationOneToOne />;
-  //       case "one-to-many":
-  //         return <TbRelationOneToMany />;
-  //       case "many-to-many":
-  //         return <TbRelationManyToMany />;
-  //       default:
-  //         return <TbRelationOneToOne />;
-  //     }
-  //   }
-  //   return <TbRelationOneToOne />; // default si se abre el panel sin seleccionar
-  // };
 
   return (
     <div className="toolbar">
@@ -143,30 +132,7 @@ export default function BarraHerramientas() {
         </>
       )}
 
-      {/* <div
-        className={`toolbar__item ${activeTool === "zoom-in" ? "active" : ""}`}
-        onClick={() => handleClick("zoom-in")}
-      >
-        <div className="toolbar__icon" title="Zoom In">
-          <TbZoomIn />
-        </div>
-      </div>
-      <div
-        className={`toolbar__item ${activeTool === "zoom-out" ? "active" : ""}`}
-        onClick={() => handleClick("zoom-out")}
-      >
-        <div className="toolbar__icon" title="Zoom Out">
-          <TbZoomOut />
-        </div>
-      </div> */}
-      {/* <div
-        className={`toolbar__item`}
-        onClick={() => handleClick("reset-zoom")}
-      >
-        <div className="toolbar__icon" title="Restablecer Zoom">
-          <TbZoomReset />
-        </div>
-      </div> */}
+      {isRelational && <></>}
     </div>
   );
 }

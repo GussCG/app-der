@@ -45,6 +45,20 @@ import { TbSql } from "react-icons/tb";
 import { LuTable2 } from "react-icons/lu";
 import erdIcon from "../../assets/icons/erd-icon.svg";
 
+import { FaMoon } from "react-icons/fa";
+import { MdSunny } from "react-icons/md";
+import { LiaProjectDiagramSolid } from "react-icons/lia";
+import { FaImage } from "react-icons/fa6";
+import { BiSolidError } from "react-icons/bi";
+import { PiSealWarningFill } from "react-icons/pi";
+import { FaKey } from "react-icons/fa6";
+import { LuKeySquare } from "react-icons/lu";
+import { MdOutlineTableChart } from "react-icons/md";
+import { LuLayoutDashboard } from "react-icons/lu";
+
+import { SiTarget } from "react-icons/si";
+import { FaSourcetree } from "react-icons/fa";
+
 const Icons = {
   GoAlertFill,
   FaCircleCheck,
@@ -86,6 +100,18 @@ const Icons = {
   TbZoomReset,
   IoChevronDownOutline,
   IoChevronUp,
+  FaMoon,
+  MdSunny,
+  LiaProjectDiagramSolid,
+  FaImage,
+  BiSolidError,
+  PiSealWarningFill,
+  FaKey,
+  LuKeySquare,
+  MdOutlineTableChart,
+  LuLayoutDashboard,
+  SiTarget,
+  FaSourcetree,
 };
 
 export default Icons;

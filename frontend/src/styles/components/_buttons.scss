@@ -28,7 +28,7 @@
   svg {
     width: auto;
     height: 24px;
-    color: $properties-h1-color;
+    color: var(--properties-h1-color);
 
     transition: opacity 0.2s ease-in-out;
   }

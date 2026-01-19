@@ -6,10 +6,10 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: $modal-overlay-bg-color;
+  background-color: var(--modal-overlay-bg-color);
   z-index: 999;
 
-  .modal__keyboard_shortcuts {
+  .modal {
     width: 600px;
     max-width: 90%;
     min-height: 300px;
@@ -21,23 +21,81 @@
     left: 50%;
     transform: translate(-50%, -50%);
 
-    background-color: $keyboard-shortcuts-modal-bg-color;
+    background-color: var(--keyboard-shortcuts-modal-bg-color);
     border-radius: 20px;
     padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    // box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+    border: 2px solid var(--body-border-color);
 
     z-index: 1000;
 
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 
     h1 {
-      color: $modal-color;
+      color: var(--modal-color);
       font-family: $font-primary;
       font-size: 24px;
       margin-bottom: 20px;
       font-weight: 600;
+    }
+
+    p {
+      color: var(--modal-color);
+      font-family: $font-primary;
+      font-size: 16px;
+      margin-bottom: 20px;
+      font-weight: 200;
+    }
+
+    .modal__button {
+      width: auto;
+      padding: 10px 20px;
+      background-color: var(--modal-button-bg-color);
+      border: 2px solid transparent;
+      border-radius: 8px;
+      color: var(--error-validation-modal-btn-accept-color);
+
+      font-family: $font-primary;
+      font-size: 16px;
+      cursor: pointer;
+      transition:
+        background-color 0.2s ease-in-out,
+        color 0.2s ease-in-out,
+        border 0.2s ease-in-out,
+        opacity 0.2s ease-in-out;
+
+      &.confirm {
+        background-color: var(--modal-button-confirm-bg-color);
+
+        &:hover:not(.disabled) {
+          background-color: var(--modal-button-confirm-bg-hover-color);
+          color: var(--modal-button-confirm-bg-color);
+          border: 2px solid var(--modal-button-confirm-bg-color);
+        }
+      }
+
+      &.cancel {
+        background-color: var(--modal-button-cancel-bg-color);
+
+        &:hover:not(.disabled) {
+          background-color: var(--modal-button-cancel-bg-hover-color);
+          color: var(--modal-button-cancel-bg-color);
+          border: 2px solid var(--modal-button-cancel-bg-color);
+        }
+      }
+
+      &:hover:not(.disabled) {
+        background-color: var(--modal-button-bg-hover-color);
+      }
+
+      &.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
     }
 
     .modal__close-button {
@@ -53,7 +111,7 @@
       svg {
         width: 24px;
         height: 24px;
-        fill: $modal-color;
+        fill: var(--modal-color);
         cursor: pointer;
       }
 
@@ -62,112 +120,348 @@
       }
     }
 
-    .shortcut__section {
-      width: 100%;
-      margin-bottom: 20px;
+    &.keyboard_shortcuts {
+      .shortcut__section {
+        width: 100%;
+        margin-bottom: 20px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+
+        .shortcut__header {
+          width: 100%;
+          color: var(--modal-color);
+          margin-bottom: 10px;
+          background-color: transparent;
+          border: none;
+          border-bottom: 1px dashed var(--modal-border-color);
+          padding-bottom: 10px;
+          text-align: left;
+
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          cursor: default;
+
+          span {
+            font-size: 16px;
+            font-weight: 500;
+            font-family: $font-primary;
+          }
+
+          svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--modal-color);
+          }
+        }
+
+        .shortcut__list {
+          width: 100%;
+          flex: 1;
+          overflow: auto;
+          max-height: 0;
+          opacity: 0;
+          transform: translateY(-4px);
+
+          transition:
+            max-height 0.3s ease,
+            opacity 0.3s ease,
+            transform 0.3s ease;
+
+          &.open {
+            max-height: 400px;
+            opacity: 1;
+            transform: translateY(0);
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+
+            tr {
+              height: 40px;
+            }
+
+            th {
+              text-align: center;
+              padding: 8px;
+              color: var(--modal-color);
+              font-family: $font-primary;
+              font-size: 14px;
+            }
+
+            td {
+              text-align: center;
+              padding: 8px;
+              color: var(--modal-color);
+              font-family: $font-primary;
+              font-size: 12px;
+              font-weight: 100;
+            }
+
+            .shortcut {
+              display: flex;
+              justify-content: center;
+              gap: 8px;
+              align-items: center;
+
+              .shortcut__ctrl {
+                width: 60px;
+                padding: 4px 8px;
+                border: 1px solid var(--modal-border-color);
+                background-color: var(--modal-shortcut-bg-color);
+                border-radius: 4px;
+              }
+
+              .shortcut__key {
+                width: 40px;
+                padding: 4px 8px;
+                border: 1px solid var(--modal-border-color);
+                background-color: var(--modal-shortcut-bg-color);
+                border-radius: 4px;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    &.confirm {
+      gap: 20px;
+      .modal__actions {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+      }
+
+      p {
+        padding: 0 20px;
+        text-align: center;
+      }
+    }
+
+    &.error_validation {
+      width: 756px;
+      height: fit-content;
+      max-height: 60dvh;
 
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px;
+      justify-content: flex-start;
 
-      .shortcut__header {
+      .error__validation_modal_content {
         width: 100%;
-        color: $modal-color;
-        margin-bottom: 10px;
-        background-color: transparent;
-        border: none;
-        border-bottom: 1px dashed $modal-border-color;
-        padding-bottom: 10px;
-        text-align: left;
+        padding: 40px;
+        box-sizing: border-box;
+
+        flex: 1;
+        min-height: 0;
 
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
+        gap: 20px;
 
-        cursor: default;
-
-        span {
-          font-size: 16px;
-          font-weight: 500;
-          font-family: $font-primary;
-        }
-
-        svg {
-          width: 20px;
-          height: 20px;
-          fill: $modal-color;
-        }
-      }
-
-      .shortcut__list {
-        width: 100%;
-        flex: 1;
-        overflow-y: auto;
-
-        overflow: hidden;
-        max-height: 0;
-        opacity: 0;
-        transform: translateY(-4px);
-
-        transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
-
-        &.open {
-          max-height: 400px;
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        table {
+        .error__validation_modal_header {
           width: 100%;
-          border-collapse: collapse;
-          table-layout: fixed;
+          display: grid;
+          grid-template-columns: 80px 1fr;
+          grid-template-areas: "icon header";
+          align-items: center;
 
-          tr {
-            height: 40px;
+          gap: 40px;
+
+          svg {
+            width: 100%;
+            height: auto;
+            color: var(--error-validation-modal-icon-color);
+
+            grid-area: icon;
           }
 
-          th {
-            text-align: center;
-            padding: 8px;
-            color: $modal-color;
-            font-family: $font-primary;
-            font-size: 14px;
-          }
-
-          td {
-            text-align: center;
-            padding: 8px;
-            color: $modal-color;
-            font-family: $font-primary;
-            font-size: 12px;
-            font-weight: 100;
-          }
-
-          .shortcut {
+          .error__validation_header {
             display: flex;
+            flex-direction: column;
+            align-items: flex-start;
             justify-content: center;
-            gap: 8px;
+
+            grid-area: header;
+
+            h1 {
+              font-family: $font-primary;
+              font-size: 40px;
+              color: var(--error-validation-modal-h1-color);
+              font-weight: 500;
+              line-height: 145%;
+              letter-spacing: -0.5%;
+
+              margin: 0;
+            }
+
+            p {
+              font-family: var(--font-primary);
+              font-size: 14px;
+              color: var(--error-validation-modal-p-color);
+              font-weight: 400;
+              line-height: 145%;
+              letter-spacing: -0.5%;
+
+              margin: 0;
+            }
+          }
+        }
+
+        .error__validation_modal_body {
+          width: 100%;
+          flex: 1;
+
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: flex-start;
+
+          overflow-y: auto;
+
+          .error__validation_item {
+            width: 100%;
+            border-bottom: 2px dashed var(--body-border-color);
+
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            grid-template-areas: "icon info";
             align-items: center;
 
-            .shortcut__ctrl {
-              width: 60px;
-              padding: 4px 8px;
-              border: 1px solid $modal-border-color;
-              background-color: $modal-shortcut-bg-color;
-              border-radius: 4px;
+            gap: 30px;
+
+            &:last-child {
+              border-bottom: none;
             }
 
-            .shortcut__key {
-              width: 40px;
-              padding: 4px 8px;
-              border: 1px solid $modal-border-color;
-              background-color: $modal-shortcut-bg-color;
-              border-radius: 4px;
+            svg {
+              width: 100%;
+              height: auto;
+              color: var(--error-validation-modal-icon-color);
+
+              grid-area: icon;
+
+              &.warning {
+                color: var(--error-validation-modal-warning-icon-color);
+              }
+            }
+
+            .error__validation_info {
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              justify-content: center;
+
+              grid-area: info;
+
+              padding: 40px 0;
+
+              h2 {
+                font-family: var(--font-primary);
+                font-size: 18px;
+                color: var(--error-validation-modal-h1-color);
+                font-weight: 600;
+                line-height: 145%;
+                letter-spacing: -0.5%;
+
+                margin: 0;
+              }
+
+              p {
+                font-family: var(--font-primary);
+                font-size: 14px;
+                color: var(--error-validation-modal-p-color);
+                font-weight: 400;
+                line-height: 145%;
+                letter-spacing: -0.5%;
+
+                margin: 0;
+              }
+
+              .error__validation_suggest {
+                color: var(--error-validation-modal-suggest-color);
+                font-weight: 300;
+
+                margin: 0;
+              }
             }
           }
         }
       }
+    }
+
+    &.relation-creation {
+      width: 500px;
+      padding: 30px;
+
+      h2 {
+        font-family: $font-primary;
+        font-size: 22px;
+        color: var(--modal-color);
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+
+      .relation-selectors {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 20px;
+
+        .relation-selector {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+
+          padding: 30px 10px;
+
+          label {
+            display: block;
+            font-family: $font-primary;
+            font-size: 14px;
+            color: var(--modal-color);
+            margin-bottom: 10px;
+          }
+
+          select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--body-border-color);
+            border-radius: 4px;
+            font-family: $font-primary;
+            font-size: 14px;
+            color: var(--modal-color);
+            background-color: var(--properties-input-bg-color);
+
+            &:focus {
+              outline: none;
+              border-color: var(--input-focus-border-color);
+              box-shadow: 0 0 0 2px var(--input-focus-shadow-color);
+            }
+          }
+        }
+      }
+    }
+
+    .modal__info-note {
+      width: 100%;
+      font-family: $font-primary;
+      font-size: 12px;
+      text-align: center;
     }
   }
 }

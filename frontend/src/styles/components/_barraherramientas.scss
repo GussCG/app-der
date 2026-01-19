@@ -3,14 +3,14 @@
 .toolbar {
   width: 40px;
   height: max-content;
-  background-color: $header-bg-color;
+  background-color: var(--toolbar-bg-color);
 
   display: flex;
   flex-direction: column;
   align-items: center;
 
   margin: 50px 30px;
-  border: 1px $body-border-color solid;
+  border: 1px var(--body-border-color) solid;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
@@ -27,7 +27,7 @@
     justify-content: center;
     padding: 8px 0;
 
-    border-bottom: 1px $body-border-color solid;
+    border-bottom: 1px var(--body-border-color) solid;
 
     cursor: pointer;
 
@@ -41,14 +41,14 @@
     }
 
     &.active {
-      background-color: $toolbar-active-bg-color;
+      background-color: var(--toolbar-active-bg-color);
     }
 
     .toolbar__icon {
       svg {
         width: 20px;
         height: 20px;
-        color: $toolbar-icon-color;
+        color: var(--toolbar-icon-color);
 
         transition: transform 0.2s ease-in-out;
       }
@@ -72,7 +72,7 @@
       width: 0px;
       height: 0px;
       border-left: 6px solid transparent;
-      border-bottom: 6px solid $toolbar-icon-color;
+      border-bottom: 6px solid var(--toolbar-icon-color);
     }
 
     &:hover .variants {
@@ -96,8 +96,8 @@
     flex-direction: row;
     gap: 4px;
 
-    background-color: $toolbar-bg-color;
-    border: 1px $body-border-color solid;
+    background-color: var(--toolbar-bg-color);
+    border: 1px var(--body-border-color) solid;
     border-radius: 8px;
 
     .toolbar__item_variant {
@@ -108,7 +108,7 @@
       justify-content: center;
 
       padding: 6px 8px;
-      border-right: 1px $body-border-color solid;
+      border-right: 1px var(--body-border-color) solid;
 
       &:last-child {
         border-right: none;

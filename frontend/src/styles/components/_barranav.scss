@@ -3,16 +3,18 @@
 .barra__nav {
   width: auto;
   height: 64px;
-  background-color: $header-bg-color;
+  background-color: var(--header-bg-color);
 
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
 
-  border: 1px solid $body-border-color;
+  border: 1px solid var(--body-border-color);
 
   grid-area: nav;
+
+  z-index: 10;
 
   .nav__menu {
     width: auto;
@@ -21,27 +23,21 @@
     align-items: center;
     gap: 8px;
 
-    svg {
-      color: $header-logo-color;
+    .nav__header_icon {
+      color: var(--header-logo-color);
       width: 32px;
       height: 32px;
-    }
-
-    img {
-      width: 32px;
-      height: 32px;
-      filter: invert(1);
     }
 
     input {
       width: auto;
       height: auto;
-      background-color: $header-input-bg-color;
+      background-color: var(--header-input-bg-color);
       border: none;
       border-radius: 5px;
       padding: 8px 0;
 
-      color: white;
+      color: var(--header-input-text-color);
       font-family: $font-primary;
       font-weight: bold;
       font-size: 15px;
@@ -59,7 +55,7 @@
       font-family: $font-primary;
       font-weight: 500;
       font-size: 15px;
-      color: $header-nav-tab-color;
+      color: var(--header-nav-tab-color);
       line-height: 145%;
       letter-spacing: -0.5%;
       text-align: center;
@@ -72,7 +68,7 @@
         transition: color 0.2s ease-in-out;
 
         &:hover {
-          color: white;
+          color: var(--header-nav-item-hover-color);
           cursor: pointer;
         }
       }
@@ -101,11 +97,23 @@
 
       padding: 5px 10px;
 
-      border: 1px solid $header-nav-loading-border;
+      border: 1px solid var(--header-nav-loading-border);
       background-color: transparent;
-      color: $header-nav-loading-color;
+      color: var(--header-nav-loading-color);
 
       overflow: hidden;
+
+      &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--progress, 0%); // Usa la variable de React
+        background-color: var(--header-nav-loading-fill);
+        transition: width 0.3s ease-out;
+        z-index: 1;
+      }
 
       p {
         position: relative;
@@ -116,7 +124,7 @@
       svg {
         height: 20px;
         width: auto;
-        color: $header-nav-valid-color;
+        color: var(--header-nav-valid-color);
       }
 
       &::before {
@@ -124,43 +132,43 @@
         position: absolute;
         inset: 0;
         width: var(--progress, 0%);
-        background-color: $header-nav-loading-fill;
+        background-color: var(--header-nav-loading-fill);
         transition: width 0.4s ease;
         z-index: 1;
       }
 
       &.invalid {
-        background-color: $header-nav-invalid-bg;
-        border-color: $header-nav-invalid-bg;
-        color: $header-nav-invalid-color;
+        background-color: var(--header-nav-invalid-bg);
+        border-color: var(--header-nav-invalid-bg);
+        color: var(--header-nav-invalid-color);
 
         &::before {
           display: none;
         }
 
         svg {
-          color: $header-nav-invalid-color;
+          color: var(--header-nav-invalid-color);
         }
       }
 
       &.valid {
-        background-color: $header-nav-valid-bg;
-        border-color: $header-nav-valid-bg;
-        color: $header-nav-valid-color;
+        background-color: var(--header-nav-valid-bg);
+        border-color: var(--header-nav-valid-bg);
+        color: var(--header-nav-valid-color);
 
         &::before {
           display: none;
         }
 
         svg {
-          color: $header-nav-valid-color;
+          color: var(--header-nav-valid-color);
         }
       }
     }
 
     .nav__button {
       height: 36px;
-      background-color: $header-nav-button-bg;
+      background-color: var(--header-nav-button-bg);
       font-family: $font-primary;
       color: white;
       font-size: 15px;
@@ -173,40 +181,52 @@
       gap: 5px;
       padding: 5px 10px;
 
-      transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+      transition:
+        background-color 0.2s ease-in-out,
+        color 0.2s ease-in-out;
+
+      &.validate {
+        background-color: var(--header-nav-validate-button-bg);
+        color: var(--header-nav-validate-button-color);
+
+        &:hover {
+          background-color: var(--header-nav-validate-button-hover-bg);
+          color: var(--header-nav-validate-button-color);
+        }
+      }
 
       &:hover {
-        background-color: $header-nav-button-hover-bg;
-        color: $header-nav-button-hover-color;
+        background-color: var(--header-nav-button-hover-bg);
+        color: var(--header-nav-button-hover-color);
         cursor: pointer;
 
         svg {
-          color: $header-nav-button-hover-color;
+          color: var(--header-nav-button-hover-color);
         }
       }
 
       svg {
         height: 20px;
         width: auto;
-        color: $header-nav-button-color;
+        color: var(--header-nav-button-color);
 
         transition: color 0.2s ease-in-out;
       }
 
       &.secondary {
-        background-color: $header-nav-button-2-bg;
-        color: $header-nav-button-2-color;
+        background-color: var(--header-nav-button-2-bg);
+        color: var(--header-nav-button-2-color);
 
         svg {
-          color: $header-nav-button-2-color;
+          color: var(--header-nav-button-2-color);
         }
 
         &:hover {
-          background-color: $header-nav-button-2-hover-bg;
-          color: $header-nav-button-2-hover-color;
+          background-color: var(--header-nav-button-2-hover-bg);
+          color: var(--header-nav-button-2-hover-color);
 
           svg {
-            color: $header-nav-button-2-hover-color;
+            color: var(--header-nav-button-2-hover-color);
           }
         }
       }
@@ -215,8 +235,8 @@
 }
 
 .nav__desplegable {
-  background-color: $header-bg-color;
-  border: 1px solid $body-border-color;
+  background-color: var(--header-bg-color);
+  border: 1px solid var(--body-border-color);
   border-radius: 10px;
   min-width: 250px;
   padding: 0;
@@ -230,12 +250,13 @@
 
   pointer-events: auto;
 
+  overflow: hidden;
+
   .nav__item {
     position: relative;
     padding: 8px 10px;
     font-family: $font-primary;
     font-size: 12px;
-    color: white;
     font-weight: 400;
 
     display: flex;
@@ -246,6 +267,10 @@
 
     transition: background-color 0.2s ease-in-out;
 
+    p {
+      color: var(--header-nav-item-color);
+    }
+
     &.divider:not(:first-child)::before {
       content: "";
       position: absolute;
@@ -253,7 +278,7 @@
       left: 10px;
       right: 10px;
       height: 1px;
-      background-color: $body-border-color;
+      background-color: var(--body-border-color);
       opacity: 0.5;
     }
 
@@ -264,25 +289,24 @@
       left: 10px;
       right: 10px;
       height: 1px;
-      background-color: $body-border-color;
+      background-color: var(--body-border-color);
       opacity: 0.5;
     }
 
     svg {
       height: 18px;
       width: auto;
-      color: $desplegable-icon-color;
+      color: var(--header-nav-item-color);
     }
 
     &:hover {
-      background-color: $toolbar-bg-color;
+      background-color: var(--toolbar-bg-color);
       cursor: pointer;
     }
 
     .nav__item-command {
       margin-left: auto;
       font-size: 10px;
-      color: $desplegable-icon-color;
     }
   }
 }

@@ -7,7 +7,7 @@ function KeyboardShortcutsModal({ onClose }) {
   return (
     <div className="modal__overlay" onClick={onClose}>
       <div
-        className="modal__keyboard_shortcuts"
+        className="modal keyboard_shortcuts"
         onClick={(e) => e.stopPropagation()}
       >
         <h1>Atajos de Teclado</h1>
@@ -98,13 +98,13 @@ function KeyboardShortcutsModal({ onClose }) {
                       <div className="shortcut__key">L</div>
                     </td>
                   </tr>
-                  <tr>
+                  {/* <tr>
                     <td>Ajustar Pantalla</td>
                     <td className="shortcut">
                       <div className="shortcut__ctrl">Ctrl</div>+
                       <div className="shortcut__key">A</div>
                     </td>
-                  </tr>
+                  </tr> */}
                   <tr>
                     <td>Ocultar Cuadrícula</td>
                     <td className="shortcut">
@@ -112,11 +112,18 @@ function KeyboardShortcutsModal({ onClose }) {
                       <div className="shortcut__key">G</div>
                     </td>
                   </tr>
-                  <tr>
+                  {/* <tr>
                     <td>Abrir Herramientas</td>
                     <td className="shortcut">
                       <div className="shortcut__ctrl">Ctrl</div>+
                       <div className="shortcut__key">T</div>
+                    </td>
+                  </tr> */}
+                  <tr>
+                    <td>Cambiar de tema</td>
+                    <td className="shortcut">
+                      <div className="shortcut__ctrl">Ctrl</div>+
+                      <div className="shortcut__key">J</div>
                     </td>
                   </tr>
                   <tr>
@@ -185,7 +192,7 @@ function KeyboardShortcutsModal({ onClose }) {
                       <div className="shortcut__key">R</div>
                     </td>
                   </tr>
-                  <tr>
+                  {/* <tr>
                     <td>Zoom In</td>
                     <td className="shortcut">
                       <div className="shortcut__ctrl">Ctrl</div>+
@@ -203,9 +210,9 @@ function KeyboardShortcutsModal({ onClose }) {
                     <td>Reset Zoom</td>
                     <td className="shortcut">
                       <div className="shortcut__ctrl">Ctrl</div>+
-                      <div className="shortcut__key">0</div>
+                      <div className="shortcut__key">A</div>
                     </td>
-                  </tr>
+                  </tr> */}
                 </tbody>
               </table>
             </div>

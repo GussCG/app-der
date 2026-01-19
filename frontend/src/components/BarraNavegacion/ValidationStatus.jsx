@@ -2,14 +2,14 @@ import Icons from "../../components/Others/IconProvider.jsx";
 
 const { FaCircleCheck } = Icons;
 
-function ValidationStatus({ state, progress }) {
-  if (state === "loading") {
+function ValidationStatus({ state, onValidate, disabled, progress }) {
+  if (state === "validating") {
     return (
       <div
-        className="nav__validation_progress loading"
-        style={{ "--progress": `${progress}%` }}
+        className="nav__validation_progress"
+        style={{ "--progress": `${progress}%` }} // Pasamos el progreso al CSS
       >
-        <p>Validando...</p>
+        <p>Validando... {progress}%</p>
       </div>
     );
   }
@@ -22,11 +22,23 @@ function ValidationStatus({ state, progress }) {
     );
   }
 
+  if (state === "valid") {
+    return (
+      <div className="nav__validation_progress valid">
+        <FaCircleCheck />
+        <p>Válido</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="nav__validation_progress valid">
-      <FaCircleCheck />
-      <p>Válido</p>
-    </div>
+    <button
+      className="nav__button validate"
+      onClick={onValidate}
+      disabled={disabled}
+    >
+      Validar Diagrama
+    </button>
   );
 }
 

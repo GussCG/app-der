@@ -1,0 +1,124 @@
+@use "../variables" as *;
+
+.er__entity {
+  padding: 0;
+  background-color: transparent;
+  border: 2px dashed transparent;
+
+  &.selected {
+    border: 2px dashed var(--node-selected-border);
+  }
+}
+
+.er__relation {
+  padding: 0;
+  background-color: transparent;
+  border: 2px dashed transparent;
+
+  &.selected {
+    border: 2px dashed var(--node-selected-border);
+  }
+}
+
+.er-edge-path {
+  stroke: var(--er-edge-path-stroke);
+}
+
+.er-edge-text {
+  fill: var(--er-edge-text-fill);
+}
+
+.relational-table {
+  min-width: 200px;
+  border-radius: 10px;
+  overflow: hidden;
+
+  font-family: $font-primary;
+
+  .header {
+    position: relative;
+    padding: 10px 6px;
+    width: 100%;
+    text-align: center;
+    border-bottom: none;
+
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 12px;
+  }
+
+  .column {
+    height: auto;
+    display: grid;
+    grid-template-columns: 25px 1fr 70px auto;
+    grid-template-areas: "key name type extras";
+    align-items: center;
+    position: relative;
+    padding: 6px 0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 12px;
+      height: 12px;
+      margin-right: 8px;
+
+      grid-area: key;
+
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .name {
+      font-size: 14px;
+      font-weight: 300;
+
+      grid-area: name;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 8px;
+    }
+
+    .type {
+      font-size: 10px;
+      font-weight: 200;
+      margin-left: auto;
+
+      grid-area: type;
+      font-family: monospace;
+      text-align: left;
+    }
+
+    .extras {
+      grid-area: extras;
+      justify-content: flex-end;
+      align-items: center;
+      display: flex;
+
+      span {
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-size: 9px;
+        font-weight: 600;
+        margin-left: 4px;
+      }
+    }
+  }
+}

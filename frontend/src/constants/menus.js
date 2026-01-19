@@ -17,27 +17,30 @@ const {
   HiOutlineTableCells,
   GrInspect,
   TbTools,
+  FaMoon,
+  MdSunny,
+  FaImage,
 } = Icons;
 
 const MENUS = {
   archivo: [
     { icon: LuFileText, label: "Nuevo diagrama", command: "Ctrl+N" },
-    { icon: LuFileInput, label: "Abrir ...", command: "Ctrl+O" },
-    { icon: MdOutlineSave, label: "Guardar", divider: true, command: "Ctrl+S" },
+    { icon: LuFileInput, label: "Abrir ...", command: "Ctrl+O", divider: true },
+    { icon: MdOutlineSave, label: "Guardar diagrama", command: "Ctrl+S" },
+    { icon: FaImage, label: "Exportar imagen", command: "Ctrl+E" },
   ],
   editar: [
     { icon: BiUndo, label: "Deshacer", command: "Ctrl+Z" },
     { icon: BiRedo, label: "Rehacer", command: "Ctrl+Y" },
     {
       icon: RiDeleteBin6Line,
-      label: "Eliminar selección",
+      label: "Eliminar",
       command: "Supr",
       divider: true,
     },
     {
       icon: IoDuplicateOutline,
       label: "Duplicar elemento",
-      divider: true,
       command: "Ctrl+D",
     },
     {
@@ -51,12 +54,18 @@ const MENUS = {
       icon: RiExpandDiagonalLine,
       label: "Ajustar pantalla",
       command: "Ctrl+A",
+      divider: true,
     },
     {
       icon: IoMdGrid,
       label: "Ocultar cuadrícula",
-      divider: true,
+
       command: "Ctrl+G",
+    },
+    {
+      icon: FaMoon,
+      label: "Cambiar de tema",
+      command: "Ctrl+J",
     },
   ],
   ventana: [

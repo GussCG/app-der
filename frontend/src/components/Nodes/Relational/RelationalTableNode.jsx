@@ -1,0 +1,110 @@
+import Icons from "../../Others/IconProvider";
+import { Handle, Position } from "reactflow";
+import { colorToBgNode } from "../../../utils/colorToBgNode";
+import { useTheme } from "../../../context/ThemeContext";
+
+const { FaKey } = Icons;
+
+function RelationalTableNode({ id, data, selected }) {
+  const { theme } = useTheme();
+
+  const headerStyle = {
+    backgroundColor: colorToBgNode(data.color, 0.2),
+    color: theme === "dark" ? "#fff" : "#000",
+  };
+
+  const containerStyle = {
+    backgroundColor:
+      colorToBgNode(data.color, 0.1) || "rgba(255, 255, 255, 0.8)",
+    border: selected
+      ? `2px dashed var(--node-selected-border)`
+      : `2px solid ${data.color || "#323c4c"}`,
+    color: theme === "dark" ? "#fff" : "#000",
+    transition: "all 0.2s ease-in-out",
+  };
+
+  return (
+    <div
+      className={`relational-table ${selected ? "selected" : ""}`}
+      style={containerStyle}
+    >
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left"
+        style={{
+          visibility: "hidden",
+        }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right"
+        style={{
+          visibility: "hidden",
+        }}
+      />
+
+      <div className="header" style={headerStyle}>
+        <h3>{data.name}</h3>
+      </div>
+
+      <div className="body">
+        {data.columns.map((col, index) => (
+          <div
+            key={index}
+            className="column"
+            style={{
+              borderBottom:
+                index !== data.columns.length - 1
+                  ? `1px dashed ${colorToBgNode(data.color, 0.35)}`
+                  : "none",
+            }}
+          >
+            <span className="icon">
+              {col.isPk ? (
+                <FaKey style={{ color: "#f1c40f" }} />
+              ) : col.isFk ? (
+                <FaKey style={{ color: "#95a5a6" }} />
+              ) : null}
+            </span>
+            <span className="name">{col.name}</span>
+            <span className="type">{col.type}</span>
+
+            <div className="extras">
+              {col.isNotNull && (
+                <span
+                  style={{
+                    backgroundColor: colorToBgNode(data.color, 0.35),
+                  }}
+                >
+                  NOT NULL
+                </span>
+              )}
+              {col.isUnique && (
+                <span
+                  style={{
+                    backgroundColor: colorToBgNode(data.color, 0.35),
+                  }}
+                >
+                  UNIQUE
+                </span>
+              )}
+              {col.isAi && (
+                <span
+                  style={{
+                    backgroundColor: colorToBgNode(data.color, 0.35),
+                  }}
+                >
+                  AI
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default RelationalTableNode;

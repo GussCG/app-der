@@ -1,58 +1,182 @@
-import { createElement, useEffect, useState } from "react";
+import { createElement, useEffect, useMemo, useState } from "react";
 import Icons from "../Others/IconProvider.jsx";
 import BarraDesplegable from "./BarraDesplegable.jsx";
 import ValidationStatus from "./ValidationStatus.jsx";
+import ConfirmModal from "../Modals/ConfirmModal.jsx";
 
 import { useEditorMode } from "../../context/EditorModeContext.jsx";
 import KeyboardShortcutsModal from "../Modals/KeyboardShortcutsModal.jsx";
+import { useKeyboard } from "../../context/KeyboardContext.jsx";
 
-const { FiDatabase, TbSql, LuTable2, erdIcon } = Icons;
+import {
+  fitToScreen,
+  exportDiagramAsPng,
+  openAppTour,
+  openAboutModal,
+} from "../../utils/diagramActions.js";
+
+import { useEditor } from "../../context/EditorContext.jsx";
+import { useTheme } from "../../context/ThemeContext.jsx";
+import { useReactFlow } from "reactflow";
+
+const { FiDatabase, TbSql, LuTable2, LiaProjectDiagramSolid } = Icons;
 
 function BarraNav() {
   const { mode, setMode } = useEditorMode();
-  const [menuActivo, setMenuActivo] = useState(null);
+  const { toggleTheme } = useTheme();
+  const { fitView, getNodes, getEdges } = useReactFlow();
+  const {
+    diagram,
+    diagramName,
+    setDiagramName,
+    undo,
+    redo,
+    isDirty,
+    setIsDirty,
+    selectedElementIds,
+    setSelectedElementIds,
+    setDiagram,
+    bgVariant,
+    setBgVariant,
+    saveDiagram,
+    createNewDiagram,
+    openDiagram,
+    deleteElementsDiagram,
+    duplicateSelectedElements,
+    validationState,
+    validateCurrentDiagram,
+    validationProgress,
+  } = useEditor();
 
-  const [validationState, setValidationState] = useState("loading"); // "loading" o "valid" o "invalid"
-  const [progress, setProgress] = useState(0); // progreso de validación (0-100)
+  const [confirmValidation, setConfirmValidation] = useState({
+    show: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
 
-  // Para pruebas de simulacion
-  useEffect(() => {
-    if (validationState !== "loading") return;
+  const [onlyDesignMode, setOnlyDesignMode] = useState({ show: false });
 
-    setProgress(0);
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setValidationState("valid");
-          return 100;
-        }
-        return prev + 10;
+  const executeValidation = (action, nameAction) => {
+    const isEmpty =
+      diagram.entities.length === 0 && diagram.relations.length === 0;
+
+    if (isEmpty || validationState === "valid") {
+      action();
+    } else {
+      setConfirmValidation({
+        show: true,
+        title: `¿Continuar con ${nameAction}?`,
+        message: `Para ${nameAction} es necesario validar el diagrama. ¿Deseas validar y continuar?`,
+        onConfirm: action,
       });
-    }, 300);
-    return () => clearInterval(interval);
-  }, [validationState]);
-
-  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
-
-  const menuActions = {
-    "Nuevo diagrama": () => alert("Nuevo diagrama seleccionado"),
-    "Abrir ...": () => alert("Abrir diagrama seleccionado"),
-    Guardar: () => alert("Guardar diagrama seleccionado"),
-    Deshacer: () => alert("Deshacer acción seleccionada"),
-    Rehacer: () => alert("Rehacer acción seleccionada"),
-    "Eliminar selección": () => alert("Eliminar selección seleccionada"),
-    "Duplicar elemento": () => alert("Duplicar elementos seleccionado"),
-    "Limpiar lienzo": () => alert("Limpiar lienzo seleccionado"),
-    "Ajustar pantalla": () => alert("Ajustar pantalla seleccionado"),
-    "Ocultar cuadrícula": () => alert("Ocultar cuadrícula seleccionado"),
-    "Abrir herramientas": () => alert("Abrir herramientas seleccionado"),
-    "¿Cómo usar?": () => alert("¿Cómo usar? seleccionado"),
-    "Atajos de teclado": () => setShowShortcutsModal(true),
-    "Acerca de": () => alert("Acerca de seleccionado"),
+    }
   };
 
+  const [menuActivo, setMenuActivo] = useState(null);
+  const [confirmNew, setConfirmNew] = useState({
+    show: false,
+    action: null,
+  });
+
+  const { isShortcutsModalOpen, setIsShortcutsModalOpen } = useKeyboard();
+
+  const menuActions = useMemo(
+    () => ({
+      "Nuevo diagrama": () => {
+        const action = () => {
+          createNewDiagram();
+          setMode("er");
+        };
+
+        if (isDirty) {
+          setConfirmNew({ show: true, action });
+        } else {
+          action();
+        }
+      },
+      "Abrir ...": () => {
+        const action = () => {
+          openDiagram();
+          setMode("er");
+        };
+
+        if (isDirty) {
+          setConfirmNew({ show: true, action });
+        } else {
+          action();
+        }
+      },
+      "Guardar diagrama": () =>
+        executeValidation(() => saveDiagram(), "guardar"),
+      "Exportar imagen": () =>
+        executeValidation(() => {
+          const nodes = getNodes();
+          const edges = getEdges();
+
+          exportDiagramAsPng(nodes, edges, diagramName);
+        }, "exportar imagen"),
+      Deshacer: () => mode === "er" && undo(),
+      Rehacer: () => mode === "er" && redo(),
+      Eliminar: () => {
+        if (mode === "er" && selectedElementIds.length > 0) {
+          deleteElementsDiagram(selectedElementIds);
+          setSelectedElementIds([]);
+        }
+      },
+      "Duplicar elemento": () => {
+        if (mode === "er") {
+          duplicateSelectedElements();
+        }
+      },
+      "Limpiar lienzo": () => {
+        createNewDiagram();
+        setMode("er");
+      },
+      "Ajustar pantalla": () => fitToScreen(fitView),
+      "Ocultar cuadrícula": () =>
+        setBgVariant(bgVariant === null ? "dots" : null),
+      "Abrir herramientas": () => alert("Abrir herramientas seleccionado"),
+      "¿Cómo usar?": () => alert("¿Cómo usar? seleccionado"),
+      "Atajos de teclado": () => setIsShortcutsModalOpen(true),
+      "Cambiar de tema": () => toggleTheme(),
+      "Acerca de": () => alert("Acerca de seleccionado"),
+    }),
+    [
+      isDirty,
+      createNewDiagram,
+      openDiagram,
+      saveDiagram,
+      undo,
+      redo,
+      deleteElementsDiagram,
+      selectedElementIds,
+      setSelectedElementIds,
+      duplicateSelectedElements,
+      fitToScreen,
+      bgVariant,
+      setBgVariant,
+      setIsShortcutsModalOpen,
+      validationState,
+    ],
+  );
+
   const handleMenuSelect = (label) => {
+    setMenuActivo(null);
+
+    const designOnlyActions = [
+      "Deshacer",
+      "Rehacer",
+      "Eliminar",
+      "Duplicar elemento",
+      "Limpiar lienzo",
+    ];
+
+    if (mode === "relational" && designOnlyActions.includes(label)) {
+      setOnlyDesignMode({ show: true });
+      return;
+    }
+
     const action = menuActions[label];
     if (action) action();
   };
@@ -62,22 +186,26 @@ function BarraNav() {
       <header className="barra__nav">
         <div className="nav__menu">
           {mode === "er" && (
-            <img
-              src={erdIcon}
-              alt="ER Diagram Icon"
-              className="nav__mode-icon"
-            />
+            <>
+              <LiaProjectDiagramSolid className="nav__header_icon" />
+            </>
           )}
-          {mode === "sql" && <TbSql className="nav__mode-icon" />}
-          {mode === "relational" && <LuTable2 className="nav__mode-icon" />}
+          {mode === "relational" && (
+            <>
+              <LuTable2 className="nav__header_icon" />
+            </>
+          )}
           <input
             type="text"
             className="nav__filename"
-            value="Lienzo ER"
-            readOnly
+            value={`${diagramName}${isDirty ? "*" : ""}`}
+            onChange={(e) => {
+              setDiagramName(e.target.value.replace(/\*$/, ""));
+              setIsDirty(true);
+            }}
           />
           <nav className="nav__tabs">
-            {["archivo", "editar", "ver", "ventana", "ayuda"].map((tipo) => (
+            {["archivo", "editar", "ver", "ayuda"].map((tipo) => (
               <div
                 key={tipo}
                 className="nav__tab"
@@ -93,44 +221,91 @@ function BarraNav() {
           </nav>
         </div>
         <div className="nav__actions">
-          <ValidationStatus state={validationState} progress={progress} />
-
           {mode === "er" && (
-            <button
-              className="nav__button"
-              onClick={() => setMode("relational")}
-            >
-              <FiDatabase />A relacional
-            </button>
+            <>
+              <ValidationStatus
+                state={validationState}
+                onValidate={validateCurrentDiagram}
+                disabled={
+                  (diagram.entities.length === 0 &&
+                    diagram.relations.length === 0) ||
+                  validationState === "validating"
+                }
+                progress={validationProgress}
+              />
+              <button
+                className="nav__button"
+                onClick={() =>
+                  executeValidation(
+                    () => setMode("relational"),
+                    "cambiar a relacional",
+                  )
+                }
+              >
+                <FiDatabase />
+                Ver en Relacional
+              </button>
+            </>
           )}
 
           {mode === "relational" && (
             <>
               <button className="nav__button" onClick={() => setMode("er")}>
-                <FiDatabase />A ER
+                <FiDatabase />
+                Regresar a ER
               </button>
-              <button
-                className="nav__button secondary"
-                onClick={() => setMode("sql")}
-              >
-                <FiDatabase />A SQL
+              <button className="nav__button secondary" onClick={() => {}}>
+                <FiDatabase />
+                Exportar SQL
               </button>
             </>
-          )}
-
-          {mode === "sql" && (
-            <button
-              className="nav__button"
-              onClick={() => setMode("relational")}
-            >
-              <FiDatabase />A relacional
-            </button>
           )}
         </div>
       </header>
 
-      {showShortcutsModal && (
-        <KeyboardShortcutsModal onClose={() => setShowShortcutsModal(false)} />
+      {isShortcutsModalOpen && (
+        <KeyboardShortcutsModal
+          onClose={() => setIsShortcutsModalOpen(false)}
+        />
+      )}
+
+      {confirmNew.show && (
+        <ConfirmModal
+          title="¿Crear nuevo diagrama?"
+          message="Se perderán los cambios no guardados. ¿Deseas continuar?"
+          onClose={() => setConfirmNew({ show: false, action: null })}
+          onConfirm={() => {
+            confirmNew.action();
+            setConfirmNew({ show: false, action: null });
+          }}
+        />
+      )}
+
+      {confirmValidation.show && (
+        <ConfirmModal
+          title={confirmValidation.title}
+          message={confirmValidation.message}
+          confirmText="Validar"
+          cancelText="Cancelar"
+          onClose={() => setConfirmValidation({ show: false })}
+          onConfirm={async () => {
+            const isValid = await validateCurrentDiagram();
+
+            if (isValid) {
+              confirmValidation.onConfirm();
+            }
+            setConfirmValidation({ show: false });
+          }}
+        />
+      )}
+
+      {onlyDesignMode.show && (
+        <ConfirmModal
+          title="Modo no disponible"
+          message="Esta acción solo está disponible en el modo de diseño ER. Cambia al modo ER para usar esta función."
+          onClose={() => setOnlyDesignMode({ show: false })}
+          confirmText="Entendido"
+        />
       )}
     </>
   );

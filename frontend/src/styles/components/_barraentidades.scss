@@ -5,8 +5,10 @@
   width: 300px;
   height: 100dvh;
 
-  background-color: $elements-bg-color;
-  border: 1px solid $body-border-color;
+  background-color: var(--elements-bg-color);
+
+  border: 1px solid var(--body-border-color);
+  border-top: 1px solid transparent;
 
   display: flex;
   flex-direction: column;
@@ -32,7 +34,7 @@
   h1 {
     font-family: $font-primary;
     font-size: 20px;
-    color: $properties-h1-color;
+    color: var(--properties-h1-color);
     margin: 16px 14px;
     font-weight: 500;
     line-height: 145%;
@@ -40,7 +42,7 @@
   }
 
   .elements__container {
-    border-top: 1px solid $body-border-color;
+    border-top: 1px solid var(--body-border-color);
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -51,7 +53,7 @@
     .elements__searchbar {
       width: 85%;
       height: 36px;
-      background-color: $elements-input-bg-color;
+      background-color: var(--elements-input-bg-color);
 
       display: flex;
       align-items: center;
@@ -63,7 +65,7 @@
       svg {
         height: 20px;
         width: auto;
-        color: $desplegable-icon-color;
+        color: var(--desplegable-icon-color);
       }
 
       input {
@@ -73,7 +75,7 @@
         border: none;
         outline: none;
 
-        color: $properties-input-color;
+        color: var(--properties-input-color);
         font-family: $font-primary;
         font-size: 14px;
         font-weight: 200;
@@ -81,8 +83,27 @@
         letter-spacing: -0.5%;
 
         &::placeholder {
-          color: $properties-label-color;
+          color: var(--properties-label-color);
           opacity: 0.5;
+        }
+      }
+
+      .elements__clear_button {
+        background-color: transparent;
+        border: none;
+
+        svg {
+          height: 20px;
+          width: auto;
+          color: var(--desplegable-icon-color);
+
+          transition: transform 0.2s ease-in-out;
+        }
+        &:hover {
+          svg {
+            transform: scale(1.2);
+            cursor: pointer;
+          }
         }
       }
     }
@@ -106,7 +127,7 @@
 
         font-family: $font-primary;
         font-size: 14px;
-        color: $properties-input-color;
+        color: var(--properties-input-color);
         font-weight: 400;
         line-height: 145%;
 
@@ -114,14 +135,14 @@
 
         &:hover,
         &.selected {
-          background-color: $elements-item-hover-bg-color;
+          background-color: var(--elements-item-hover-bg-color);
           cursor: pointer;
         }
 
         svg {
           height: 24px;
           width: auto;
-          color: $elements-icon-color;
+          color: var(--elements-icon-color);
         }
 
         button {
@@ -135,7 +156,7 @@
           svg {
             height: 20px;
             width: auto;
-            color: $properties-input-color;
+            color: var(--properties-input-color);
 
             transition: transform 0.2s ease-in-out;
           }
@@ -155,7 +176,7 @@
         //     left: 10px;
         //     right: 10px;
         //     height: 1px;
-        //     background-color: $body-border-color;
+        //     background-color: var(--body-border-color);
         //     opacity: 0.9;
         //   }
       }

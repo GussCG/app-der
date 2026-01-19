@@ -1,6 +1,10 @@
 @use "variables" as *;
 @use "global" as *;
 
+// Temas
+@use "themes/light" as *;
+@use "themes/dark" as *;
+
 // Componentes
 @use "components/barranav" as *;
 @use "components/barraentidades" as *;
@@ -9,3 +13,4 @@
 @use "components/buttons" as *;
 @use "components/modals" as *;
 @use "components/editors" as *;
+@use "components/nodes" as *;
