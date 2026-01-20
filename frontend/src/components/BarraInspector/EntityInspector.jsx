@@ -3,6 +3,8 @@ const { IoClose, FaKey, LuKeySquare } = Icons;
 
 import { useEditor } from "../../context/EditorContext.jsx";
 import { useEditorMode } from "../../context/EditorModeContext.jsx";
+import { normalizeSqlType } from "../../utils/normalizeSqlType.js";
+import { useEffect, useState } from "react";
 
 function EntityInspector() {
   const { selectedElement, updateElement } = useEditor();
@@ -13,6 +15,8 @@ function EntityInspector() {
   if (!selectedElement) return null;
 
   const { name, weak } = selectedElement.data;
+
+  const [localName, setLocalName] = useState(name);
 
   const attributes = isRelational
     ? selectedElement.data.columns || []
@@ -48,8 +52,11 @@ function EntityInspector() {
     const newId = crypto.randomUUID();
     const newAttr = {
       id: newId,
-      name: "nuevo_atributo",
+      name: "",
       type: "varchar",
+      length: 255,
+      precision: 10,
+      scale: 2,
       // Campos para ER
       pk: false,
       partial: false,
@@ -102,6 +109,77 @@ function EntityInspector() {
     });
   };
 
+  const handleTypeChange = (attr, newType) => {
+    const patch = normalizeSqlType(attr, newType);
+
+    const targetArray = isRelational ? "columns" : "attributes";
+
+    updateElement({
+      ...selectedElement,
+      data: {
+        ...selectedElement.data,
+        [targetArray]: attributes.map((a) =>
+          a.id === attr.id ? { ...a, ...patch } : a,
+        ),
+      },
+    });
+  };
+
+  const renderTypeParams = (attr) => {
+    switch (attr.type) {
+      case "varchar":
+        return (
+          <input
+            type="number"
+            min={1}
+            value={attr.length ?? ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              updateAttribute(
+                attr.id,
+                "length",
+                v === "" ? undefined : Number(v),
+              );
+            }}
+            onBlur={() => {
+              if (!attr.length || attr.length < 1) {
+                updateAttribute(attr.id, "length", 255);
+              }
+            }}
+          />
+        );
+
+      case "decimal":
+        return (
+          <>
+            <input
+              type="number"
+              min={1}
+              value={attr.precision ?? 10}
+              onChange={(e) =>
+                updateAttribute(attr.id, "precision", Number(e.target.value))
+              }
+            />
+            <input
+              type="number"
+              min={0}
+              value={attr.scale ?? 2}
+              onChange={(e) =>
+                updateAttribute(attr.id, "scale", Number(e.target.value))
+              }
+            />
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  useEffect(() => {
+    setLocalName(name);
+  }, [name]);
+
   return (
     <div className="properties__container">
       <div className="properties__item">
@@ -109,11 +187,12 @@ function EntityInspector() {
           <label htmlFor="entity-name">Nombre de la entidad</label>
           <input
             type="text"
-            value={name || ""}
-            onChange={(e) =>
+            value={localName || ""}
+            onChange={(e) => setLocalName(e.target.value)}
+            onBlur={() =>
               updateElement({
                 ...selectedElement,
-                data: { ...selectedElement.data, name: e.target.value },
+                data: { ...selectedElement.data, name: localName },
               })
             }
           />
@@ -205,18 +284,36 @@ function EntityInspector() {
                     />
                   </td>
                   <td>
-                    <select
-                      value={attr.type || ""}
-                      onChange={(e) =>
-                        updateAttribute(attr.id, "type", e.target.value)
-                      }
-                    >
-                      <option value="int">int</option>
-                      <option value="varchar">varchar</option>
-                      <option value="text">text</option>
-                      <option value="date">date</option>
-                      <option value="boolean">boolean</option>
-                    </select>
+                    <div className="type-cell">
+                      <select
+                        value={attr.type}
+                        onChange={(e) => handleTypeChange(attr, e.target.value)}
+                      >
+                        <option value="int">INT</option>
+                        <option value="tinyint">TINYINT</option>
+                        <option value="smallint">SMALLINT</option>
+                        <option value="bigint">BIGINT</option>
+                        <option value="varchar">VARCHAR</option>
+                        <option value="char">CHAR</option>
+                        <option value="text">TEXT</option>
+                        {/* <option value="enum">ENUM</option>
+                        <option value="set">SET</option> */}
+                        <option value="decimal">DECIMAL</option>
+                        <option value="numeric">NUMERIC</option>
+                        <option value="float">FLOAT</option>
+                        <option value="double">DOUBLE</option>
+                        <option value="date">DATE</option>
+                        <option value="time">TIME</option>
+                        <option value="datetime">DATETIME</option>
+                        <option value="timestamp">TIMESTAMP</option>
+                        <option value="year">YEAR</option>
+                        <option value="boolean">BOOLEAN</option>
+                      </select>
+
+                      <div className="type-params">
+                        {renderTypeParams(attr)}
+                      </div>
+                    </div>
                   </td>
 
                   <td>

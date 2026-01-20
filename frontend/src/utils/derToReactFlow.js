@@ -89,10 +89,7 @@ export function derToReactFlow(diagram) {
 
 const getCenter = (node, type) => {
   if (!node) return { x: 0, y: 0 };
-
-  // Aquí debes emular el cálculo de centerX/centerY que haces en los componentes
-  // O más simple: sumar un valor estimado si no quieres replicar toda la lógica de layout
-  const offset = type === "entity" ? { x: 60, y: 25 } : { x: 45, y: 35 };
+  const offset = type === "entity" ? { x: 60, y: 20 } : { x: 50, y: 32.5 };
 
   return {
     x: node.position.x + offset.x,

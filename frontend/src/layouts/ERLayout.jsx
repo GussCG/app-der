@@ -8,13 +8,14 @@ import BarraHerramientas from "../components/BarraHerramientas/BarraHerramientas
 import ERCanvas from "../components/Editors/ERCanvas";
 import LimitModal from "../components/Modals/LimitModal";
 import ValidationErrorModal from "../components/Modals/ValidationErrorModal";
+import { AnimatePresence } from "framer-motion";
 
 function ERLayout() {
   const {
-    selectedElement,
     validationState,
     validationErrors,
     setValidationState,
+    selectedElementIds,
   } = useEditor();
 
   const [panels, setPanels] = useState({
@@ -28,12 +29,10 @@ function ERLayout() {
   };
 
   useEffect(() => {
-    if (selectedElement) {
-      setPanels((p) => ({ ...p, inspector: false }));
-    } else {
-      setPanels((p) => ({ ...p, inspector: true }));
+    if (selectedElementIds.length === 1) {
+      setPanels((p) => (p.inspector === true ? { ...p, inspector: false } : p));
     }
-  }, [selectedElement]);
+  }, [selectedElementIds]);
 
   return (
     <>
@@ -50,12 +49,15 @@ function ERLayout() {
         <BarraHerramientas />
         <ERCanvas />
         <LimitModal />
-        {validationState === "invalid" && (
-          <ValidationErrorModal
-            errors={validationErrors}
-            onClose={() => setValidationState("idle")}
-          />
-        )}
+
+        <AnimatePresence>
+          {validationState === "invalid" && (
+            <ValidationErrorModal
+              errors={validationErrors}
+              onClose={() => setValidationState("idle")}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

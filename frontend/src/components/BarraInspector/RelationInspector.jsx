@@ -1,6 +1,8 @@
 import { useEditor } from "../../context/EditorContext";
 import Icons from "../Others/IconProvider.jsx";
 
+import { normalizeSqlType } from "../../utils/normalizeSqlType.js";
+
 const { IoClose } = Icons;
 
 function RelationInspector() {
@@ -61,7 +63,8 @@ function RelationInspector() {
           {
             id: crypto.randomUUID(),
             name: "",
-            type: "int",
+            type: "varchar",
+            length: 255, // 👈 importante
             pk: false,
             nn: false,
             uq: false,
@@ -81,6 +84,71 @@ function RelationInspector() {
         attributes: attributes.filter((attr) => attr.id !== id), // <--- Usa 'attributes'
       },
     });
+  };
+
+  const handleRelationTypeChange = (attr, newType) => {
+    const patch = normalizeSqlType(attr, newType);
+
+    updateElement({
+      ...selectedElement,
+      data: {
+        ...selectedElement.data,
+        attributes: attributes.map((a) =>
+          a.id === attr.id ? { ...a, ...patch } : a,
+        ),
+      },
+    });
+  };
+
+  const renderTypeParams = (attr) => {
+    switch (attr.type) {
+      case "varchar":
+        return (
+          <input
+            type="number"
+            min={1}
+            value={attr.length ?? ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              updateAttribute(
+                attr.id,
+                "length",
+                v === "" ? undefined : Number(v),
+              );
+            }}
+            onBlur={() => {
+              if (!attr.length || attr.length < 1) {
+                updateAttribute(attr.id, "length", 255);
+              }
+            }}
+          />
+        );
+
+      case "decimal":
+        return (
+          <>
+            <input
+              type="number"
+              min={1}
+              value={attr.precision ?? 10}
+              onChange={(e) =>
+                updateAttribute(attr.id, "precision", Number(e.target.value))
+              }
+            />
+            <input
+              type="number"
+              min={0}
+              value={attr.scale ?? 2}
+              onChange={(e) =>
+                updateAttribute(attr.id, "scale", Number(e.target.value))
+              }
+            />
+          </>
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
@@ -291,21 +359,39 @@ function RelationInspector() {
                 </td>
 
                 <td>
-                  <select
-                    value={attr.type}
-                    onChange={(e) =>
-                      updateAttribute(attr.id, "type", e.target.value)
-                    }
-                  >
-                    <option value="int">int</option>
-                    <option value="varchar">varchar</option>
-                    <option value="text">text</option>
-                    <option value="date">date</option>
-                    <option value="boolean">boolean</option>
-                  </select>
+                  <div className="type-cell">
+                    <select
+                      value={attr.type}
+                      onChange={(e) =>
+                        handleRelationTypeChange(attr, e.target.value)
+                      }
+                    >
+                      <option value="int">INT</option>
+                      <option value="tinyint">TINYINT</option>
+                      <option value="smallint">SMALLINT</option>
+                      <option value="bigint">BIGINT</option>
+                      <option value="varchar">VARCHAR</option>
+                      <option value="char">CHAR</option>
+                      <option value="text">TEXT</option>
+                      {/* <option value="enum">ENUM</option>
+                        <option value="set">SET</option> */}
+                      <option value="decimal">DECIMAL</option>
+                      <option value="numeric">NUMERIC</option>
+                      <option value="float">FLOAT</option>
+                      <option value="double">DOUBLE</option>
+                      <option value="date">DATE</option>
+                      <option value="time">TIME</option>
+                      <option value="datetime">DATETIME</option>
+                      <option value="timestamp">TIMESTAMP</option>
+                      <option value="year">YEAR</option>
+                      <option value="boolean">BOOLEAN</option>
+                    </select>
+
+                    <div className="type-params">{renderTypeParams(attr)}</div>
+                  </div>
                 </td>
 
-                {[, "nn", "uq", "ai"].map((flag) => (
+                {[, "nn", "uq"].map((flag) => (
                   <td key={`${attr.id}-${flag}`}>
                     <label className="checkbox">
                       <input

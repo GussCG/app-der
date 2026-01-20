@@ -3,6 +3,7 @@ import Icons from "../Others/IconProvider.jsx";
 import HidePanelButton from "../Others/TogglePanelButton.jsx";
 
 import { useEditor } from "../../context/EditorContext.jsx";
+import { useEditorMode } from "../../context/EditorModeContext.jsx";
 
 const {
   FaSearch,
@@ -20,6 +21,7 @@ function BarraElementos({ hidden, onToggle }) {
     selectedElementIds,
     deleteElementsDiagram,
   } = useEditor();
+  const { isER } = useEditorMode();
 
   const { entities, relations } = diagram;
 
@@ -29,7 +31,7 @@ function BarraElementos({ hidden, onToggle }) {
     if (!search.trim()) return entities;
 
     return entities.filter((entity) =>
-      entity.data?.name?.toLowerCase().includes(search.toLowerCase())
+      entity.data?.name?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [entities, search]);
 
@@ -37,7 +39,7 @@ function BarraElementos({ hidden, onToggle }) {
     if (!search.trim()) return relations;
 
     return relations.filter((relation) =>
-      relation.data?.name?.toLowerCase().includes(search.toLowerCase())
+      relation.data?.name?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [relations, search]);
 
@@ -76,19 +78,26 @@ function BarraElementos({ hidden, onToggle }) {
                     className={`elements__item ${
                       selectedElementIds.includes(entity.id) ? "selected" : ""
                     }`}
-                    onClick={() => setSelectedElementIds([entity.id])}
+                    onClick={() => {
+                      if (!isER) {
+                        return;
+                      }
+                      setSelectedElementIds([entity.id]);
+                    }}
                   >
                     <HiOutlineTableCells />
                     <span>{entity.data?.name || "Entidad sin nombre"}</span>
-                    <button
-                      className="elements__item-delete"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteElementsDiagram([entity.id]);
-                      }}
-                    >
-                      <IoClose />
-                    </button>
+                    {isER && (
+                      <button
+                        className="elements__item-delete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteElementsDiagram([entity.id]);
+                        }}
+                      >
+                        <IoClose />
+                      </button>
+                    )}
                   </div>
                 ))}
 
@@ -99,16 +108,23 @@ function BarraElementos({ hidden, onToggle }) {
                     className={`elements__item ${
                       selectedElementIds.includes(relation.id) ? "selected" : ""
                     }`}
-                    onClick={() => setSelectedElementIds([relation.id])}
+                    onClick={() => {
+                      if (!isER) {
+                        return;
+                      }
+                      setSelectedElementIds([relation.id]);
+                    }}
                   >
                     <CgShapeRhombus />
                     <span>{relation.data?.name || "Relación sin nombre"}</span>
-                    <button
-                      className="elements__item-delete"
-                      onClick={() => deleteElementsDiagram([relation.id])}
-                    >
-                      <IoClose />
-                    </button>
+                    {isER && (
+                      <button
+                        className="elements__item-delete"
+                        onClick={() => deleteElementsDiagram([relation.id])}
+                      >
+                        <IoClose />
+                      </button>
+                    )}
                   </div>
                 ))}
             </div>

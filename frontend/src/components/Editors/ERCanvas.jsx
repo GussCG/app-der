@@ -15,7 +15,9 @@ import { useTool } from "../../context/ToolContext";
 import { derToReactFlow } from "../../utils/derToReactFlow.js";
 import EREntityNode from "../Nodes/ER/EREntityNode.jsx";
 import ERRelationNode from "../Nodes/ER/ERRelationNode.jsx";
-import ERCardinalityEdge from "../Nodes/ER/ERCardinalityEdge.jsx";
+import ERCardinalityEdge from "../Nodes/ER/Edges/ERCardinalityEdge.jsx";
+import ERManhattanEdge from "../Nodes/ER/Edges/ERManhattanEdge.jsx";
+import ERBezierEdge from "../Nodes/ER/Edges/ERBezierEdge.jsx";
 
 const nodeTypes = {
   entity: EREntityNode,
@@ -23,7 +25,7 @@ const nodeTypes = {
 };
 
 const edgeTypes = {
-  er: ERCardinalityEdge,
+  er: ERBezierEdge,
 };
 
 export default function ERCanvas() {
@@ -36,10 +38,16 @@ export default function ERCanvas() {
     selectedElementIds,
   } = useEditor();
   const { activeTool, setActiveTool } = useTool();
-  const { fitView, screenToFlowPosition } = useReactFlow();
+  const {
+    fitView,
+    screenToFlowPosition,
+    setNodes: rfSetNodes,
+    getNodes,
+    setViewport,
+  } = useReactFlow();
 
   const isSyncingRef = useRef(false);
-  const lastDiagramIdRef = useRef(null);
+  const lastSelectionRef = useRef(null);
 
   const initial = useMemo(() => {
     const data = derToReactFlow(diagram);
@@ -54,61 +62,55 @@ export default function ERCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges);
 
+  const selectedIdsRef = useRef([]);
+  useEffect(() => {
+    selectedIdsRef.current = selectedElementIds;
+  }, [selectedElementIds]);
+
   useEffect(() => {
     if (isSyncingRef.current) return;
 
     const { nodes: newNodes, edges: newEdges } = derToReactFlow(diagram);
 
-    const validERIds = new Set([
-      ...diagram.entities.map((e) => e.id),
-      ...diagram.relations.map((r) => r.id),
-      ...newEdges.map((e) => e.id),
-    ]);
-
     setNodes((currentNodes) =>
       newNodes.map((newNode) => {
         const existing = currentNodes.find((n) => n.id === newNode.id);
+
         return {
           ...newNode,
           position: existing ? existing.position : newNode.position,
-          selected:
-            selectedElementIds.includes(newNode.id) &&
-            validERIds.has(newNode.id),
+          selected: selectedIdsRef.current.includes(newNode.id),
         };
       }),
     );
 
-    setEdges(
-      newEdges.map((edge) => ({
-        ...edge,
-        selected:
-          selectedElementIds.includes(edge.id) && validERIds.has(edge.id),
-      })),
-    );
+    setEdges(newEdges);
 
-    // 2. Lógica de Auto-Fit (NUEVA)
-    const isNewDiagram = lastDiagramIdRef.current !== diagram;
-    const hasContent = diagram.entities.length > 0;
+    requestAnimationFrame(() => {
+      const selectedIds = lastSelectionRef.current;
 
-    if (isNewDiagram && hasContent) {
-      setTimeout(() => {
-        fitView({ padding: 0.2, duration: 800 });
-      }, 50);
-    }
+      if (selectedIds.length === 0) return;
 
-    lastDiagramIdRef.current = diagram;
-  }, [diagram, selectedElementIds, fitView]);
+      rfSetNodes((nds) =>
+        nds.map((n) =>
+          selectedIds.includes(n.id) ? { ...n, selected: true } : n,
+        ),
+      );
+    });
+  }, [diagram]);
 
   const onSelectionChange = useCallback(
     ({ nodes: selNodes }) => {
-      const newIds = selNodes.map((n) => n.id);
+      const ids = selNodes.map((n) => n.id);
+      lastSelectionRef.current = ids;
+
       setSelectedElementIds((prev) => {
-        if (
-          prev.length === newIds.length &&
-          prev.every((id) => newIds.includes(id))
-        )
-          return prev;
-        return newIds;
+        if (prev.length !== ids.length) return ids;
+
+        const a = [...prev].sort().join(",");
+        const b = [...ids].sort().join(",");
+
+        return a !== b ? ids : prev;
       });
     },
     [setSelectedElementIds],

@@ -23,11 +23,19 @@ const edgeTypes = {
 };
 
 function RelationalCanvas() {
-  const { diagram, bgVariant, selectedElementIds } = useEditor();
+  const {
+    diagram,
+    bgVariant,
+    selectedElementIds,
+    relationalPositions,
+    updateRelationalPosition,
+  } = useEditor();
   const { activeTool } = useTool();
 
-  const relationalData = useMemo(() => derToRelational(diagram), [diagram]);
-
+  const relationalData = useMemo(
+    () => derToRelational(diagram, relationalPositions),
+    [diagram, relationalPositions],
+  );
   const [nodes, setNodes, onNodesChange] = useNodesState(
     relationalData.nodes.map((n) => ({ ...n, type: "relationalTable" })),
   );
@@ -59,6 +67,14 @@ function RelationalCanvas() {
     );
   }, [relationalData, selectedElementIds]);
 
+  const onNodeDragStop = useCallback(
+    (event, node) => {
+      // Guardamos la posición en el estado volátil del contexto
+      updateRelationalPosition(node.id, node.position);
+    },
+    [updateRelationalPosition],
+  );
+
   return (
     <div className="editor__canvas">
       <ReactFlow
@@ -67,6 +83,7 @@ function RelationalCanvas() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
+        onNodeDragStop={onNodeDragStop}
         onEdgesChange={onEdgesChange}
         nodesDraggable={activeTool === "select"}
         elementsSelectable={activeTool === "select"}

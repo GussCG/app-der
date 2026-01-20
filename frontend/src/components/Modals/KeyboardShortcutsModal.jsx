@@ -1,14 +1,25 @@
 import { useState } from "react";
 import Icons from "../Others/IconProvider";
+import { motion, AnimatePresence } from "framer-motion";
 const { IoChevronDownOutline, IoChevronUp, IoClose } = Icons;
 
 function KeyboardShortcutsModal({ onClose }) {
   const [openSection, setOpenSection] = useState("navbar");
   return (
-    <div className="modal__overlay" onClick={onClose}>
-      <div
+    <motion.div
+      className="modal__overlay"
+      onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
         className="modal keyboard_shortcuts"
         onClick={(e) => e.stopPropagation()}
+        layout
+        transition={{
+          layout: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+        }}
       >
         <h1>Atajos de Teclado</h1>
         <button className="modal__close-button" onClick={onClose}>
@@ -98,13 +109,13 @@ function KeyboardShortcutsModal({ onClose }) {
                       <div className="shortcut__key">L</div>
                     </td>
                   </tr>
-                  {/* <tr>
+                  <tr>
                     <td>Ajustar Pantalla</td>
                     <td className="shortcut">
                       <div className="shortcut__ctrl">Ctrl</div>+
                       <div className="shortcut__key">A</div>
                     </td>
-                  </tr> */}
+                  </tr>
                   <tr>
                     <td>Ocultar Cuadrícula</td>
                     <td className="shortcut">
@@ -112,13 +123,6 @@ function KeyboardShortcutsModal({ onClose }) {
                       <div className="shortcut__key">G</div>
                     </td>
                   </tr>
-                  {/* <tr>
-                    <td>Abrir Herramientas</td>
-                    <td className="shortcut">
-                      <div className="shortcut__ctrl">Ctrl</div>+
-                      <div className="shortcut__key">T</div>
-                    </td>
-                  </tr> */}
                   <tr>
                     <td>Cambiar de tema</td>
                     <td className="shortcut">
@@ -192,34 +196,13 @@ function KeyboardShortcutsModal({ onClose }) {
                       <div className="shortcut__key">R</div>
                     </td>
                   </tr>
-                  {/* <tr>
-                    <td>Zoom In</td>
-                    <td className="shortcut">
-                      <div className="shortcut__ctrl">Ctrl</div>+
-                      <div className="shortcut__key">+</div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Zoom Out</td>
-                    <td className="shortcut">
-                      <div className="shortcut__ctrl">Ctrl</div>+
-                      <div className="shortcut__key">-</div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Reset Zoom</td>
-                    <td className="shortcut">
-                      <div className="shortcut__ctrl">Ctrl</div>+
-                      <div className="shortcut__key">A</div>
-                    </td>
-                  </tr> */}
                 </tbody>
               </table>
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 

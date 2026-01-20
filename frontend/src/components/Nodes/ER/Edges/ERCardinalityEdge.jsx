@@ -1,5 +1,5 @@
 import { getBezierPath, getSmoothStepPath } from "reactflow";
-import { useTheme } from "../../../context/ThemeContext.jsx";
+import { useTheme } from "../../../../context/ThemeContext.jsx";
 
 export default function ERCardinalityEdge({
   id,
@@ -11,21 +11,20 @@ export default function ERCardinalityEdge({
   targetPosition,
   data,
 }) {
-  console.log("Rendering ERCardinalityEdge with data:", data);
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
+  const [edgePath] = getSmoothStepPath({
     sourceX,
     sourceY,
     targetX,
     targetY,
     sourcePosition,
     targetPosition,
-    borderRadius: 12,
-    offset: 0,
+    borderRadius: 16,
+    offset: 40,
   });
   const { theme } = useTheme();
   const color = data.color || "#888";
 
-  const OFFSET = 40;
+  const OFFSET_LABEL = 40;
   const dx = targetX - sourceX;
   const dy = targetY - sourceY;
   const len = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -33,22 +32,33 @@ export default function ERCardinalityEdge({
   const uy = dy / len;
 
   const labelPosX =
-    data.side === "source" ? sourceX + ux * OFFSET : targetX - ux * OFFSET;
+    data.side === "source"
+      ? sourceX + ux * OFFSET_LABEL
+      : targetX - ux * OFFSET_LABEL;
   const labelPosY =
-    data.side === "source" ? sourceY + uy * OFFSET : targetY - uy * OFFSET;
+    data.side === "source"
+      ? sourceY + uy * OFFSET_LABEL
+      : targetY - uy * OFFSET_LABEL;
 
   return (
     <>
       {data.participation === "total" ? (
         <>
+          {/* Línea externa (gruesa) */}
           <path
-            id={id}
+            id={`${id}-outer`}
             d={edgePath}
             stroke={color}
-            strokeWidth={6}
+            strokeWidth={4}
             fill="none"
           />
-          <path d={edgePath} stroke="#1a1a1a" strokeWidth={2} fill="none" />
+          {/* Línea interna (color de fondo) para crear el efecto de "vía de tren" */}
+          <path
+            d={edgePath}
+            stroke={theme === "dark" ? "#1a1a1a" : "#ffffff"}
+            strokeWidth={2}
+            fill="none"
+          />
         </>
       ) : (
         <path id={id} d={edgePath} stroke={color} strokeWidth={2} fill="none" />

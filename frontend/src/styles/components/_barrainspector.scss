@@ -303,7 +303,7 @@
           }
 
           select {
-            width: 90%;
+            width: auto;
             height: 32px;
             background-color: var(--properties-input-bg-color);
             border: none;
@@ -325,10 +325,41 @@
               border: 1px solid var(--body-border-color);
             }
           }
+
+          .type-cell {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 2px;
+            .type-params {
+              display: flex;
+              align-items: center;
+              pointer-events: none;
+              gap: 2px;
+
+              input {
+                width: 48px;
+                height: 32px;
+                text-align: center;
+                pointer-events: auto;
+                white-space: nowrap;
+              }
+
+              input[type="number"]::-webkit-inner-spin-button,
+              input[type="number"]::-webkit-outer-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+              }
+
+              &:empty {
+                display: none;
+              }
+            }
+          }
         }
 
         select {
-          width: 80%;
+          width: 90%;
           height: 32px;
           background-color: var(--properties-input-bg-color);
           border: none;

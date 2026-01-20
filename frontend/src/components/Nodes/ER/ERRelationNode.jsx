@@ -11,29 +11,24 @@ import { useTheme } from "../../../context/ThemeContext";
 export default function ERRelationshipNode({ id, data, selected }) {
   const { name, attributes = [] } = data;
   const { theme } = useTheme();
-
   const updateNodeInternals = useUpdateNodeInternals();
 
   const layout = getRelationLayout(name, attributes);
-  const { DIAMOND_W, DIAMOND_H, radius, attrCount } = layout;
+  const { DIAMOND_W, DIAMOND_H, radius, attrCount, ATTR_H } = layout;
 
-  // Calculamos un margen de seguridad basado en el atributo más ancho posible
   const maxAttrWidth =
     attributes.length > 0
       ? Math.max(...attributes.map((a) => getRelationAttributeWidth(a)))
       : 40;
 
-  // El tamaño debe cubrir desde el centro hasta el borde del atributo más lejano
   let svgWidth, svgHeight;
-
   if (attrCount === 0) {
     svgWidth = DIAMOND_W + 40;
     svgHeight = DIAMOND_H + 40;
-  } else if (attrCount <= 1) {
+  } else if (attrCount === 1) {
     svgWidth = DIAMOND_W + 40;
-    svgHeight = DIAMOND_H + 120; // Espacio para el atributo abajo
+    svgHeight = DIAMOND_H + 120;
   } else {
-    // Para circular, el tamaño total es el diámetro del círculo + el ancho de los atributos
     const size = (radius + maxAttrWidth) * 2;
     svgWidth = size;
     svgHeight = size;
@@ -41,9 +36,29 @@ export default function ERRelationshipNode({ id, data, selected }) {
 
   const centerX = svgWidth / 2;
   const centerY = attrCount === 1 ? 40 + DIAMOND_H / 2 : svgHeight / 2;
-
   const halfW = DIAMOND_W / 2;
   const halfH = DIAMOND_H / 2;
+
+  const getHandleStyle = (pos) => {
+    return {
+      top:
+        pos === "top"
+          ? centerY - halfH
+          : pos === "bottom"
+            ? centerY + halfH
+            : centerY,
+      left:
+        pos === "left"
+          ? centerX - halfW
+          : pos === "right"
+            ? centerX + halfW
+            : centerX,
+      opacity: 0,
+      position: "absolute",
+      width: "1px",
+      height: "1px",
+    };
+  };
 
   const points = `
     ${centerX},${centerY - halfH}
@@ -54,7 +69,7 @@ export default function ERRelationshipNode({ id, data, selected }) {
 
   useEffect(() => {
     updateNodeInternals(id);
-  }, [name, updateNodeInternals, id]);
+  }, [name, updateNodeInternals, id, attributes.length]);
 
   return (
     <div className={`er__relation${selected ? " selected" : ""}`}>
@@ -64,41 +79,13 @@ export default function ERRelationshipNode({ id, data, selected }) {
             type="source"
             id={pos}
             position={Position[pos.toUpperCase()]}
-            style={{
-              opacity: 0,
-              top:
-                pos === "top"
-                  ? centerY - halfH
-                  : pos === "bottom"
-                    ? centerY + halfH
-                    : centerY,
-              left:
-                pos === "left"
-                  ? centerX - halfW
-                  : pos === "right"
-                    ? centerX + halfW
-                    : centerX,
-            }}
+            style={getHandleStyle(pos)}
           />
           <Handle
             type="target"
             id={pos}
             position={Position[pos.toUpperCase()]}
-            style={{
-              opacity: 0,
-              top:
-                pos === "top"
-                  ? centerY - halfH
-                  : pos === "bottom"
-                    ? centerY + halfH
-                    : centerY,
-              left:
-                pos === "left"
-                  ? centerX - halfW
-                  : pos === "right"
-                    ? centerX + halfW
-                    : centerX,
-            }}
+            style={getHandleStyle(pos)}
           />
         </React.Fragment>
       ))}
@@ -113,20 +100,15 @@ export default function ERRelationshipNode({ id, data, selected }) {
             centerY,
           );
           const rx = getRelationAttributeWidth(attr);
-          const ry = layout.ATTR_H / 2;
-
+          const ry = ATTR_H / 2;
+          // Lógica de línea hacia atributo...
           const angle = Math.atan2(y - centerY, x - centerX);
-
-          // Cálculo de intersección con el borde del rombo
           const cosA = Math.abs(Math.cos(angle));
           const sinA = Math.abs(Math.sin(angle));
           const distToEdge =
             (DIAMOND_W * DIAMOND_H) / (DIAMOND_H * cosA + DIAMOND_W * sinA) / 2;
-
           const x1 = centerX + distToEdge * Math.cos(angle);
           const y1 = centerY + distToEdge * Math.sin(angle);
-
-          // Intersección con el elipse del atributo
           const x2 = x - rx * Math.cos(angle);
           const y2 = y - ry * Math.sin(angle);
 
@@ -139,7 +121,6 @@ export default function ERRelationshipNode({ id, data, selected }) {
                 y2={y2}
                 stroke={data.color || "#0f1419"}
               />
-
               <ellipse
                 cx={x}
                 cy={y}
@@ -149,7 +130,6 @@ export default function ERRelationshipNode({ id, data, selected }) {
                 stroke={data.color || "#0f1419"}
                 strokeWidth="1.2"
               />
-
               <text
                 x={x}
                 y={y + 4}
@@ -174,12 +154,7 @@ export default function ERRelationshipNode({ id, data, selected }) {
 
         {data.type === "identifying" && (
           <polygon
-            points={`
-                    ${centerX},${centerY - halfH + 6}
-                    ${centerX + halfW - 9},${centerY}
-                    ${centerX},${centerY + halfH - 6}
-                    ${centerX - halfW + 9},${centerY}
-                  `}
+            points={`${centerX},${centerY - halfH + 6} ${centerX + halfW - 9},${centerY} ${centerX},${centerY + halfH - 6} ${centerX - halfW + 9},${centerY}`}
             fill="transparent"
             stroke={data.color || "#0f1419"}
             strokeWidth="1.2"

@@ -8,6 +8,8 @@ import { useEditorMode } from "../../context/EditorModeContext.jsx";
 import KeyboardShortcutsModal from "../Modals/KeyboardShortcutsModal.jsx";
 import { useKeyboard } from "../../context/KeyboardContext.jsx";
 
+import { AnimatePresence } from "framer-motion";
+
 import {
   fitToScreen,
   exportDiagramAsPng,
@@ -18,6 +20,8 @@ import {
 import { useEditor } from "../../context/EditorContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useReactFlow } from "reactflow";
+import { downloadSQL, relationalTOSQL } from "../../utils/relationalToSQL.js";
+import { derToRelational } from "../../utils/derToRelational.js";
 
 const { FiDatabase, TbSql, LuTable2, LiaProjectDiagramSolid } = Icons;
 
@@ -181,6 +185,15 @@ function BarraNav() {
     if (action) action();
   };
 
+  const handleExportSQL = () => {
+    const { nodes, edges } = derToRelational(diagram);
+
+    const sqlScript = relationalTOSQL(nodes, edges);
+
+    const fileName = `${diagramName.replace(/\s+/g, "_")}_schema.sql`;
+    downloadSQL(sqlScript, fileName);
+  };
+
   return (
     <>
       <header className="barra__nav">
@@ -250,11 +263,19 @@ function BarraNav() {
 
           {mode === "relational" && (
             <>
-              <button className="nav__button" onClick={() => setMode("er")}>
+              <button
+                className="nav__button"
+                onClick={() => {
+                  setMode("er");
+                }}
+              >
                 <FiDatabase />
                 Regresar a ER
               </button>
-              <button className="nav__button secondary" onClick={() => {}}>
+              <button
+                className="nav__button secondary"
+                onClick={handleExportSQL}
+              >
                 <FiDatabase />
                 Exportar SQL
               </button>
@@ -263,50 +284,52 @@ function BarraNav() {
         </div>
       </header>
 
-      {isShortcutsModalOpen && (
-        <KeyboardShortcutsModal
-          onClose={() => setIsShortcutsModalOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {isShortcutsModalOpen && (
+          <KeyboardShortcutsModal
+            onClose={() => setIsShortcutsModalOpen(false)}
+          />
+        )}
 
-      {confirmNew.show && (
-        <ConfirmModal
-          title="¿Crear nuevo diagrama?"
-          message="Se perderán los cambios no guardados. ¿Deseas continuar?"
-          onClose={() => setConfirmNew({ show: false, action: null })}
-          onConfirm={() => {
-            confirmNew.action();
-            setConfirmNew({ show: false, action: null });
-          }}
-        />
-      )}
+        {confirmNew.show && (
+          <ConfirmModal
+            title="¿Crear nuevo diagrama?"
+            message="Se perderán los cambios no guardados. ¿Deseas continuar?"
+            onClose={() => setConfirmNew({ show: false, action: null })}
+            onConfirm={() => {
+              confirmNew.action();
+              setConfirmNew({ show: false, action: null });
+            }}
+          />
+        )}
 
-      {confirmValidation.show && (
-        <ConfirmModal
-          title={confirmValidation.title}
-          message={confirmValidation.message}
-          confirmText="Validar"
-          cancelText="Cancelar"
-          onClose={() => setConfirmValidation({ show: false })}
-          onConfirm={async () => {
-            const isValid = await validateCurrentDiagram();
+        {confirmValidation.show && (
+          <ConfirmModal
+            title={confirmValidation.title}
+            message={confirmValidation.message}
+            confirmText="Validar"
+            cancelText="Cancelar"
+            onClose={() => setConfirmValidation({ show: false })}
+            onConfirm={async () => {
+              const isValid = await validateCurrentDiagram();
 
-            if (isValid) {
-              confirmValidation.onConfirm();
-            }
-            setConfirmValidation({ show: false });
-          }}
-        />
-      )}
+              if (isValid) {
+                confirmValidation.onConfirm();
+              }
+              setConfirmValidation({ show: false });
+            }}
+          />
+        )}
 
-      {onlyDesignMode.show && (
-        <ConfirmModal
-          title="Modo no disponible"
-          message="Esta acción solo está disponible en el modo de diseño ER. Cambia al modo ER para usar esta función."
-          onClose={() => setOnlyDesignMode({ show: false })}
-          confirmText="Entendido"
-        />
-      )}
+        {onlyDesignMode.show && (
+          <ConfirmModal
+            title="Modo no disponible"
+            message="Esta acción solo está disponible en el modo de diseño ER. Cambia al modo ER para usar esta función."
+            onClose={() => setOnlyDesignMode({ show: false })}
+            confirmText="Entendido"
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

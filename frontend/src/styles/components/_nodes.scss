@@ -2,22 +2,26 @@
 
 .er__entity {
   padding: 0;
-  background-color: transparent;
-  border: 2px dashed transparent;
+  background: transparent !important;
+  border: 2px dashed transparent !important;
 
   &.selected {
-    border: 2px dashed var(--node-selected-border);
+    border: 2px dashed var(--node-selected-border) !important;
   }
 }
 
 .er__relation {
   padding: 0;
-  background-color: transparent;
-  border: 2px dashed transparent;
+  background: transparent !important;
+  border: 2px dashed transparent !important;
 
   &.selected {
-    border: 2px dashed var(--node-selected-border);
+    border: 2px dashed var(--node-selected-border) !important;
   }
+}
+
+.react-flow__handle {
+  z-index: 10 !important;
 }
 
 .er-edge-path {
@@ -29,7 +33,8 @@
 }
 
 .relational-table {
-  min-width: 200px;
+  width: auto;
+  min-width: 250px;
   border-radius: 10px;
   overflow: hidden;
 
@@ -59,7 +64,7 @@
   .column {
     height: auto;
     display: grid;
-    grid-template-columns: 25px 1fr 70px auto;
+    grid-template-columns: 25px 1fr auto auto;
     grid-template-areas: "key name type extras";
     align-items: center;
     position: relative;

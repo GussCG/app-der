@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Handle, Position, useUpdateNodeInternals } from "reactflow";
 import { colorToBgNode } from "../../../utils/colorToBgNode";
 import {
@@ -11,17 +11,12 @@ import { useTheme } from "../../../context/ThemeContext";
 
 export default function EREntityNode({ id, data, selected }) {
   const { name, attributes, relations = [] } = data;
-
   const { theme } = useTheme();
-
   const updateNodeInternals = useUpdateNodeInternals();
-
   const layout = getEntityLayout(name, attributes);
 
   const { ENTITY_W, ENTITY_H, ATTR_H, radius, attrCount } = layout;
   const PADDING = 20;
-
-  const HANDLE_OFFSET = 1.5;
 
   let svgWidth = ENTITY_W + PADDING * 2;
   let svgHeight = ENTITY_H + PADDING * 2;
@@ -38,6 +33,32 @@ export default function EREntityNode({ id, data, selected }) {
 
   const centerX = svgWidth / 2;
   const centerY = attrCount === 1 ? PADDING + ENTITY_H / 2 : svgHeight / 2;
+  const GAP = 1;
+
+  const getHandleStyle = (pos) => {
+    let top = centerY;
+    let left = centerX;
+
+    // Ajustamos la posición según el lado, agregando el GAP
+    if (pos === "top") {
+      top = centerY - ENTITY_H / 2 - GAP;
+    } else if (pos === "bottom") {
+      top = centerY + ENTITY_H / 2 + GAP;
+    } else if (pos === "left") {
+      left = centerX - ENTITY_W / 2 - GAP;
+    } else if (pos === "right") {
+      left = centerX + ENTITY_W / 2 + GAP;
+    }
+
+    return {
+      top,
+      left,
+      opacity: 0,
+      position: "absolute",
+      width: "1px",
+      height: "1px",
+    };
+  };
 
   useEffect(() => {
     updateNodeInternals(id);
@@ -46,52 +67,20 @@ export default function EREntityNode({ id, data, selected }) {
   return (
     <div className={`er__entity${selected ? " selected" : ""}`}>
       {["top", "right", "bottom", "left"].map((pos) => (
-        <Handle
-          key={`s-${pos}`}
-          type="source"
-          position={Position[pos.toUpperCase()]}
-          id={pos}
-          style={{
-            // Posicionamiento dinámico basado en el centro del rect
-            top:
-              pos === "top"
-                ? centerY - ENTITY_H / 2 - HANDLE_OFFSET
-                : pos === "bottom"
-                  ? centerY + ENTITY_H / 2 + HANDLE_OFFSET
-                  : centerY,
-            left:
-              pos === "left"
-                ? centerX - ENTITY_W / 2 - HANDLE_OFFSET
-                : pos === "right"
-                  ? centerX + ENTITY_W / 2 + HANDLE_OFFSET
-                  : centerX,
-            opacity: 0, // Cambia a 1 para debugear si es necesario
-          }}
-        />
-      ))}
-
-      {["top", "right", "bottom", "left"].map((pos) => (
-        <Handle
-          key={`t-${pos}`}
-          type="target"
-          position={Position[pos.toUpperCase()]}
-          id={pos}
-          style={{
-            top:
-              pos === "top"
-                ? centerY - ENTITY_H / 2 - HANDLE_OFFSET
-                : pos === "bottom"
-                  ? centerY + ENTITY_H / 2 + HANDLE_OFFSET
-                  : centerY,
-            left:
-              pos === "left"
-                ? centerX - ENTITY_W / 2 - HANDLE_OFFSET
-                : pos === "right"
-                  ? centerX + ENTITY_W / 2 + HANDLE_OFFSET
-                  : centerX,
-            opacity: 0,
-          }}
-        />
+        <React.Fragment key={pos}>
+          <Handle
+            type="source"
+            position={Position[pos.toUpperCase()]}
+            id={pos}
+            style={getHandleStyle(pos)}
+          />
+          <Handle
+            type="target"
+            position={Position[pos.toUpperCase()]}
+            id={pos}
+            style={getHandleStyle(pos)}
+          />
+        </React.Fragment>
       ))}
 
       <svg width={svgWidth} height={svgHeight}>
@@ -104,7 +93,6 @@ export default function EREntityNode({ id, data, selected }) {
             { x, y },
             { rx: getAttributeWidth(attributes[i]) / 2, ry: ATTR_H / 2 },
           );
-
           return (
             <line
               key={`line-${i}`}
@@ -157,7 +145,6 @@ export default function EREntityNode({ id, data, selected }) {
         {attributes.map((attr, i) => {
           const { x, y } = getAttributePosition(i, layout, centerX, centerY);
           const rx = getAttributeWidth(attr) / 2;
-
           return (
             <g key={attr.id}>
               <ellipse

@@ -23,6 +23,25 @@ function RelationalTableNode({ id, data, selected }) {
     transition: "all 0.2s ease-in-out",
   };
 
+  function formatColumnType(col) {
+    switch (col.type) {
+      case "varchar":
+        return `VARCHAR(${col.length || 255})`;
+
+      case "char":
+        return `CHAR(${col.length || 1})`;
+
+      case "decimal":
+        return `DECIMAL(${col.precision || 10}, ${col.scale || 2})`;
+
+      case "numeric":
+        return `NUMERIC(${col.precision || 10}, ${col.scale || 2})`;
+
+      default:
+        return col.type.toUpperCase();
+    }
+  }
+
   return (
     <div
       className={`relational-table ${selected ? "selected" : ""}`}
@@ -69,7 +88,7 @@ function RelationalTableNode({ id, data, selected }) {
               ) : null}
             </span>
             <span className="name">{col.name}</span>
-            <span className="type">{col.type}</span>
+            <span className="type">{formatColumnType(col)}</span>
 
             <div className="extras">
               {col.isNotNull && (

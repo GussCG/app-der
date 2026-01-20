@@ -32,6 +32,15 @@ export function EditorProvider({ children }) {
   const [isRelationCreationModalOpen, setIsRelationCreationModalOpen] =
     useState(false);
 
+  const [relationalPositions, setRelationalPositions] = useState({});
+
+  const updateRelationalPosition = (id, position) => {
+    setRelationalPositions((prev) => ({
+      ...prev,
+      [id]: position,
+    }));
+  };
+
   const createNewDiagram = () => {
     setHistory({
       past: [],
@@ -300,6 +309,9 @@ export function EditorProvider({ children }) {
 
         isRelationCreationModalOpen,
         setIsRelationCreationModalOpen,
+
+        relationalPositions,
+        updateRelationalPosition,
       }}
     >
       {children}
