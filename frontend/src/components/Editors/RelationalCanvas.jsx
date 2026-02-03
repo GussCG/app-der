@@ -1,10 +1,9 @@
-import { useEffect, useRef, useCallback, useMemo, act } from "react";
+import { useEffect, useCallback, useMemo, useRef } from "react";
 import ReactFlow, {
   Background,
   Controls,
   useNodesState,
   useEdgesState,
-  SelectionMode,
 } from "reactflow";
 import "reactflow/dist/style.css";
 
@@ -27,53 +26,85 @@ function RelationalCanvas() {
     diagram,
     bgVariant,
     selectedElementIds,
+    setSelectedElementIds,
     relationalPositions,
     updateRelationalPosition,
+    relationalOverrides,
   } = useEditor();
+
   const { activeTool } = useTool();
 
-  const relationalData = useMemo(
-    () => derToRelational(diagram, relationalPositions),
-    [diagram, relationalPositions],
-  );
-  const [nodes, setNodes, onNodesChange] = useNodesState(
-    relationalData.nodes.map((n) => ({ ...n, type: "relationalTable" })),
-  );
-  const [edges, setEdges, onEdgesChange] = useEdgesState(
-    relationalData.edges.map((e) => ({ ...e, type: "relationalEdge" })),
-  );
+  const isSyncingRef = useRef(false);
+  const selectedIdsRef = useRef([]);
 
   useEffect(() => {
-    const validRelationalIds = new Set(relationalData.nodes.map((n) => n.id));
+    selectedIdsRef.current = selectedElementIds;
+  }, [selectedElementIds]);
 
-    setNodes((currentNodes) =>
-      relationalData.nodes.map((newNode) => {
-        const existing = currentNodes.find((n) => n.id === newNode.id);
-        return {
-          ...newNode,
-          type: "relationalTable",
-          position: existing ? existing.position : newNode.position,
-          selected:
-            selectedElementIds.includes(newNode.id) &&
-            validRelationalIds.has(newNode.id),
-        };
-      }),
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  useEffect(() => {
+    if (isSyncingRef.current) return;
+
+    const { nodes: finalNodes, edges: finalEdges } = derToRelational(
+      diagram,
+      relationalPositions,
+      relationalOverrides,
     );
-    setEdges(
-      relationalData.edges.map((e) => ({
-        ...e,
-        selected: selectedElementIds.includes(e.id),
+
+    setNodes(
+      finalNodes.map((n) => ({
+        ...n,
+        type: "relationalTable",
+        position: {
+          x: Number.isFinite(n.position?.x) ? n.position.x : 0,
+          y: Number.isFinite(n.position?.y) ? n.position.y : 0,
+        },
+        selected: selectedIdsRef.current.includes(n.id),
       })),
     );
-  }, [relationalData, selectedElementIds]);
+
+    setEdges(
+      finalEdges.map((e) => ({
+        ...e,
+        type: "relationalEdge",
+        source: String(e.source),
+        target: String(e.target),
+      })),
+    );
+  }, [diagram, relationalPositions, relationalOverrides]);
+
+  const onSelectionChange = useCallback(
+    ({ nodes: selNodes, edges: selEdges }) => {
+      const ids = [...selNodes.map((n) => n.id), ...selEdges.map((e) => e.id)];
+
+      setSelectedElementIds((prev) => {
+        if (prev.length !== ids.length) return ids;
+        const a = [...prev].sort().join(",");
+        const b = [...ids].sort().join(",");
+        return a !== b ? ids : prev;
+      });
+    },
+    [setSelectedElementIds],
+  );
 
   const onNodeDragStop = useCallback(
     (event, node) => {
-      // Guardamos la posición en el estado volátil del contexto
+      isSyncingRef.current = true;
       updateRelationalPosition(node.id, node.position);
+
+      // Liberar el bloqueo de sincronización después de un breve delay
+      setTimeout(() => {
+        isSyncingRef.current = false;
+      }, 100);
     },
     [updateRelationalPosition],
   );
+
+  const onPaneClick = useCallback(() => {
+    setSelectedElementIds([]);
+  }, [setSelectedElementIds]);
 
   return (
     <div className="editor__canvas">
@@ -83,16 +114,17 @@ function RelationalCanvas() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
-        onNodeDragStop={onNodeDragStop}
         onEdgesChange={onEdgesChange}
+        onNodeDragStop={onNodeDragStop}
+        onSelectionChange={onSelectionChange}
+        onPaneClick={onPaneClick}
         nodesDraggable={activeTool === "select"}
         elementsSelectable={activeTool === "select"}
         panOnDrag={activeTool === "pan"}
         nodesConnectable={false}
-        onSelectionChange={undefined}
-        fitView
+        fitView={nodes.length > 0}
       >
-        <Background variant={bgVariant} />
+        {nodes.length > 0 && <Background variant={bgVariant} />}
         <Controls showZoom={true} showFitView={false} showInteractive={false} />
       </ReactFlow>
     </div>

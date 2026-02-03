@@ -109,13 +109,13 @@ function RelationalTableNode({ id, data, selected }) {
                   UNIQUE
                 </span>
               )}
-              {col.isAi && (
+              {col.isAutoIncrement && (
                 <span
                   style={{
                     backgroundColor: colorToBgNode(data.color, 0.35),
                   }}
                 >
-                  AI
+                  AUTO_INCREMENT
                 </span>
               )}
             </div>

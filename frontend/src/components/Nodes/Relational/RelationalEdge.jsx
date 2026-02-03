@@ -5,6 +5,8 @@ import { useTheme } from "../../../context/ThemeContext";
 function RelationalEdge(props) {
   const {
     id,
+    source,
+    target,
     sourceX,
     sourceY,
     targetX,
@@ -16,17 +18,40 @@ function RelationalEdge(props) {
     selected,
   } = props;
 
-  const { theme } = useTheme();
+  const isSelfReferencing = source === target;
 
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    sourcePosition,
-    targetPosition,
-    borderRadius: 12,
-  });
+  let edgePath = "";
+  let labelX, labelY;
+
+  if (isSelfReferencing) {
+    // Definimos qué tan grande es el bucle
+    const size = 50;
+
+    edgePath = `
+      M ${sourceX} ${sourceY} 
+      C ${sourceX + size} ${sourceY}, 
+        ${sourceX + size} ${sourceY - size}, 
+        ${sourceX} ${sourceY - size}
+    `;
+
+    labelX = sourceX + size;
+    labelY = sourceY - size;
+  } else {
+    const [path, x, y] = getSmoothStepPath({
+      sourceX,
+      sourceY,
+      targetX,
+      targetY,
+      sourcePosition,
+      targetPosition,
+      borderRadius: 12,
+    });
+    edgePath = path;
+    labelX = x;
+    labelY = y;
+  }
+
+  const { theme } = useTheme();
 
   const gradientId = `grad-${id}`;
   const startColor = data?.sourceColor || "#393939";
@@ -130,7 +155,7 @@ function RelationalEdge(props) {
         }}
       />
 
-      {label && (
+      {/* {label && (
         <EdgeText
           x={labelX}
           y={labelY}
@@ -153,7 +178,7 @@ function RelationalEdge(props) {
             cursor: "pointer",
           }}
         />
-      )}
+      )} */}
     </g>
   );
 }

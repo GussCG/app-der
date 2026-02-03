@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useEditor } from "../context/EditorContext.jsx";
+import { useEditorMode } from "../context/EditorModeContext.jsx";
 
 import BarraElementos from "../components/BarraElementos/BarraElementos";
 import BarraNav from "../components/BarraNavegacion/BarraNav";
@@ -17,6 +18,7 @@ function ERLayout() {
     setValidationState,
     selectedElementIds,
   } = useEditor();
+  const { isER } = useEditorMode();
 
   const [panels, setPanels] = useState({
     elementos: false,
@@ -31,6 +33,8 @@ function ERLayout() {
   useEffect(() => {
     if (selectedElementIds.length === 1) {
       setPanels((p) => (p.inspector === true ? { ...p, inspector: false } : p));
+    } else {
+      setPanels((p) => ({ ...p, inspector: true }));
     }
   }, [selectedElementIds]);
 

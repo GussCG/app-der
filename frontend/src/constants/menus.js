@@ -20,12 +20,18 @@ const {
   FaMoon,
   MdSunny,
   FaImage,
+  TbSql,
 } = Icons;
 
 const MENUS = {
   archivo: [
-    { icon: LuFileText, label: "Nuevo diagrama", command: "Ctrl+N" },
+    {
+      icon: LuFileText,
+      label: "Nuevo diagrama",
+      command: "Ctrl+N",
+    },
     { icon: LuFileInput, label: "Abrir ...", command: "Ctrl+O", divider: true },
+    // { icon: TbSql, label: "Importar SQL", command: "Ctrl+I", },
     { icon: MdOutlineSave, label: "Guardar diagrama", command: "Ctrl+S" },
     { icon: FaImage, label: "Exportar imagen", command: "Ctrl+E" },
   ],

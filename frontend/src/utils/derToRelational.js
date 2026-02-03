@@ -1,51 +1,143 @@
-export function derToRelational(diagram, relationalPositions = {}) {
+import { normalizeAttributes } from "./relational/normalizeAttributes";
+
+export function derToRelational(
+  diagram,
+  relationalPositions = {},
+  overrides = {},
+) {
   let nodes = [];
   let edges = [];
 
-  const findNode = (id) => nodes.find((n) => n.id === id);
-  const getPrimaryKey = (table) =>
-    table.data.columns.find((c) => c.isPk || c.pk) || null;
-
-  const updateNodeColumns = (nodeId, newColumns) => {
-    nodes = nodes.map((n) =>
-      n.id === nodeId ? { ...n, data: { ...n.data, columns: newColumns } } : n,
-    );
+  const applyOverrides = (tableId, columns) => {
+    const tableOverrides = overrides[tableId] || {};
+    return columns.map((col) => {
+      const colOverride = tableOverrides[col.name] || {};
+      if (colOverride) {
+        return { ...col, ...colOverride };
+      }
+      return col;
+    });
   };
 
-  // Crear tablas base (Entidades)
+  const findNode = (id) => nodes.find((n) => n.id === id);
+
+  const getPrimaryKey = (table) =>
+    table?.data?.columns?.find((c) => c.isPk) || null;
+
+  const updateNodeColumns = (nodeId, newColumns) => {
+    nodes = nodes.map((n) => {
+      if (n.id === nodeId) {
+        const finalCols = applyOverrides(n.data.name, newColumns);
+        return { ...n, data: { ...n.data, columns: finalCols } };
+      }
+      return n;
+    });
+  };
+
+  // Entidades a tablas
   diagram.entities.forEach((entity) => {
     const savedPos = relationalPositions[entity.id];
+    const previousColumns = entity.data.columns || [];
 
-    const existingColumns = entity.data.columns || [];
+    const { columns: normalizedAttrs, multivalued } = normalizeAttributes(
+      entity.data.attributes || [],
+    );
+
+    let columns = normalizedAttrs.map((attr) => {
+      const prev = previousColumns.find((c) => c.id === attr.id);
+      const isPk = attr.pk || (entity.data.weak && attr.partial);
+
+      return {
+        id: attr.id,
+        name: attr.name,
+        isPk,
+        isFk: false,
+
+        type: prev?.type || attr.type || "int",
+        length: prev?.length ?? attr.length,
+        precision: prev?.precision ?? attr.precision,
+        scale: prev?.scale ?? attr.scale,
+        values: prev?.values || attr.values,
+
+        isNotNull: isPk ? true : (prev?.isNotNull ?? attr.nn ?? false),
+        isUnique: isPk ? true : (prev?.isUnique ?? attr.uq ?? false),
+        isAutoIncrement: prev?.isAutoIncrement ?? attr.ai ?? false,
+
+        isDerived: false,
+      };
+    });
+
+    columns = applyOverrides(entity.data.name, columns);
+
     nodes.push({
       id: entity.id,
       type: "relationalTable",
       position: savedPos || entity.position || { x: 0, y: 0 },
       data: {
-        ...entity.data,
+        name: entity.data.name,
         color: entity.data.color || "#5b5b5b",
-        columns: (entity.data.attributes || []).map((attr) => {
-          const existing = existingColumns.find((c) => c.id === attr.id);
-          const isEffectivePK = attr.pk || (entity.data.weak && attr.partial);
-          return {
-            id: attr.id,
-            name: attr.name || "columna",
-            isPk: isEffectivePK,
-            isFk: false,
-            type: existing?.type || attr.type || "int",
-
-            length: existing?.length ?? attr.length,
-            precision: existing?.precision ?? attr.precision,
-            scale: existing?.scale ?? attr.scale,
-            values: existing?.values ?? attr.values,
-
-            isNotNull: attr.nn || isEffectivePK || false,
-            isUnique: attr.uq || false,
-            isAi: attr.ai || false,
-            isDerived: false,
-          };
-        }),
+        weak: entity.data.weak || false,
+        columns,
       },
+    });
+
+    // Tablas para multivaluados
+    multivalued.forEach((mvAttr) => {
+      const ownerPks = columns.filter((c) => c.isPk);
+      if (ownerPks.length === 0) return;
+
+      const tableId = `mv-${entity.id}-${mvAttr.id}`;
+      const tableName = `${entity.data.name}_${mvAttr.name}`;
+
+      let mvColumns = [
+        {
+          id: `fk-${entity.id}`,
+          name: `${entity.data.name.toLowerCase()}_${ownerPks[0].name}`,
+          isPk: true,
+          isFk: true,
+          type: ownerPks[0].type,
+          isDerived: true,
+        },
+        {
+          id: mvAttr.id,
+          name: mvAttr.name,
+          isPk: true,
+          isFk: false,
+          type: mvAttr.valueType || "varchar",
+          isDerived: false,
+        },
+      ];
+
+      mvColumns = applyOverrides(tableName, mvColumns);
+
+      nodes.push({
+        id: tableId,
+        type: "relationalTable",
+        position: {
+          x: (savedPos?.x || entity.position.x) + 350,
+          y: (savedPos?.y || entity.position.y) + 100,
+        },
+        data: {
+          name: tableName,
+          isDerived: true,
+          color: entity.data.color || "#5b5b5b",
+          columns: mvColumns,
+        },
+      });
+
+      edges.push({
+        id: `mv-edge-${mvAttr.id}`,
+        source: entity.id,
+        target: tableId,
+        type: "relationalEdge",
+        data: {
+          kind: "multivalued",
+          sourceColor: entity.data.color,
+          targetColor: entity.data.color,
+          onDelete: "CASCADE",
+          onUpdate: "CASCADE",
+        },
+      });
     });
   });
 
@@ -58,14 +150,13 @@ export function derToRelational(diagram, relationalPositions = {}) {
     const targetTable = findNode(target.entityId);
     if (!sourceTable || !targetTable) return;
 
-    // Buscamos PKs con encadenamiento opcional para evitar el crash de .name
     const pkSource = getPrimaryKey(sourceTable);
     const pkTarget = getPrimaryKey(targetTable);
     if (!pkSource || !pkTarget) return;
 
     const relAttributes = (rel.data.attributes || []).map((attr) => ({
       id: attr.id,
-      name: attr.name || "columna",
+      name: attr.name,
       isPk: false,
       isFk: false,
 
@@ -83,10 +174,14 @@ export function derToRelational(diagram, relationalPositions = {}) {
     // --- CASO 1:1 ---
     if (source.cardinality === "1" && target.cardinality === "1") {
       const isTargetTotal = target.participation === "total";
+
       const receiver = isTargetTotal ? targetTable : sourceTable;
       const donor = isTargetTotal ? sourceTable : targetTable;
       const donorPk = isTargetTotal ? pkSource : pkTarget;
       const sideInfo = isTargetTotal ? target : source;
+
+      const deleteRule = sideInfo.onDelete || "RESTRICT";
+      const updateRule = sideInfo.onUpdate || "RESTRICT";
 
       updateNodeColumns(receiver.id, [
         ...receiver.data.columns,
@@ -98,8 +193,8 @@ export function derToRelational(diagram, relationalPositions = {}) {
           type: donorPk.type,
           isNotNull: sideInfo.participation === "total",
           isUnique: true, // Importante en 1:1 para que no se repita la relación
-          onDelete: sideInfo.onDelete || "RESTRICT",
-          onUpdate: sideInfo.onUpdate || "RESTRICT",
+          onDelete: deleteRule,
+          onUpdate: updateRule,
           isDerived: true,
         },
         ...relAttributes,
@@ -113,8 +208,10 @@ export function derToRelational(diagram, relationalPositions = {}) {
         label: rel.data.name || "",
         data: {
           kind: "1:1",
-          sourceColor: sourceTable.data.color,
-          targetColor: targetTable.data.color,
+          sourceColor: donor.data.color,
+          targetColor: receiver.data.color,
+          onDelete: deleteRule,
+          onUpdate: updateRule,
         },
       });
     }
@@ -124,13 +221,20 @@ export function derToRelational(diagram, relationalPositions = {}) {
       (source.cardinality === "1" && target.cardinality === "N") ||
       (source.cardinality === "N" && target.cardinality === "1")
     ) {
-      const isSourceOne = source.cardinality === "1";
-      const tableOne = isSourceOne ? sourceTable : targetTable;
-      const tableMany = isSourceOne ? targetTable : sourceTable;
-      const sideMany = isSourceOne ? target : source;
-      const pkOne = isSourceOne ? pkSource : pkTarget;
+      const oneSide = source.cardinality === "1" ? source : target;
+      const manySide = source.cardinality === "N" ? source : target;
+
+      const tableOne =
+        oneSide.entityId === sourceTable.id ? sourceTable : targetTable;
+      const tableMany =
+        manySide.entityId === sourceTable.id ? sourceTable : targetTable;
+
+      const pkOne = tableOne === sourceTable ? pkSource : pkTarget;
 
       const isWeak = tableMany.data.weak || rel.data.type === "identifying";
+
+      const deleteRule = isWeak ? "CASCADE" : manySide.onDelete || "RESTRICT";
+      const updateRule = manySide.onUpdate || "RESTRICT";
 
       updateNodeColumns(tableMany.id, [
         ...tableMany.data.columns,
@@ -140,9 +244,9 @@ export function derToRelational(diagram, relationalPositions = {}) {
           isPk: isWeak, // Si es débil, la FK es parte de la PK
           isFk: true,
           type: pkOne.type,
-          isNotNull: sideMany.participation === "total" || tableMany.data.weak,
-          onDelete: isWeak ? "CASCADE" : sideMany.onDelete || "RESTRICT",
-          onUpdate: sideMany.onUpdate || "RESTRICT",
+          isNotNull: manySide.participation === "total" || isWeak,
+          onDelete: deleteRule,
+          onUpdate: updateRule,
           isDerived: true,
         },
         ...relAttributes,
@@ -156,8 +260,10 @@ export function derToRelational(diagram, relationalPositions = {}) {
         label: rel.data.name || "",
         data: {
           kind: isWeak ? "identifying" : "1:N",
-          sourceColor: sourceTable.data.color,
-          targetColor: targetTable.data.color,
+          sourceColor: tableOne.data.color,
+          targetColor: tableMany.data.color,
+          onDelete: deleteRule,
+          onUpdate: updateRule,
         },
       });
     }
@@ -166,39 +272,44 @@ export function derToRelational(diagram, relationalPositions = {}) {
     else if (source.cardinality === "N" && target.cardinality === "N") {
       const interId = `inter-${rel.id}`;
       const savedPos = relationalPositions[interId];
-      const posX = (sourceTable.position.x + targetTable.position.x) / 2;
-      const posY = (sourceTable.position.y + targetTable.position.y) / 2 + 80;
-      const relColor = rel.data.color || "#5b5b5b";
+      const tableName =
+        rel.data.name?.replace(/\s+/g, "_") ||
+        `${sourceTable.data.name}_${targetTable.data.name}`;
+
+      let interColumns = [
+        {
+          id: `fk-s-${rel.id}`,
+          name: `${sourceTable.data.name.toLowerCase()}_${pkSource.name}`,
+          isPk: true,
+          isFk: true,
+          type: pkSource.type,
+          isDerived: true,
+        },
+        {
+          id: `fk-t-${rel.id}`,
+          name: `${targetTable.data.name.toLowerCase()}_${pkTarget.name}`,
+          isPk: true,
+          isFk: true,
+          type: pkTarget.type,
+          isDerived: true,
+        },
+        ...relAttributes,
+      ];
+
+      interColumns = applyOverrides(tableName, interColumns);
 
       nodes.push({
         id: interId,
         type: "relationalTable",
-        position: savedPos || { x: posX, y: posY },
+        position: savedPos || {
+          x: (sourceTable.position.x + targetTable.position.x) / 2 + 50,
+          y: (sourceTable.position.y + targetTable.position.y) / 2 + 100,
+        },
         data: {
-          name:
-            rel.data.name?.replace(/\s+/g, "_") ||
-            `${sourceTable.data.name}_${targetTable.data.name}`,
+          name: tableName,
           isDerived: true,
           color: rel.data.color || "#5b5b5b",
-          columns: [
-            {
-              id: `fk-s-${rel.id}`,
-              name: `${sourceTable.data.name.toLowerCase()}_${pkSource.name}`,
-              isPk: true,
-              isFk: true,
-              type: pkSource.type,
-              isDerived: true,
-            },
-            {
-              id: `fk-t-${rel.id}`,
-              name: `${targetTable.data.name.toLowerCase()}_${pkTarget.name}`,
-              isPk: true,
-              isFk: true,
-              type: pkTarget.type,
-              isDerived: true,
-            },
-            ...relAttributes,
-          ],
+          columns: interColumns,
         },
       });
 
@@ -211,7 +322,9 @@ export function derToRelational(diagram, relationalPositions = {}) {
 
           data: {
             sourceColor: sourceTable.data.color,
-            targetColor: relColor,
+            targetColor: rel.data.color || "#5b5b5b",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
           },
         },
         {
@@ -221,7 +334,9 @@ export function derToRelational(diagram, relationalPositions = {}) {
           type: "relationalEdge",
           data: {
             sourceColor: targetTable.data.color,
-            targetColor: relColor,
+            targetColor: rel.data.color || "#5b5b5b",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
           },
         },
       );

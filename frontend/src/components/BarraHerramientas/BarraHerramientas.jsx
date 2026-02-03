@@ -17,14 +17,15 @@ const {
   TbZoomReset,
   MdOutlineTableChart,
   LuLayoutDashboard,
+  FaEraser,
+  LuLassoSelect,
 } = Icons;
 
 export default function BarraHerramientas() {
   const { activeTool, setActiveTool } = useTool();
-  const { isER, isRelational } = useEditorMode();
+  const { isER } = useEditorMode();
   const [openVariants, setOpenVariants] = useState(false);
-  const { isRelationCreationModalOpen, setIsRelationCreationModalOpen } =
-    useEditor();
+  const { autoLayoutDiagram } = useEditor();
 
   const handleClick = (tool, hasVariants = false) => {
     setActiveTool(tool);
@@ -41,6 +42,7 @@ export default function BarraHerramientas() {
 
   return (
     <div className="toolbar">
+      {/* SELECT NORMAL */}
       <div
         className={`toolbar__item ${activeTool === "select" ? "active" : ""}`}
         onClick={() => handleClick("select")}
@@ -49,6 +51,18 @@ export default function BarraHerramientas() {
           <LuMousePointer2 />
         </div>
       </div>
+
+      {/* SELECT LAZO */}
+      {/* <div
+        className={`toolbar__item ${activeTool === "lasso" ? "active" : ""}`}
+        onClick={() => handleClick("lasso")}
+      >
+        <div className="toolbar__icon" title="Lazo de Selección">
+          <LuLassoSelect />
+        </div>
+      </div> */}
+
+      {/* PAN */}
       <div
         className={`toolbar__item ${activeTool === "pan" ? "active" : ""}`}
         onClick={() => handleClick("pan")}
@@ -59,6 +73,7 @@ export default function BarraHerramientas() {
       </div>
       {isER && (
         <>
+          {/* CREAR ENTIDAD */}
           <div
             className={`toolbar__item ${
               activeTool === "entity" ? "active" : ""
@@ -69,6 +84,8 @@ export default function BarraHerramientas() {
               <LuRectangleHorizontal />
             </div>
           </div>
+
+          {/* CREAR RELACIÓN */}
           <div
             className={`toolbar__item ${
               activeTool === "relation" ? "active" : ""
@@ -79,6 +96,25 @@ export default function BarraHerramientas() {
               <CgShapeRhombus />
             </div>
           </div>
+
+          {/* BORRADOR */}
+          {/* <div
+            className={`toolbar__item ${
+              activeTool === "eraser" ? "active" : ""
+            }`}
+            onClick={() => handleClick("eraser")}
+          >
+            <div className="toolbar__icon" title="Borrador">
+              <FaEraser />
+            </div>
+          </div> */}
+
+          {/* AUTOLAYOUT */}
+          {/* <div className={`toolbar__item`} onClick={() => autoLayoutDiagram()}>
+            <div className="toolbar__icon" title="Autolayout">
+              <MdOutlineTableChart />
+            </div>
+          </div> */}
           {/* <div
             className={`toolbar__item tool--has-variants ${
               openVariants ? "open" : ""
@@ -131,8 +167,6 @@ export default function BarraHerramientas() {
           </div> */}
         </>
       )}
-
-      {isRelational && <></>}
     </div>
   );
 }

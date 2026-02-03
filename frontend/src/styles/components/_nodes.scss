@@ -1,6 +1,7 @@
 @use "../variables" as *;
 
 .er__entity {
+  position: relative;
   padding: 0;
   background: transparent !important;
   border: 2px dashed transparent !important;
@@ -11,6 +12,7 @@
 }
 
 .er__relation {
+  position: relative;
   padding: 0;
   background: transparent !important;
   border: 2px dashed transparent !important;
@@ -125,5 +127,33 @@
         margin-left: 4px;
       }
     }
+  }
+}
+
+.er__delete-btn {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--btn-border);
+  border-radius: 50%;
+  background-color: var(--btn-bg);
+  color: var(--btn-color);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+
+  &:hover {
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-color);
   }
 }

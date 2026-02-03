@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import BarraEntidades from "../components/BarraElementos/BarraElementos";
 import BarraNav from "../components/BarraNavegacion/BarraNav";
 import BarraInspector from "../components/BarraInspector/BarraInspector";
@@ -9,12 +9,18 @@ import RelationCreationModal from "../components/Modals/RelationCreationModal";
 import ValidationErrorModal from "../components/Modals/ValidationErrorModal";
 import { useEditor } from "../context/EditorContext.jsx";
 import { useAnimation, motion } from "framer-motion";
+import { derToRelational } from "../utils/derToRelational.js";
 
 function RelationalLayout() {
   const {
+    diagram,
+    relationalPositions,
+    selectedElementIds,
+    relationalOverrides,
+    updateRelationalPosition,
+    updateRelationalOverride,
     isRelationCreationModalOpen,
     setIsRelationCreationModalOpen,
-    // selectedElement,
     validationState,
     validationErrors,
     setValidationState,
@@ -23,30 +29,33 @@ function RelationalLayout() {
   const controlsEntidades = useAnimation();
 
   const [panels, setPanels] = useState({
-    entidades: true,
+    entidades: false,
     herramientas: false,
     inspector: true,
   });
 
   const togglePanel = async (name) => {
-    if (name === "inspector") {
-      await controlsInspector.start({
-        x: [0, -15, 0],
-        transition: { duration: 0.4, ease: "easeInOut" },
-      });
-      return;
-    }
-
-    if (name === "entidades") {
-      await controlsEntidades.start({
-        x: [0, 15, 0],
-        transition: { duration: 0.4, ease: "easeInOut" },
-      });
-      return;
-    }
-
     setPanels((p) => ({ ...p, [name]: !p[name] }));
   };
+
+  const relationalData = useMemo(
+    () => derToRelational(diagram, relationalPositions),
+    [diagram, relationalPositions],
+  );
+
+  const selectedTable = useMemo(() => {
+    if (selectedElementIds.length !== 1) return null;
+    const selectedId = selectedElementIds[0];
+    return relationalData.nodes.find((n) => n.id === selectedId)?.data || null;
+  }, [selectedElementIds, relationalData]);
+
+  useEffect(() => {
+    if (selectedElementIds.length === 1) {
+      setPanels((p) => ({ ...p, inspector: false }));
+    } else if (selectedElementIds.length === 0) {
+      setPanels((p) => ({ ...p, inspector: true }));
+    }
+  }, [selectedElementIds]);
 
   return (
     <div className="app__layout relational">
@@ -64,6 +73,9 @@ function RelationalLayout() {
           onToggle={() => {
             togglePanel("inspector");
           }}
+          table={selectedTable}
+          overrides={relationalOverrides}
+          updateOverride={updateRelationalOverride}
         />
       </motion.div>
 

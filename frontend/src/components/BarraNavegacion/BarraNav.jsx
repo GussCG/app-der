@@ -1,4 +1,4 @@
-import { createElement, useEffect, useMemo, useState } from "react";
+import { createElement, useEffect, useMemo, useState, useRef } from "react";
 import Icons from "../Others/IconProvider.jsx";
 import BarraDesplegable from "./BarraDesplegable.jsx";
 import ValidationStatus from "./ValidationStatus.jsx";
@@ -22,6 +22,8 @@ import { useTheme } from "../../context/ThemeContext.jsx";
 import { useReactFlow } from "reactflow";
 import { downloadSQL, relationalTOSQL } from "../../utils/relationalToSQL.js";
 import { derToRelational } from "../../utils/derToRelational.js";
+import { sqlToRelational } from "../../utils/sqlToRelational.js";
+import AboutUsModal from "../Modals/AboutUsModal.jsx";
 
 const { FiDatabase, TbSql, LuTable2, LiaProjectDiagramSolid } = Icons;
 
@@ -35,6 +37,8 @@ function BarraNav() {
     setDiagramName,
     undo,
     redo,
+    canUndo,
+    canRedo,
     isDirty,
     setIsDirty,
     selectedElementIds,
@@ -50,6 +54,10 @@ function BarraNav() {
     validationState,
     validateCurrentDiagram,
     validationProgress,
+    relationalPositions,
+    relationalOverrides,
+    importRelationalData,
+    setImportedRelationalData,
   } = useEditor();
 
   const [confirmValidation, setConfirmValidation] = useState({
@@ -84,6 +92,7 @@ function BarraNav() {
   });
 
   const { isShortcutsModalOpen, setIsShortcutsModalOpen } = useKeyboard();
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
   const menuActions = useMemo(
     () => ({
@@ -91,6 +100,7 @@ function BarraNav() {
         const action = () => {
           createNewDiagram();
           setMode("er");
+          setImportedRelationalData(null);
         };
 
         if (isDirty) {
@@ -103,6 +113,7 @@ function BarraNav() {
         const action = () => {
           openDiagram();
           setMode("er");
+          setImportedRelationalData(null);
         };
 
         if (isDirty) {
@@ -111,6 +122,7 @@ function BarraNav() {
           action();
         }
       },
+      // "Importar SQL": () => handleImportSQL(),
       "Guardar diagrama": () =>
         executeValidation(() => saveDiagram(), "guardar"),
       "Exportar imagen": () =>
@@ -120,8 +132,8 @@ function BarraNav() {
 
           exportDiagramAsPng(nodes, edges, diagramName);
         }, "exportar imagen"),
-      Deshacer: () => mode === "er" && undo(),
-      Rehacer: () => mode === "er" && redo(),
+      Deshacer: () => mode === "er" && canUndo && undo(),
+      Rehacer: () => mode === "er" && canRedo && redo(),
       Eliminar: () => {
         if (mode === "er" && selectedElementIds.length > 0) {
           deleteElementsDiagram(selectedElementIds);
@@ -136,6 +148,7 @@ function BarraNav() {
       "Limpiar lienzo": () => {
         createNewDiagram();
         setMode("er");
+        setImportedRelationalData(null);
       },
       "Ajustar pantalla": () => fitToScreen(fitView),
       "Ocultar cuadrícula": () =>
@@ -144,7 +157,7 @@ function BarraNav() {
       "¿Cómo usar?": () => alert("¿Cómo usar? seleccionado"),
       "Atajos de teclado": () => setIsShortcutsModalOpen(true),
       "Cambiar de tema": () => toggleTheme(),
-      "Acerca de": () => alert("Acerca de seleccionado"),
+      "Acerca de": () => setIsAboutModalOpen(true),
     }),
     [
       isDirty,
@@ -162,6 +175,8 @@ function BarraNav() {
       setBgVariant,
       setIsShortcutsModalOpen,
       validationState,
+      isAboutModalOpen,
+      setIsAboutModalOpen,
     ],
   );
 
@@ -186,12 +201,61 @@ function BarraNav() {
   };
 
   const handleExportSQL = () => {
-    const { nodes, edges } = derToRelational(diagram);
+    const { nodes, edges } = derToRelational(
+      diagram,
+      relationalPositions,
+      relationalOverrides,
+    );
 
     const sqlScript = relationalTOSQL(nodes, edges);
 
     const fileName = `${diagramName.replace(/\s+/g, "_")}_schema.sql`;
     downloadSQL(sqlScript, fileName);
+  };
+
+  const fileInputRef = useRef(null);
+  const handleImportSQL = () => {
+    const action = () => {
+      if (fileInputRef.current) {
+        fileInputRef.current.click();
+      }
+    };
+
+    if (isDirty) {
+      setConfirmNew({ show: true, action });
+    } else {
+      action();
+    }
+  };
+
+  const onFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target.result;
+      try {
+        const { nodes, edges } = sqlToRelational(content);
+
+        if (nodes.length === 0) {
+          alert("No se encontraron tablas en el archivo SQL.");
+          return;
+        }
+
+        importRelationalData(nodes, edges);
+        setIsDirty(true);
+
+        setMode("relational");
+
+        setTimeout(() => fitToScreen(fitView), 100);
+        alert("Importación exitosa.");
+      } catch (error) {
+        alert("Error al importar el archivo SQL: " + error.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = null;
   };
 
   return (
@@ -227,7 +291,12 @@ function BarraNav() {
               >
                 <p>{tipo.charAt(0).toUpperCase() + tipo.slice(1)}</p>
                 {menuActivo === tipo && (
-                  <BarraDesplegable tipo={tipo} onSelect={handleMenuSelect} />
+                  <BarraDesplegable
+                    tipo={tipo}
+                    onSelect={handleMenuSelect}
+                    canRedo={canRedo}
+                    canUndo={canUndo}
+                  />
                 )}
               </div>
             ))}
@@ -269,14 +338,14 @@ function BarraNav() {
                   setMode("er");
                 }}
               >
-                <FiDatabase />
-                Regresar a ER
+                <LiaProjectDiagramSolid />
+                Regresar a E-R
               </button>
               <button
                 className="nav__button secondary"
                 onClick={handleExportSQL}
               >
-                <FiDatabase />
+                <TbSql />
                 Exportar SQL
               </button>
             </>
@@ -329,7 +398,19 @@ function BarraNav() {
             confirmText="Entendido"
           />
         )}
+
+        {isAboutModalOpen && (
+          <AboutUsModal onClose={() => setIsAboutModalOpen(false)} />
+        )}
       </AnimatePresence>
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        onChange={onFileChange}
+        accept=".sql"
+      />
     </>
   );
 }

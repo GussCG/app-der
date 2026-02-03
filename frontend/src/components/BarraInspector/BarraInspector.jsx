@@ -1,14 +1,24 @@
 import { useEditor } from "../../context/EditorContext.jsx";
+import { useEditorMode } from "../../context/EditorModeContext.jsx";
 import Icons from "../Others/IconProvider.jsx";
 import HidePanelButton from "../Others/TogglePanelButton.jsx";
-import EntityInspector from "./EntityInspector.jsx";
-import RelationInspector from "./RelationInspector.jsx";
+import EREntityInspector from "./ER/EREntityInspector.jsx";
+import ERRelationInspector from "./ER/ERRelationInspector.jsx";
+import RelEntityInspector from "./Relacional/RelEntityInspector.jsx";
 
 const { LuPanelLeftClose, LuPanelLeftOpen } = Icons;
 
-function BarraInspector({ hidden, onToggle }) {
+function BarraInspector({
+  hidden,
+  onToggle,
+  table,
+  overrides = {},
+  updateOverride,
+}) {
   const { selectedElement } = useEditor();
+  const { isER, isRelational } = useEditorMode();
 
+  const hasSelection = isRelational ? !!table : !!selectedElement;
   return (
     <div className={`properties ${hidden ? "hidden" : ""}`}>
       <HidePanelButton
@@ -20,15 +30,27 @@ function BarraInspector({ hidden, onToggle }) {
         <>
           <h1>Propiedades</h1>
 
-          {!selectedElement && (
+          {!hasSelection && (
             <p className="properties__no_selection">
               Selecciona un elemento para ver sus propiedades.
             </p>
           )}
 
-          {selectedElement?.kind === "entity" && <EntityInspector />}
+          {/* ER */}
+          {selectedElement?.kind === "entity" && isER && <EREntityInspector />}
+          {selectedElement?.kind === "relation" && isER && (
+            <ERRelationInspector />
+          )}
 
-          {selectedElement?.kind === "relation" && <RelationInspector />}
+          {/* RELACIONAL */}
+          {/* selectedElement?.kind === "entity" && */}
+          {isRelational && table && (
+            <RelEntityInspector
+              table={table}
+              overrides={overrides}
+              updateOverride={updateOverride}
+            />
+          )}
         </>
       )}
     </div>

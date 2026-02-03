@@ -1,11 +1,22 @@
-export const saveDERFile = ({ diagram, diagramName }) => {
+export const saveDERFile = ({
+  diagram,
+  diagramName,
+  relationalPositions = {},
+  relationalOverrides = {},
+}) => {
+  if (!diagram) return;
+
   const content = {
     version: "1.0",
-    type: "DER",
+    type: "DER_WORKSPACE",
     name: diagramName || "newDiagram",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    diagram: diagram,
+    diagram,
+    relationalMeta: {
+      positions: relationalPositions,
+      overrides: relationalOverrides,
+    },
   };
 
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -37,17 +48,25 @@ export const openDERFile = ({ onLoad }) => {
 
     const reader = new FileReader();
     reader.onload = () => {
-      const data = JSON.parse(reader.result);
+      try {
+        const content = JSON.parse(reader.result);
 
-      if (data.type !== "DER") {
-        alert("Archivo inválido");
-        return;
+        // if (content.type !== "DER_WORKSPACE" || content.type !== "DER") {
+        //   throw new Error("Invalid DER file");
+        //   return;
+        // }
+
+        onLoad({
+          diagram: content.diagram,
+          name: content.name,
+          relationalMeta: content.relationalMeta ?? {
+            positions: {},
+            overrides: {},
+          },
+        });
+      } catch (err) {
+        alert("Error al abrir el archivo: " + err.message);
       }
-
-      onLoad({
-        diagram: data.diagram,
-        name: data.name,
-      });
     };
 
     reader.readAsText(file);

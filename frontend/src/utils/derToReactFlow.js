@@ -19,80 +19,118 @@ export function derToReactFlow(diagram) {
     })),
   ];
 
+  const nodeMap = Object.fromEntries(nodes.map((n) => [n.id, n]));
+
   const edges = diagram.relations.flatMap((relation) => {
     const { source, target } = relation.data.connections || {};
+    if (!source?.entityId || !target?.entityId) return [];
 
-    const sourceCenter = getCenter(
-      diagram.entities.find((e) => e.id === source?.entityId),
-      "entity",
-    );
-    const relationCenter = getCenter(relation, "relation");
-    const targetCenter = getCenter(
-      diagram.entities.find((e) => e.id === target?.entityId),
-      "entity",
-    );
-
-    const sourceEntity = diagram.entities.find(
-      (e) => e.id === source?.entityId,
-    );
-    const targetEntity = diagram.entities.find(
-      (e) => e.id === target?.entityId,
-    );
+    const recursive = source.entityId === target.entityId;
     const result = [];
 
-    console.log(source);
+    const relationNode = nodeMap[relation.id];
+    const relationCenter = getCenter(relationNode, "relation");
 
     if (source?.entityId) {
+      const entityNode = nodeMap[source.entityId];
+      const entityCenter = getCenter(entityNode, "entity");
+
       result.push({
         id: `e-${relation.id}-source`,
         source: source.entityId,
         target: relation.id,
-        sourceHandle: chooseEntityHandle(sourceCenter, relationCenter),
-        targetHandle: chooseRelationHandle(relationCenter, sourceCenter),
+        sourceHandle:
+          source.handleId ?? chooseEntityHandle(entityCenter, relationCenter),
+        targetHandle: source.handleId
+          ? oppositeHandle(source.handleId)
+          : chooseRelationHandle(relationCenter, entityCenter),
         type: "er",
         data: {
-          cardinality: source.cardinality,
           side: "source",
+          cardinality: source.cardinality,
           participation: source.participation || "partial",
-          color: sourceEntity?.data?.color || "#888",
-          onDelete: source.onDelete || "RESTRICT",
-          onUpdate: source.onUpdate || "RESTRICT",
+          color: relation.data.color || "#888",
+          isRecursive: recursive,
         },
       });
     }
 
     if (target?.entityId) {
+      const entityNode = nodeMap[target.entityId];
+      const entityCenter = getCenter(entityNode, "entity");
+
       result.push({
         id: `e-${relation.id}-target`,
         source: relation.id,
         target: target.entityId,
-        sourceHandle: chooseRelationHandle(relationCenter, targetCenter),
-        targetHandle: chooseEntityHandle(targetCenter, relationCenter),
+        sourceHandle: target.handleId
+          ? oppositeHandle(target.handleId)
+          : chooseRelationHandle(relationCenter, entityCenter),
+        targetHandle:
+          target.handleId ?? chooseEntityHandle(entityCenter, relationCenter),
         type: "er",
         data: {
-          cardinality: target.cardinality,
           side: "target",
+          cardinality: target.cardinality,
           participation: target.participation,
-          color: targetEntity?.data?.color || "#888",
-          onDelete: target.onDelete || "RESTRICT",
-          onUpdate: target.onUpdate || "RESTRICT",
+          color: relation.data.color || "#888",
+          isRecursive: recursive,
         },
       });
     }
-
-    console.log("Edges for relation", relation.id, ":", result);
     return result;
   });
 
   return { nodes, edges };
 }
 
-const getCenter = (node, type) => {
+export const getCenter = (node, type) => {
   if (!node) return { x: 0, y: 0 };
-  const offset = type === "entity" ? { x: 60, y: 20 } : { x: 50, y: 32.5 };
+
+  const offset =
+    type === "entity"
+      ? { x: 60, y: 20 } // Centro de 120x40
+      : { x: 50, y: 32.5 }; // Centro de 100x65
 
   return {
     x: node.position.x + offset.x,
     y: node.position.y + offset.y,
   };
+};
+
+export const isRecursiveRelation = (source, target) => {
+  return (
+    source?.entityId && target?.entityId && source.entityId === target.entityId
+  );
+};
+
+export const getRecursiveHandles = (sourceCenter, relationCenter) => {
+  const entityToRelHandle = chooseEntityHandle(sourceCenter, relationCenter);
+
+  // Lados de la entidad para la "U"
+  const pairs = {
+    top: { h1: "left", h2: "right" },
+    bottom: { h1: "left", h2: "right" },
+    left: { h1: "top", h2: "bottom" },
+    right: { h1: "top", h2: "bottom" },
+  };
+
+  const entitySides = pairs[entityToRelHandle] || pairs.top;
+  const relSide = oppositeHandle(entityToRelHandle); // El rombo mira a la entidad
+
+  return {
+    source: { entity: entitySides.h1, relation: relSide },
+    target: { entity: entitySides.h2, relation: relSide },
+  };
+};
+
+// Necesitas esta pequeña función de apoyo
+export const oppositeHandle = (handle) => {
+  const opposites = {
+    top: "bottom",
+    bottom: "top",
+    left: "right",
+    right: "left",
+  };
+  return opposites[handle] || "top";
 };

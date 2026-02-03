@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { saveDERFile, openDERFile } from "../utils/derFile";
 import { validateDiagram } from "../utils/validation/validateDiagram";
+import { autoLayoutERDiagram } from "../utils/autolayout/autoLayoutELK";
 
 const EditorContext = createContext();
 
@@ -34,14 +35,34 @@ export function EditorProvider({ children }) {
 
   const [relationalPositions, setRelationalPositions] = useState({});
 
+  const [relationalOverrides, setRelationalOverrides] = useState({});
+
+  const [isAutoLayouting, setIsAutoLayouting] = useState(false);
+
+  const updateRelationalOverride = (table, column, patch) => {
+    setRelationalOverrides((prev) => ({
+      ...prev,
+      [table]: {
+        ...prev[table],
+        [column]: {
+          ...prev[table]?.[column],
+          ...patch,
+        },
+      },
+    }));
+    setIsDirty(true);
+  };
+
   const updateRelationalPosition = (id, position) => {
     setRelationalPositions((prev) => ({
       ...prev,
       [id]: position,
     }));
+    setIsDirty(true);
   };
 
   const createNewDiagram = () => {
+    localStorage.removeItem("autosave-der");
     setHistory({
       past: [],
       present: EMPTY_DIAGRAM,
@@ -211,18 +232,24 @@ export function EditorProvider({ children }) {
 
   const saveDiagram = () => {
     saveDERFile({ diagram, diagramName });
+    localStorage.removeItem("autosave-der");
     setIsDirty(false);
   };
 
   const openDiagram = () => {
     openDERFile({
-      onLoad: ({ diagram, name }) => {
+      onLoad: ({ diagram, name, relationalMeta }) => {
+        localStorage.removeItem("autosave-der");
         setHistory({
           past: [],
           present: diagram,
           future: [],
         });
         setDiagramName(name || "Sin nombre");
+
+        setRelationalPositions(relationalMeta?.positions || {});
+        setRelationalOverrides(relationalMeta?.overrides || {});
+
         setIsDirty(false);
         setSelectedElementIds([]);
         setValidationState("idle");
@@ -254,19 +281,127 @@ export function EditorProvider({ children }) {
     return errors.length === 0;
   };
 
+  const autoLayoutDiagram = async () => {
+    setIsAutoLayouting(true);
+    const layouted = await autoLayoutERDiagram(diagram);
+    applyChange(layouted);
+    setTimeout(() => setIsAutoLayouting(false), 0);
+  };
+
+  const usedColors = useMemo(() => {
+    const colors = new Set();
+
+    diagram.entities.forEach((e) => {
+      if (e.data?.color) {
+        colors.add(e.data.color.toLowerCase());
+      }
+    });
+
+    diagram.relations.forEach((r) => {
+      if (r.data?.color) {
+        colors.add(r.data.color.toLowerCase());
+      }
+    });
+
+    return [...colors];
+  }, [diagram]);
+
+  const [importedRelationalData, setImportedRelationalData] = useState(null);
+  const importRelationalData = (nodes, edges) => {
+    // 1. Mapear Entidades
+    const newEntities = nodes.map((node) => ({
+      id: node.id,
+      type: "entity",
+      position: node.position,
+      data: {
+        name: node.data.name,
+        weak: false,
+        color: node.data.color || "#323c4c",
+        // Los atributos ahora llevan todo el peso de la data
+        attributes: node.data.columns.map((col) => ({
+          ...col,
+          // Forzamos consistencia
+          pk: !!col.pk || !!col.isPk,
+          kind: col.kind || "simple",
+        })),
+      },
+    }));
+
+    // 2. Mapear Relaciones (Rombos)
+    const newRelations = edges.map((edge) => {
+      const sourceNode = nodes.find((n) => n.id === edge.source);
+      const targetNode = nodes.find((n) => n.id === edge.target);
+
+      // Intentar calcular posición media para el rombo
+      const posX = (sourceNode?.position.x + targetNode?.position.x) / 2 || 100;
+      const posY = (sourceNode?.position.y + targetNode?.position.y) / 2 || 100;
+
+      return {
+        id: edge.id || crypto.randomUUID(),
+        type: "relation",
+        position: { x: posX + 50, y: posY + 50 },
+        data: {
+          name: "Relación",
+          color: "#323c4c",
+          connections: {
+            source: {
+              entityId: edge.source,
+              cardinality: "1",
+              participation: "total",
+            },
+            target: {
+              entityId: edge.target,
+              cardinality: "N",
+              participation: "partial",
+            },
+          },
+        },
+      };
+    });
+
+    // 3. Aplicar al historial
+    applyChange({
+      entities: newEntities,
+      relations: newRelations,
+    });
+
+    setImportedRelationalData(null);
+  };
+
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (!isDirty) return;
+    const raw = localStorage.getItem("autosave-der");
+    if (!raw) return;
 
-      e.preventDefault();
-      e.returnValue = "";
+    try {
+      const parsed = JSON.parse(raw);
+
+      setHistory({
+        past: [],
+        present: parsed.diagram ?? EMPTY_DIAGRAM,
+        future: [],
+      });
+
+      setDiagramName(parsed.diagramName ?? "Sin nombre");
+      setRelationalPositions(parsed.relationalPositions ?? {});
+      setRelationalOverrides(parsed.relationalOverrides ?? {});
+      setIsDirty(true);
+    } catch (e) {
+      console.warn("Autosave corrupto, ignorado");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const payload = {
+      diagram,
+      diagramName,
+      relationalPositions,
+      relationalOverrides,
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [isDirty]);
+    localStorage.setItem("autosave-der", JSON.stringify(payload));
+  }, [diagram, diagramName, relationalPositions, relationalOverrides, isDirty]);
 
   return (
     <EditorContext.Provider
@@ -312,6 +447,19 @@ export function EditorProvider({ children }) {
 
         relationalPositions,
         updateRelationalPosition,
+
+        relationalOverrides,
+        updateRelationalOverride,
+
+        autoLayoutDiagram,
+        isAutoLayouting,
+        setIsAutoLayouting,
+
+        usedColors,
+
+        importedRelationalData,
+        setImportedRelationalData,
+        importRelationalData,
       }}
     >
       {children}

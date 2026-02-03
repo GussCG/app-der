@@ -58,6 +58,11 @@ import { LuLayoutDashboard } from "react-icons/lu";
 
 import { SiTarget } from "react-icons/si";
 import { FaSourcetree } from "react-icons/fa";
+import { FaLock } from "react-icons/fa";
+import { FaCircleInfo } from "react-icons/fa6";
+import { LuLassoSelect } from "react-icons/lu";
+import { FaEraser } from "react-icons/fa6";
+import { MdDelete } from "react-icons/md";
 
 const Icons = {
   GoAlertFill,
@@ -112,6 +117,11 @@ const Icons = {
   LuLayoutDashboard,
   SiTarget,
   FaSourcetree,
+  FaLock,
+  FaCircleInfo,
+  LuLassoSelect,
+  FaEraser,
+  MdDelete,
 };
 
 export default Icons;

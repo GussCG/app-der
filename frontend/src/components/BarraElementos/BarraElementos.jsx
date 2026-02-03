@@ -4,6 +4,7 @@ import HidePanelButton from "../Others/TogglePanelButton.jsx";
 
 import { useEditor } from "../../context/EditorContext.jsx";
 import { useEditorMode } from "../../context/EditorModeContext.jsx";
+import { derToRelational } from "../../utils/derToRelational.js";
 
 const {
   FaSearch,
@@ -12,6 +13,7 @@ const {
   LuPanelLeftOpen,
   CgShapeRhombus,
   IoClose,
+  LuRectangleHorizontal,
 } = Icons;
 
 function BarraElementos({ hidden, onToggle }) {
@@ -20,28 +22,56 @@ function BarraElementos({ hidden, onToggle }) {
     setSelectedElementIds,
     selectedElementIds,
     deleteElementsDiagram,
+    relationalPositions,
+    relationalOverrides,
   } = useEditor();
-  const { isER } = useEditorMode();
-
-  const { entities, relations } = diagram;
+  const { isER, isRelational } = useEditorMode();
 
   const [search, setSearch] = useState("");
 
-  const filteredEntities = useMemo(() => {
-    if (!search.trim()) return entities;
+  const displayedItems = useMemo(() => {
+    if (isER) {
+      const items = [
+        ...(diagram.entities || []).map((e) => ({ ...e, type: "entity" })),
+        ...(diagram.relations || []).map((r) => ({ ...r, type: "relation" })),
+      ];
+      return filterBySearch(items, search);
+    }
 
-    return entities.filter((entity) =>
-      entity.data?.name?.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [entities, search]);
+    if (isRelational) {
+      const { nodes } = derToRelational(
+        diagram,
+        relationalPositions,
+        relationalOverrides,
+      );
 
-  const filteredRelations = useMemo(() => {
-    if (!search.trim()) return relations;
+      const items = nodes.map((node) => ({
+        id: node.id,
+        name: node.data.name,
+        type: "table",
+        data: node.data,
+      }));
+      return filterBySearch(items, search);
+    }
 
-    return relations.filter((relation) =>
-      relation.data?.name?.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [relations, search]);
+    return [];
+  }, [
+    diagram,
+    isER,
+    isRelational,
+    search,
+    relationalPositions,
+    relationalOverrides,
+  ]);
+
+  function filterBySearch(items, query) {
+    if (!query.trim()) return items;
+    const lowerQuery = query.toLowerCase();
+    return items.filter((item) => {
+      const name = item.data?.name || item.name || "";
+      return name.toLowerCase().includes(lowerQuery);
+    });
+  }
 
   return (
     <div className={`elements ${hidden ? "hidden" : ""}`}>
@@ -53,80 +83,77 @@ function BarraElementos({ hidden, onToggle }) {
 
       {!hidden && (
         <>
-          <h1>Elementos</h1>
+          <div className="elements__header">
+            <h1>
+              {isER
+                ? "Elementos ER"
+                : isRelational
+                  ? "Tablas Relacionales"
+                  : "Elementos"}
+            </h1>
+            <span className="elements__count">
+              {displayedItems.length} elementos
+            </span>
+          </div>
+
           <div className="elements__container">
             <div className="elements__searchbar">
               <FaSearch />
               <input
                 type="text"
-                placeholder="Buscar elemento..."
+                placeholder={
+                  isER ? "Buscar entidad o relación..." : "Buscar tabla..."
+                }
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <button
-                className="elements__clear_button"
-                onClick={() => setSearch("")}
-              >
-                <IoClose />
-              </button>
+              {search && (
+                <button
+                  className="elements__clear_button"
+                  onClick={() => setSearch("")}
+                >
+                  <IoClose />
+                </button>
+              )}
             </div>
             <div className="elements__list">
-              {filteredEntities &&
-                filteredEntities.map((entity) => (
-                  <div
-                    key={entity.id}
-                    className={`elements__item ${
-                      selectedElementIds.includes(entity.id) ? "selected" : ""
-                    }`}
-                    onClick={() => {
-                      if (!isER) {
-                        return;
-                      }
-                      setSelectedElementIds([entity.id]);
-                    }}
-                  >
-                    <HiOutlineTableCells />
-                    <span>{entity.data?.name || "Entidad sin nombre"}</span>
-                    {isER && (
-                      <button
-                        className="elements__item-delete"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteElementsDiagram([entity.id]);
-                        }}
-                      >
-                        <IoClose />
-                      </button>
-                    )}
+              {displayedItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`elements__item ${
+                    selectedElementIds.includes(item.id) ? "selected" : ""
+                  }`}
+                  onClick={() => {
+                    setSelectedElementIds([item.id]);
+                  }}
+                >
+                  <div className="elements__icon">
+                    {item.type === "entity" && <LuRectangleHorizontal />}
+                    {item.type === "relation" && <CgShapeRhombus />}
+                    {item.type === "table" && <HiOutlineTableCells />}
                   </div>
-                ))}
 
-              {filteredRelations &&
-                filteredRelations.map((relation) => (
-                  <div
-                    key={relation.id}
-                    className={`elements__item ${
-                      selectedElementIds.includes(relation.id) ? "selected" : ""
-                    }`}
-                    onClick={() => {
-                      if (!isER) {
-                        return;
-                      }
-                      setSelectedElementIds([relation.id]);
-                    }}
-                  >
-                    <CgShapeRhombus />
-                    <span>{relation.data?.name || "Relación sin nombre"}</span>
-                    {isER && (
-                      <button
-                        className="elements__item-delete"
-                        onClick={() => deleteElementsDiagram([relation.id])}
-                      >
-                        <IoClose />
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  <span>
+                    {(
+                      item.data?.name ||
+                      item.name ||
+                      "Sin nombre"
+                    ).toUpperCase()}
+                  </span>
+                  {isER && (
+                    <button
+                      className="elements__item-delete"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isER) return;
+                        deleteElementsDiagram([item.id]);
+                      }}
+                    >
+                      <IoClose />
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </>

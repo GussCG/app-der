@@ -1,7 +1,6 @@
 import { useEditorMode } from "../context/EditorModeContext";
 import RelationalLayout from "./RelationalLayout.jsx";
 import ERLayout from "./ERLayout.jsx";
-import SQLLayout from "./SQLayout.jsx";
 
 export default function Layout() {
   const { mode } = useEditorMode();
@@ -11,8 +10,6 @@ export default function Layout() {
       return <RelationalLayout />;
     case "er":
       return <ERLayout />;
-    case "sql":
-      return <SQLLayout />;
     default:
       return <RelationalLayout />;
   }

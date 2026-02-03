@@ -33,6 +33,8 @@ export function KeyboardProvider({ children, flowRef }) {
     openDiagram,
     undo,
     redo,
+    canUndo,
+    canRedo,
     deleteElementsDiagram,
     duplicateSelectedElements,
   } = useEditor();
@@ -102,8 +104,8 @@ export function KeyboardProvider({ children, flowRef }) {
 
       exportDiagramAsPng(nodes, edges, diagram?.name || "diagrama");
     },
-    UNDO: () => mode === "er" && undo(),
-    REDO: () => mode === "er" && redo(),
+    UNDO: () => mode === "er" && canUndo && undo(),
+    REDO: () => mode === "er" && canRedo && redo(),
     DUPLICATE_ELEMENT: () => {
       if (mode === "er") {
         duplicateSelectedElements();

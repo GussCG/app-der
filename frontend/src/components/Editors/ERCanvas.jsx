@@ -12,7 +12,15 @@ import { useEffect, useRef, useCallback, useMemo } from "react";
 
 import { useEditor } from "../../context/EditorContext";
 import { useTool } from "../../context/ToolContext";
-import { derToReactFlow } from "../../utils/derToReactFlow.js";
+import {
+  derToReactFlow,
+  getCenter,
+  getRecursiveHandles,
+} from "../../utils/derToReactFlow.js";
+import {
+  chooseEntityHandle,
+  chooseRelationHandle,
+} from "../../utils/er/chooseBestHandle.js";
 import EREntityNode from "../Nodes/ER/EREntityNode.jsx";
 import ERRelationNode from "../Nodes/ER/ERRelationNode.jsx";
 import ERCardinalityEdge from "../Nodes/ER/Edges/ERCardinalityEdge.jsx";
@@ -36,6 +44,7 @@ export default function ERCanvas() {
     bgVariant,
     deleteElementsDiagram,
     selectedElementIds,
+    isAutoLayouting,
   } = useEditor();
   const { activeTool, setActiveTool } = useTool();
   const {
@@ -45,6 +54,8 @@ export default function ERCanvas() {
     getNodes,
     setViewport,
   } = useReactFlow();
+
+  console.log("ERCanvas render", { diagram });
 
   const isSyncingRef = useRef(false);
   const lastSelectionRef = useRef(null);
@@ -75,16 +86,28 @@ export default function ERCanvas() {
     setNodes((currentNodes) =>
       newNodes.map((newNode) => {
         const existing = currentNodes.find((n) => n.id === newNode.id);
-
         return {
           ...newNode,
+          type: newNode.type,
           position: existing ? existing.position : newNode.position,
           selected: selectedIdsRef.current.includes(newNode.id),
         };
       }),
     );
 
-    setEdges(newEdges);
+    setEdges((currentEdges) =>
+      newEdges.map((newEdge) => {
+        const existing = currentEdges.find((e) => e.id === newEdge.id);
+        if (existing) {
+          return {
+            ...newEdge,
+            sourceHandle: existing.sourceHandle,
+            targetHandle: existing.targetHandle,
+          };
+        }
+        return newEdge;
+      }),
+    );
 
     requestAnimationFrame(() => {
       const selectedIds = lastSelectionRef.current;
@@ -122,31 +145,114 @@ export default function ERCanvas() {
 
       isSyncingRef.current = true;
 
+      const allNodes = getNodes();
+      const nodeMap = Object.fromEntries(allNodes.map((n) => [n.id, n]));
+
+      const updatedRelations = diagram.relations.map((rel) => {
+        const draggedRel = draggedNodes.find((dn) => dn.id === rel.id);
+        const currentPos = draggedRel ? draggedRel.position : rel.position;
+
+        const { source, target } = rel.data.connections || {};
+        if (!source?.entityId || !target?.entityId) {
+          return { ...rel, position: currentPos };
+        }
+
+        const sourceNode = nodeMap[source.entityId];
+        const targetNode = nodeMap[target.entityId];
+        const relNode = nodeMap[rel.id];
+
+        if (!sourceNode || !targetNode || !relNode)
+          return { ...rel, position: currentPos };
+
+        const sCenter = getCenter(sourceNode, "entity");
+        const tCenter = getCenter(targetNode, "entity");
+        const rCenter = getCenter(relNode, "relation");
+
+        return {
+          ...rel,
+          position: currentPos,
+          data: {
+            ...rel.data,
+            connections: {
+              source: {
+                ...source,
+                handleId: chooseEntityHandle(sCenter, rCenter),
+              },
+              target: {
+                ...target,
+                handleId: chooseEntityHandle(tCenter, rCenter),
+              },
+            },
+          },
+        };
+      });
+
       applyChange({
         ...diagram,
-        entities: diagram.entities.map((e) =>
-          draggedNodes.find((n) => n.id === e.id)
-            ? {
-                ...e,
-                position: draggedNodes.find((n) => n.id === e.id).position,
-              }
-            : e,
-        ),
-        relations: diagram.relations.map((r) =>
-          draggedNodes.find((n) => n.id === r.id)
-            ? {
-                ...r,
-                position: draggedNodes.find((n) => n.id === r.id).position,
-              }
-            : r,
-        ),
+        entities: diagram.entities.map((e) => {
+          const dragged = draggedNodes.find((dn) => dn.id === e.id);
+          return dragged ? { ...e, position: dragged.position } : e;
+        }),
+        relations: updatedRelations,
       });
 
       setTimeout(() => {
         isSyncingRef.current = false;
       }, 100);
     },
-    [applyChange, diagram],
+    [applyChange, diagram, getNodes],
+  );
+
+  const onNodeDrag = useCallback(
+    (event, node, draggedNodes) => {
+      setEdges((eds) => {
+        // Obtenemos todos los nodos actuales para tener sus posiciones frescas
+        const allNodes = getNodes();
+        const nodeMap = Object.fromEntries(allNodes.map((n) => [n.id, n]));
+
+        return eds.map((edge) => {
+          // Solo recalculamos si el edge está conectado a uno de los nodos que se mueve
+          if (
+            draggedNodes.some(
+              (dn) => dn.id === edge.source || dn.id === edge.target,
+            )
+          ) {
+            const sourceNode = nodeMap[edge.source];
+            const targetNode = nodeMap[edge.target];
+
+            if (!sourceNode || !targetNode) return edge;
+
+            const sCenter = getCenter(sourceNode, sourceNode.type);
+            const tCenter = getCenter(targetNode, targetNode.type);
+
+            // Si es recursivo, usamos la lógica de la "U"
+            if (edge.data.isRecursive) {
+              const recHandles = getRecursiveHandles(sCenter, tCenter);
+              return {
+                ...edge,
+                sourceHandle:
+                  edge.data.side === "source"
+                    ? recHandles.source.entity
+                    : recHandles.target.relation,
+                targetHandle:
+                  edge.data.side === "source"
+                    ? recHandles.source.relation
+                    : recHandles.target.entity,
+              };
+            }
+
+            // Si es normal, recalculamos el mejor handle
+            return {
+              ...edge,
+              sourceHandle: chooseEntityHandle(sCenter, tCenter),
+              targetHandle: chooseRelationHandle(tCenter, sCenter),
+            };
+          }
+          return edge;
+        });
+      });
+    },
+    [getNodes, setEdges],
   );
 
   const onPaneClick = (event) => {
@@ -297,9 +403,10 @@ export default function ERCanvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onPaneClick={onPaneClick}
+        onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         selectionMode={SelectionMode.Partial}
-        selectionOnDrag={activeTool === "select"}
+        selectionOnDrag={activeTool === "select" || activeTool === "lasso"}
         panOnDrag={activeTool === "pan"}
         nodesDraggable={activeTool === "select"}
         nodeTypes={nodeTypes}
