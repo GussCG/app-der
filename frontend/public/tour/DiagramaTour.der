@@ -1,0 +1,133 @@
+{
+  "version": "1.0",
+  "type": "DER_WORKSPACE",
+  "name": "DiagramaTour",
+  "createdAt": "2026-02-04T23:49:30.441Z",
+  "updatedAt": "2026-02-04T23:49:30.441Z",
+  "diagram": {
+    "entities": [
+      {
+        "id": "9c97eec2-6e9c-4a41-b30f-7a7a64b36920",
+        "position": {
+          "x": -162.96831725618563,
+          "y": -479.35874901045014
+        },
+        "type": "entity",
+        "data": {
+          "name": "ENTIDAD_1",
+          "weak": false,
+          "attributes": [
+            {
+              "id": "585c5fa9-4d91-4c38-bbbc-4df0ae962227",
+              "name": "ID",
+              "kind": "simple",
+              "pk": true,
+              "partial": false,
+              "children": []
+            },
+            {
+              "id": "72d6b53f-c406-4c96-bbf6-aed3712f8990",
+              "name": "ATRIBUTO_COMP",
+              "kind": "composite",
+              "pk": false,
+              "partial": false,
+              "children": [
+                {
+                  "id": "7cae2877-f804-40fa-92fd-a465ce04afd7",
+                  "name": "SUB_1",
+                  "kind": "simple"
+                },
+                {
+                  "id": "f9617282-3a62-435d-b788-b511e3c16ee0",
+                  "name": "SUB_2",
+                  "kind": "simple"
+                }
+              ]
+            }
+          ],
+          "color": "#2c74e8"
+        }
+      },
+      {
+        "id": "06d2c97f-15b2-4ff3-ae7d-295245d4dccc",
+        "position": {
+          "x": 202.16603028305502,
+          "y": -364.6328080332347
+        },
+        "type": "entity",
+        "data": {
+          "name": "ENTIDAD_2",
+          "weak": false,
+          "attributes": [
+            {
+              "id": "ce5ef8d4-c74e-4cb9-8029-8f6a10be4135",
+              "name": "ID",
+              "kind": "simple",
+              "pk": true,
+              "partial": false,
+              "children": []
+            },
+            {
+              "id": "56e526c9-3113-4ab4-aca9-45fecc1bdc3e",
+              "name": "ATRIBUTO_DER",
+              "kind": "derived",
+              "pk": false,
+              "partial": false,
+              "children": []
+            },
+            {
+              "id": "83d94380-b7ea-480b-8bce-74d5bac08592",
+              "name": "ATRIBUTO_MUL",
+              "kind": "multivalued",
+              "pk": false,
+              "partial": false,
+              "children": []
+            }
+          ],
+          "color": "#bf421e"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "0885177a-c3e7-4946-a9ed-a0165a7d3e92",
+        "position": {
+          "x": 92.6160425404023,
+          "y": -387.3768085992228
+        },
+        "type": "relation",
+        "data": {
+          "name": "RELACION",
+          "type": "simple",
+          "attributes": [
+            {
+              "id": "bc632775-1438-4a5b-8b3c-1a731abfb770",
+              "name": "ATRIBUTO_REL",
+              "kind": "simple",
+              "children": []
+            }
+          ],
+          "connections": {
+            "source": {
+              "entityId": "9c97eec2-6e9c-4a41-b30f-7a7a64b36920",
+              "cardinality": "1",
+              "participation": "partial",
+              "handleId": "right"
+            },
+            "target": {
+              "entityId": "06d2c97f-15b2-4ff3-ae7d-295245d4dccc",
+              "cardinality": "1",
+              "participation": "partial",
+              "handleId": "left"
+            }
+          },
+          "color": "#a154e1"
+        }
+      }
+    ]
+  },
+  "relationalMeta": {
+    "positions": {},
+    "overrides": {}
+  }
+}

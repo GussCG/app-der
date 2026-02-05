@@ -7,7 +7,8 @@ function ValidationStatus({ state, onValidate, disabled, progress }) {
     return (
       <div
         className="nav__validation_progress"
-        style={{ "--progress": `${progress}%` }} // Pasamos el progreso al CSS
+        style={{ "--progress": `${progress}%` }}
+        data-tour="validate-diagram-button"
       >
         <p>Validando... {progress}%</p>
       </div>
@@ -16,7 +17,10 @@ function ValidationStatus({ state, onValidate, disabled, progress }) {
 
   if (state === "invalid") {
     return (
-      <div className="nav__validation_progress invalid">
+      <div
+        className="nav__validation_progress invalid"
+        data-tour="validate-diagram-button"
+      >
         <p>Inválido</p>
       </div>
     );
@@ -24,7 +28,10 @@ function ValidationStatus({ state, onValidate, disabled, progress }) {
 
   if (state === "valid") {
     return (
-      <div className="nav__validation_progress valid">
+      <div
+        className="nav__validation_progress valid"
+        data-tour="validate-diagram-button"
+      >
         <FaCircleCheck />
         <p>Válido</p>
       </div>
@@ -36,6 +43,7 @@ function ValidationStatus({ state, onValidate, disabled, progress }) {
       className="nav__button validate"
       onClick={onValidate}
       disabled={disabled}
+      data-tour="validate-diagram-button"
     >
       Validar Diagrama
     </button>

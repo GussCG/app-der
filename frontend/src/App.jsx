@@ -7,6 +7,7 @@ import { KeyboardProvider } from "./context/KeyboardContext.jsx";
 import LimitModal from "./components/Modals/LimitModal.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { ReactFlowProvider } from "reactflow";
+import { TourProvider } from "./context/TourContext.jsx";
 
 function App() {
   return (
@@ -14,11 +15,13 @@ function App() {
       <ReactFlowProvider>
         <EditorProvider>
           <EditorModeProvider>
-            <ToolProvider>
-              <KeyboardProvider>
-                <Layout />
-              </KeyboardProvider>
-            </ToolProvider>
+            <TourProvider>
+              <ToolProvider>
+                <KeyboardProvider>
+                  <Layout />
+                </KeyboardProvider>
+              </ToolProvider>
+            </TourProvider>
           </EditorModeProvider>
         </EditorProvider>
       </ReactFlowProvider>

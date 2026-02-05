@@ -7,15 +7,11 @@ import ConfirmModal from "../Modals/ConfirmModal.jsx";
 import { useEditorMode } from "../../context/EditorModeContext.jsx";
 import KeyboardShortcutsModal from "../Modals/KeyboardShortcutsModal.jsx";
 import { useKeyboard } from "../../context/KeyboardContext.jsx";
+import { useTour } from "../../context/TourContext.jsx";
 
 import { AnimatePresence } from "framer-motion";
 
-import {
-  fitToScreen,
-  exportDiagramAsPng,
-  openAppTour,
-  openAboutModal,
-} from "../../utils/diagramActions.js";
+import { fitToScreen, exportDiagramAsPng } from "../../utils/diagramActions.js";
 
 import { useEditor } from "../../context/EditorContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
@@ -30,6 +26,7 @@ const { FiDatabase, TbSql, LuTable2, LiaProjectDiagramSolid } = Icons;
 function BarraNav() {
   const { mode, setMode } = useEditorMode();
   const { toggleTheme } = useTheme();
+  const { startTutorial } = useTour();
   const { fitView, getNodes, getEdges } = useReactFlow();
   const {
     diagram,
@@ -154,7 +151,7 @@ function BarraNav() {
       "Ocultar cuadrícula": () =>
         setBgVariant(bgVariant === null ? "dots" : null),
       "Abrir herramientas": () => alert("Abrir herramientas seleccionado"),
-      "¿Cómo usar?": () => alert("¿Cómo usar? seleccionado"),
+      "¿Cómo usar?": () => startTutorial(),
       "Atajos de teclado": () => setIsShortcutsModalOpen(true),
       "Cambiar de tema": () => toggleTheme(),
       "Acerca de": () => setIsAboutModalOpen(true),
@@ -260,7 +257,7 @@ function BarraNav() {
 
   return (
     <>
-      <header className="barra__nav">
+      <header className="barra__nav" data-tour="navigation-bar">
         <div className="nav__menu">
           {mode === "er" && (
             <>
@@ -280,6 +277,7 @@ function BarraNav() {
               setDiagramName(e.target.value.replace(/\*$/, ""));
               setIsDirty(true);
             }}
+            data-tour="diagram-name-input"
           />
           <nav className="nav__tabs">
             {["archivo", "editar", "ver", "ayuda"].map((tipo) => (
@@ -323,6 +321,7 @@ function BarraNav() {
                     "cambiar a relacional",
                   )
                 }
+                data-tour="switch-to-relational-mode-button"
               >
                 <FiDatabase />
                 Ver en Relacional
@@ -337,6 +336,7 @@ function BarraNav() {
                 onClick={() => {
                   setMode("er");
                 }}
+                data-tour="switch-to-er-mode-button"
               >
                 <LiaProjectDiagramSolid />
                 Regresar a E-R
@@ -344,6 +344,7 @@ function BarraNav() {
               <button
                 className="nav__button secondary"
                 onClick={handleExportSQL}
+                data-tour="export-sql-button"
               >
                 <TbSql />
                 Exportar SQL

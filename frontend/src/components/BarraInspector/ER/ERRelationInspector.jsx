@@ -110,8 +110,8 @@ function ERRelationInspector() {
   };
 
   return (
-    <div className="properties__container">
-      <div className="properties__item">
+    <div className="properties__container" data-tour="inspector">
+      <div className="properties__item" data-tour="inspector-name-input">
         <div className="item input--text">
           <label>Nombre de la relación</label>
           <input
@@ -146,7 +146,10 @@ function ERRelationInspector() {
         </div>
       </div>
 
-      <div className="properties__item color divider">
+      <div
+        className="properties__item color divider"
+        data-tour="inspector-color-picker"
+      >
         <div className="color-row">
           <label htmlFor="entity-color">Color de la entidad</label>
 
@@ -210,7 +213,10 @@ function ERRelationInspector() {
         )}
       </div>
 
-      <div className="properties__cardinality divider">
+      <div
+        className="properties__cardinality divider"
+        data-tour="inspector-cardinality"
+      >
         <h2>Cardinalidad</h2>
         <table className="attributes">
           <thead>
@@ -268,7 +274,10 @@ function ERRelationInspector() {
         </table>
       </div>
 
-      <div className="properties__attributes divider">
+      <div
+        className="properties__attributes divider"
+        data-tour="inspector-attributes-section"
+      >
         <h2>Atributos de la relación</h2>
         <table className="attributes">
           {attributes.length > 0 && (

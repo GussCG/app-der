@@ -133,7 +133,7 @@ function EREntityInspector() {
 
   return (
     <div className="properties__container">
-      <div className="properties__item">
+      <div className="properties__item" data-tour="inspector-name-input">
         <div className="item input--text">
           <label htmlFor="entity-name">Nombre de la entidad</label>
           <input
@@ -180,7 +180,10 @@ function EREntityInspector() {
         </div>
       </div>
 
-      <div className="properties__item color divider">
+      <div
+        className="properties__item color divider"
+        data-tour="inspector-color-picker"
+      >
         <div className="color-row">
           <label htmlFor="entity-color">Color de la entidad</label>
 
@@ -244,7 +247,10 @@ function EREntityInspector() {
         )}
       </div>
 
-      <div className="properties__attributes">
+      <div
+        className="properties__attributes"
+        data-tour="inspector-attributes-section"
+      >
         <h2>Atributos</h2>
 
         <table className="attributes">

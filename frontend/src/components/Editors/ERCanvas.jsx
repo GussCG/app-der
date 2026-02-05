@@ -396,7 +396,7 @@ export default function ERCanvas() {
   };
 
   return (
-    <div className="editor__canvas">
+    <div className="editor__canvas" data-tour="er-canvas">
       <ReactFlow
         nodes={nodes}
         edges={edges}

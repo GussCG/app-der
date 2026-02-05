@@ -27,7 +27,6 @@ function RelationalLayout() {
   } = useEditor();
   const controlsInspector = useAnimation();
   const controlsEntidades = useAnimation();
-
   const [panels, setPanels] = useState({
     entidades: false,
     herramientas: false,

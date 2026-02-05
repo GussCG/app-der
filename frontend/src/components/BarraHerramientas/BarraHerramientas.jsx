@@ -41,11 +41,12 @@ export default function BarraHerramientas() {
   };
 
   return (
-    <div className="toolbar">
+    <div className="toolbar" data-tour="er-toolbar">
       {/* SELECT NORMAL */}
       <div
         className={`toolbar__item ${activeTool === "select" ? "active" : ""}`}
         onClick={() => handleClick("select")}
+        data-tour="tool-select"
       >
         <div className="toolbar__icon" title="Seleccionar">
           <LuMousePointer2 />
@@ -66,6 +67,7 @@ export default function BarraHerramientas() {
       <div
         className={`toolbar__item ${activeTool === "pan" ? "active" : ""}`}
         onClick={() => handleClick("pan")}
+        data-tour="tool-pan"
       >
         <div className="toolbar__icon" title="Movimiento Libre">
           <FaRegHandPaper />
@@ -79,6 +81,7 @@ export default function BarraHerramientas() {
               activeTool === "entity" ? "active" : ""
             }`}
             onClick={() => handleClick("entity")}
+            data-tour="tool-add-entity"
           >
             <div className="toolbar__icon" title="Entidad">
               <LuRectangleHorizontal />
@@ -91,6 +94,7 @@ export default function BarraHerramientas() {
               activeTool === "relation" ? "active" : ""
             }`}
             onClick={() => handleClick("relation")}
+            data-tour="tool-add-relation"
           >
             <div className="toolbar__icon" title="Relación">
               <CgShapeRhombus />

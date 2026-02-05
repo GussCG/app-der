@@ -74,7 +74,10 @@ function BarraElementos({ hidden, onToggle }) {
   }
 
   return (
-    <div className={`elements ${hidden ? "hidden" : ""}`}>
+    <div
+      className={`elements ${hidden ? "hidden" : ""}`}
+      data-tour="elements-bar"
+    >
       <HidePanelButton
         onClick={onToggle}
         icon={hidden ? LuPanelLeftOpen : LuPanelLeftClose}
@@ -97,7 +100,7 @@ function BarraElementos({ hidden, onToggle }) {
           </div>
 
           <div className="elements__container">
-            <div className="elements__searchbar">
+            <div className="elements__searchbar" data-tour="elements-search">
               <FaSearch />
               <input
                 type="text"
@@ -116,7 +119,7 @@ function BarraElementos({ hidden, onToggle }) {
                 </button>
               )}
             </div>
-            <div className="elements__list">
+            <div className="elements__list" data-tour="elements-bar-container">
               {displayedItems.map((item) => (
                 <div
                   key={item.id}
@@ -133,7 +136,7 @@ function BarraElementos({ hidden, onToggle }) {
                     {item.type === "table" && <HiOutlineTableCells />}
                   </div>
 
-                  <span>
+                  <span className="elements__item-name">
                     {(
                       item.data?.name ||
                       item.name ||

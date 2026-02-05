@@ -258,6 +258,29 @@ export function EditorProvider({ children }) {
     });
   };
 
+  const loadDiagramFromObject = ({
+    diagram,
+    name = "Sin nombre",
+    relationalMeta = {},
+  }) => {
+    localStorage.removeItem("autosave-der");
+
+    setHistory({
+      past: [],
+      present: diagram ?? EMPTY_DIAGRAM,
+      future: [],
+    });
+
+    setDiagramName(name);
+    setRelationalPositions(relationalMeta?.positions || {});
+    setRelationalOverrides(relationalMeta?.overrides || {});
+
+    setIsDirty(false);
+    setSelectedElementIds([]);
+    setValidationState("idle");
+    setValidationErrors([]);
+  };
+
   const validateCurrentDiagram = async () => {
     setValidationState("validating");
     setValidationProgress(0);
@@ -413,6 +436,7 @@ export function EditorProvider({ children }) {
         setIsDirty,
         saveDiagram,
         openDiagram,
+        loadDiagramFromObject,
         createNewDiagram,
 
         selectedElement,

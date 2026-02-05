@@ -20,7 +20,10 @@ function BarraInspector({
 
   const hasSelection = isRelational ? !!table : !!selectedElement;
   return (
-    <div className={`properties ${hidden ? "hidden" : ""}`}>
+    <div
+      className={`properties ${hidden ? "hidden" : ""}`}
+      data-tour="inspector"
+    >
       <HidePanelButton
         onClick={onToggle}
         icon={hidden ? LuPanelLeftClose : LuPanelLeftOpen}

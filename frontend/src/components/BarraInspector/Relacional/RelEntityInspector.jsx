@@ -117,7 +117,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
   }
 
   return (
-    <div className="properties__container">
+    <div className="properties__container" data-tour="inspector-rel">
       <div className="properties__item">
         <div
           className="item input--text"

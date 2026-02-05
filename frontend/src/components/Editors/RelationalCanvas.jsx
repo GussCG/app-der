@@ -107,7 +107,7 @@ function RelationalCanvas() {
   }, [setSelectedElementIds]);
 
   return (
-    <div className="editor__canvas">
+    <div className="editor__canvas" data-tour="relational-canvas">
       <ReactFlow
         nodes={nodes}
         edges={edges}
