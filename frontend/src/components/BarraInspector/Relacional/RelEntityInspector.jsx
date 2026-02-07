@@ -1,31 +1,51 @@
 import React, { Fragment } from "react";
 import Icons from "../../Others/IconProvider";
+import { motion, AnimatePresence } from "framer-motion";
 
 const { FaKey, LuKeySquare, FaLock, FaCircleInfo, IoClose } = Icons;
 
 function RelEntityInspector({ table, overrides = {}, updateOverride }) {
   const renderTypeParams = (type, col, override) => {
+    const motionProps = {
+      initial: { opacity: 0, height: 0 },
+      animate: { opacity: 1, height: "auto" },
+      exit: { opacity: 0, height: 0 },
+      transition: { duration: 0.2, ease: "easeInOut" },
+    };
+
     const currentValues = override.values ?? col.values ?? [];
     switch (type) {
       case "varchar":
       case "char":
         return (
-          <input
-            type="number"
-            min={1}
-            value={override.length ?? col.length ?? 255}
-            onChange={(e) => {
-              updateOverride(table.name, col.name, {
-                length: Number(e.target.value),
-              });
-            }}
-          />
+          <motion.div
+            key={`${type}-params`}
+            className="length-param"
+            {...motionProps}
+            style={{ display: "flex", alignItems: "center", gap: "4px" }}
+          >
+            <input
+              type="number"
+              min={1}
+              value={override.length ?? col.length ?? 255}
+              onChange={(e) => {
+                updateOverride(table.name, col.name, {
+                  length: Number(e.target.value),
+                });
+              }}
+            />
+          </motion.div>
         );
 
       case "decimal":
       case "numeric":
         return (
-          <>
+          <motion.div
+            key={`${type}-params`}
+            className="decimal-params"
+            style={{ display: "flex", gap: "2px" }}
+            {...motionProps}
+          >
             <input
               type="number"
               min={1}
@@ -46,7 +66,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
                 });
               }}
             />
-          </>
+          </motion.div>
         );
 
       default:
@@ -233,7 +253,9 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
 
                         {!isTypeDisabled && (
                           <div className="type-params">
-                            {renderTypeParams(currentType, col, override)}
+                            <AnimatePresence mode="popLayout">
+                              {renderTypeParams(currentType, col, override)}
+                            </AnimatePresence>
                           </div>
                         )}
                       </div>
@@ -313,22 +335,33 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
                     </td>
                   </tr>
 
-                  {!isTypeDisabled &&
-                    (currentType === "enum" || currentType === "set") && (
-                      <tr className="subattributes-row">
-                        <td colSpan={7}>
-                          <div className="subattributes">
-                            <div className="subattribute-item">
-                              {renderEnumEditor(col, override)}
-                              <FaCircleInfo
-                                className="info"
-                                title="Para agregar mas valores, dale enter"
-                              />
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
+                  <AnimatePresence>
+                    {!isTypeDisabled &&
+                      (currentType === "enum" || currentType === "set") && (
+                        <tr className="subattributes-row">
+                          <td colSpan={7}>
+                            <motion.div
+                              layout
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.2, ease: "easeInOut" }}
+                              style={{ overflow: "hidden" }}
+                            >
+                              <div className="subattributes">
+                                <div className="subattribute-item">
+                                  {renderEnumEditor(col, override)}
+                                  <FaCircleInfo
+                                    className="info"
+                                    title="Para agregar mas valores, dale enter"
+                                  />
+                                </div>
+                              </div>
+                            </motion.div>
+                          </td>
+                        </tr>
+                      )}
+                  </AnimatePresence>
 
                   {/* Fila Extra para Opciones de Integridad Referencial solo si es FK */}
                   {isFK && (

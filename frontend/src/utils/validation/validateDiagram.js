@@ -2,9 +2,14 @@ import { validateEntities } from "./rules/entityRules";
 import { validateRelations } from "./rules/relationRules";
 import { validateAttributeNames } from "./rules/attributesRules";
 import { validateUniqueNames } from "./rules/globalRules";
+import { validateNames } from "./rules/namesRules";
 
 export function validateDiagram(diagram) {
   return [
+    ...validateNames({
+      entities: diagram.entities,
+      relations: diagram.relations,
+    }),
     ...validateEntities(diagram.entities, diagram.relations),
     ...validateRelations(diagram.relations, diagram.entities),
     ...validateAttributeNames([

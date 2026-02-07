@@ -8,7 +8,13 @@
   --header-bg-color: #1a1a1a;
   --header-logo-color: #2679ff;
   --header-input-bg-color: #4f596830;
+  --header-input-focus-bg-color: #4f596860;
+  --header-input-hover-bg-color: #4f596880;
+  --header-input-border-color: #323c4c;
+  --header-input-border-focus-color: #2679ff;
   --header-input-text-color: #ffffff;
+  --header-input-placeholder-color: #99a1af;
+  --unsaved-indicator-color: #ff7474;
   --header-nav-tab-color: #6d7c84;
   --header-nav-valid-bg: #00bb0025;
   --header-nav-valid-color: #00bb00;
@@ -17,20 +23,20 @@
   --header-nav-loading-border: #eeeeee;
   --header-nav-loading-color: #eeeeee;
   --header-nav-loading-fill: #eeeeee40;
-  --header-nav-button-bg: #9810fa67;
-  --header-nav-button-hover-bg: #f2e1ff;
+  --header-nav-button-bg: #450074;
+  --header-nav-button-hover-bg: #7715ff;
   --header-nav-button-color: #ffffff;
-  --header-nav-button-hover-color: #2d174f;
-  --header-nav-button-2-bg: #274287;
-  --header-nav-button-2-hover-bg: #c1e0ff;
+  --header-nav-button-hover-color: #ffffff;
+  --header-nav-button-2-bg: #12366f;
+  --header-nav-button-2-hover-bg: #246bdd;
   --header-nav-button-2-color: #ffffff;
-  --header-nav-button-2-hover-color: #00207f;
+  --header-nav-button-2-hover-color: #ffffff;
   --header-icon-color: #9e9eb3;
   --header-nav-item-color: #99a1af;
   --header-nav-item-hover-color: #ffffff;
-  --header-nav-validate-button-bg: #2679ff;
+  --header-nav-validate-button-bg: #12366f;
   --header-nav-validate-button-color: #ffffff;
-  --header-nav-validate-button-hover-bg: #002e5c;
+  --header-nav-validate-button-hover-bg: #246bdd;
 
   --desplegable-icon-color: #717182;
 
@@ -60,6 +66,8 @@
   --error-validation-modal-close-button-hover-bg: #bedcff;
   --error-validation-modal-btn-accept-hover-color: #0b132c;
   --error-validation-modal-warning-icon-color: #ffc87c;
+  --error-validation-modal-reason-color: #ffc87c;
+  --error-validation-modal-attribute-color: #ebb6ff;
 
   --modal-overlay-bg-color: #00000055;
   --modal-bg-color: #222222;
@@ -94,4 +102,8 @@
   --popover-button-hover-color: #ffffff;
   --popover-button-border-color: #003a8c;
   --popover-close-button-color: #ffffff;
+
+  --validate-popover-bg-error: #653333;
+  --validate-popover-border-error: #ffb7b7;
+  --validate-popover-color: #ffb7b7;
 }

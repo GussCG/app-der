@@ -44,6 +44,10 @@ function ValidationErrorModal({ errors = [], onClose }) {
                   : BiSolidError;
 
               const name = error.meta?.name || "Elemento desconocido";
+              const attributeName = error.meta?.attributeName
+                ? `${error.meta.attributeName}`
+                : null;
+              const reason = error.meta?.reason ? `${error.meta.reason}` : null;
 
               return (
                 <div
@@ -58,12 +62,31 @@ function ValidationErrorModal({ errors = [], onClose }) {
 
                   <div className="error__validation_info">
                     <h2>{catalog.title}</h2>
-                    <p>{catalog.message(name)}</p>
-                    {catalog.suggestion && (
-                      <p className="error__validation_suggest">
-                        {catalog.suggestion}
-                      </p>
-                    )}
+
+                    <p className="error__validation_text">
+                      {catalog.message(name)}
+
+                      {attributeName && (
+                        <span className="error__validation_attribute">
+                          {" "}
+                          <strong>Atributo:</strong> {attributeName}.
+                        </span>
+                      )}
+
+                      {reason && (
+                        <span className="error__validation_reason">
+                          {" "}
+                          <strong>Motivo:</strong> {reason}.
+                        </span>
+                      )}
+
+                      {catalog.suggestion && (
+                        <span className="error__validation_suggest">
+                          {" "}
+                          <strong>Sugerencia:</strong> {catalog.suggestion}
+                        </span>
+                      )}
+                    </p>
                   </div>
                 </div>
               );

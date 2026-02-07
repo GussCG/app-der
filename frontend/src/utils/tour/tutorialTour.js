@@ -115,8 +115,7 @@ export function startTutorialTour({ setMode, onFinish }) {
         element: '[data-tour="validate-diagram-button"]',
         popover: {
           title: "Validar Diagrama",
-          description:
-            "Haz clic en este botón para validar tu diagrama y asegurarte de que cumple con las reglas y restricciones definidas.",
+          description: `Haz clic en este botón para validar tu diagrama y asegurarte de que cumple con las reglas y restricciones definidas. Para guardar tu diagrama o exportar a PNG primero debes validar el diagrama y corregir los errores que se indiquen.`,
           position: "bottom",
         },
       },

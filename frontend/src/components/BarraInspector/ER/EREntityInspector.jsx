@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useEditor } from "../../../context/EditorContext.jsx";
 import Icons from "../../Others/IconProvider.jsx";
 import { Colorful } from "@uiw/react-color";
+import { AnimatePresence, motion } from "framer-motion";
+import { validateERName } from "../../../constants/validators.js";
+import ValidateInput from "../../Others/ValidateInput.jsx";
 
 const { FaKey, LuKeySquare, IoClose } = Icons;
 
@@ -132,20 +135,22 @@ function EREntityInspector() {
   };
 
   return (
-    <div className="properties__container">
+    <motion.div className="properties__container">
       <div className="properties__item" data-tour="inspector-name-input">
         <div className="item input--text">
           <label htmlFor="entity-name">Nombre de la entidad</label>
-          <input
-            type="text"
+          <ValidateInput
             id="entity-name"
-            value={name}
-            onChange={(e) =>
+            value={name || ""}
+            placeholder="Nombre de la entidad"
+            validator={validateERName}
+            transform={(v) => v.toUpperCase()}
+            onChange={(v) =>
               updateElement({
                 ...selectedElement,
                 data: {
                   ...selectedElement.data,
-                  name: e.target.value.toUpperCase(),
+                  name: v,
                 },
               })
             }
@@ -196,23 +201,36 @@ function EREntityInspector() {
               }}
             />
 
-            {showColorPicker && (
-              <div className="color-picker-popover">
-                <Colorful
-                  color={selectedElement.data.color || "#323c4c"}
-                  onChange={(color) => {
-                    updateElement({
-                      ...selectedElement,
-                      data: {
-                        ...selectedElement.data,
-                        color: color.hex,
-                      },
-                    });
-                  }}
-                  disableAlpha={true}
-                />
-              </div>
-            )}
+            <AnimatePresence>
+              {showColorPicker && (
+                <motion.div
+                  className="color-picker-popover"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <Colorful
+                    color={selectedElement.data.color || "#323c4c"}
+                    onChange={(color) => {
+                      updateElement({
+                        ...selectedElement,
+                        data: {
+                          ...selectedElement.data,
+                          color: color.hex,
+                        },
+                      });
+                    }}
+                    disableAlpha={true}
+                  />
+                  <button
+                    className="color-picker-close"
+                    onClick={() => setShowColorPicker(false)}
+                  >
+                    <IoClose />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -274,15 +292,20 @@ function EREntityInspector() {
             {attributes.map((attr) => {
               return (
                 <React.Fragment key={attr.id}>
-                  <tr>
+                  <motion.tr
+                    layout
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "40px" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    style={{ overflow: "hidden", display: "table-row" }}
+                  >
                     <td>
-                      <input
-                        placeholder="Nuevo Atributo"
-                        type="text"
-                        value={attr.name || ""}
-                        onChange={(e) =>
-                          updateAttribute(attr.id, "name", e.target.value)
-                        }
+                      <ValidateInput
+                        value={attr.name}
+                        placeholder="Nuevo atributo"
+                        validator={validateERName}
+                        onChange={(v) => updateAttribute(attr.id, "name", v)}
                       />
                     </td>
                     <td>
@@ -351,65 +374,82 @@ function EREntityInspector() {
                         <IoClose />
                       </button>
                     </td>
-                  </tr>
+                  </motion.tr>
 
-                  {attr.kind === "composite" && (
-                    <tr className="subattributes-row">
-                      <td colSpan={5}>
-                        <table className="subattributes">
-                          <tbody>
-                            {attr.children.map((child) => (
-                              <tr key={child.id} className="subattribute-item">
-                                <td>
-                                  <input
-                                    type="text"
-                                    placeholder="Nombre del atributo"
-                                    value={child.name || ""}
-                                    onChange={(e) =>
-                                      updateSubattribute(
-                                        attr.id,
-                                        child.id,
-                                        e.target.value,
-                                      )
-                                    }
-                                  />
-                                </td>
-                                <td>
-                                  <button
-                                    className="attributes__delete_button"
-                                    onClick={() =>
-                                      removeSubattribute(attr.id, child.id)
-                                    }
+                  <AnimatePresence>
+                    {attr.kind === "composite" && (
+                      <tr className="subattributes-row">
+                        <td colSpan={5}>
+                          <motion.div
+                            layout
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                            style={{ overflow: "hidden" }}
+                          >
+                            <table className="subattributes">
+                              <tbody>
+                                {attr.children.map((child) => (
+                                  <tr
+                                    key={child.id}
+                                    className="subattribute-item"
                                   >
-                                    <IoClose />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                        <button
-                          className="properties__subattribute_add_button"
-                          onClick={() => addSubattribute(attr.id)}
-                        >
-                          Agregar subatributo +
-                        </button>
-                      </td>
-                    </tr>
-                  )}
+                                    <td>
+                                      <ValidateInput
+                                        placeholder="Nombre del subatributo"
+                                        value={child.name || ""}
+                                        validator={validateERName}
+                                        onChange={(v) =>
+                                          updateSubattribute(
+                                            attr.id,
+                                            child.id,
+                                            v,
+                                          )
+                                        }
+                                      />
+                                    </td>
+                                    <td>
+                                      <button
+                                        className="attributes__delete_button"
+                                        onClick={() =>
+                                          removeSubattribute(attr.id, child.id)
+                                        }
+                                      >
+                                        <IoClose />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                            <button
+                              className="properties__subattribute_add_button"
+                              onClick={() => addSubattribute(attr.id)}
+                            >
+                              Agregar subatributo +
+                            </button>
+                          </motion.div>
+                        </td>
+                      </tr>
+                    )}
+                  </AnimatePresence>
                 </React.Fragment>
               );
             })}
           </tbody>
         </table>
-        <button
+        <motion.button
+          layout
           className="properties__attribute_add_button"
           onClick={addAttribute}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           Agregar atributo +
-        </button>
+        </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

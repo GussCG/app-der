@@ -327,6 +327,7 @@
           justify-content: flex-start;
 
           overflow-y: auto;
+          padding-right: 24px;
 
           .error__validation_item {
             width: 100%;
@@ -376,22 +377,37 @@
                 margin: 0;
               }
 
-              p {
+              .error__validation_text {
                 font-family: var(--font-primary);
                 font-size: 14px;
-                color: var(--error-validation-modal-p-color);
-                font-weight: 400;
                 line-height: 145%;
-                letter-spacing: -0.5%;
-
+                color: var(--error-validation-modal-p-color);
                 margin: 0;
-              }
-
-              .error__validation_suggest {
-                color: var(--error-validation-modal-suggest-color);
                 font-weight: 300;
 
-                margin: 0;
+                text-align: justify;
+                text-justify: inter-word;
+                hyphens: auto;
+                word-spacing: -0.03em;
+
+                span {
+                  display: block;
+                }
+
+                .error__validation_reason {
+                  color: var(--error-validation-modal-reason-color);
+                  font-weight: 200;
+                }
+
+                .error__validation_suggest {
+                  color: var(--error-validation-modal-suggest-color);
+                  font-weight: 200;
+                }
+
+                .error__validation_attribute {
+                  color: var(--error-validation-modal-attribute-color);
+                  font-weight: 200;
+                }
               }
             }
           }

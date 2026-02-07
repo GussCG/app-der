@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useEditor } from "../../../context/EditorContext";
 import { Colorful } from "@uiw/react-color";
 import Icons from "../../Others/IconProvider";
+import { AnimatePresence, motion } from "framer-motion";
+import ValidateInput from "../../Others/ValidateInput";
+import { validateERName } from "../../../constants/validators";
 
 const { IoClose } = Icons;
 
@@ -110,25 +113,29 @@ function ERRelationInspector() {
   };
 
   return (
-    <div className="properties__container" data-tour="inspector">
+    <motion.div className="properties__container" data-tour="inspector">
       <div className="properties__item" data-tour="inspector-name-input">
         <div className="item input--text">
-          <label>Nombre de la relación</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) =>
+          <label htmlFor="relation-name">Nombre de la relación</label>
+          <ValidateInput
+            id="relation-name"
+            value={name || ""}
+            placeholder="Nombre de la relación"
+            validator={validateERName}
+            transform={(v) => v.toUpperCase()}
+            onChange={(v) => {
               updateElement({
                 ...selectedElement,
-                data: { ...selectedElement.data, name: e.target.value },
-              })
-            }
+                data: { ...selectedElement.data, name: v },
+              });
+            }}
           />
         </div>
 
         <div className="item input--select">
-          <label>Tipo de relación</label>
+          <label htmlFor="relation-type">Tipo de relación</label>
           <select
+            id="relation-type"
             value={selectedElement.data.type || "simple"}
             onChange={(e) => {
               updateElement({
@@ -162,23 +169,36 @@ function ERRelationInspector() {
               }}
             />
 
-            {showColorPicker && (
-              <div className="color-picker-popover">
-                <Colorful
-                  color={selectedElement.data.color || "#323c4c"}
-                  onChange={(color) => {
-                    updateElement({
-                      ...selectedElement,
-                      data: {
-                        ...selectedElement.data,
-                        color: color.hex,
-                      },
-                    });
-                  }}
-                  disableAlpha={true}
-                />
-              </div>
-            )}
+            <AnimatePresence>
+              {showColorPicker && (
+                <motion.div
+                  className="color-picker-popover"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <Colorful
+                    color={selectedElement.data.color || "#323c4c"}
+                    onChange={(color) => {
+                      updateElement({
+                        ...selectedElement,
+                        data: {
+                          ...selectedElement.data,
+                          color: color.hex,
+                        },
+                      });
+                    }}
+                    disableAlpha={true}
+                  />
+                  <button
+                    className="color-picker-close"
+                    onClick={() => setShowColorPicker(false)}
+                  >
+                    <IoClose />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -275,7 +295,7 @@ function ERRelationInspector() {
       </div>
 
       <div
-        className="properties__attributes divider"
+        className="properties__attributes"
         data-tour="inspector-attributes-section"
       >
         <h2>Atributos de la relación</h2>
@@ -289,17 +309,24 @@ function ERRelationInspector() {
                   <th>Acciones</th>
                 </tr>
               </thead>
+
               <tbody>
                 {attributes.map((attr) => (
                   <React.Fragment key={attr.id}>
-                    <tr>
+                    <motion.tr
+                      layout
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "40px" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ overflow: "hidden", display: "table-row" }}
+                    >
                       <td>
-                        <input
-                          type="text"
-                          value={attr.name}
-                          onChange={(e) =>
-                            updateAttribute(attr.id, "name", e.target.value)
-                          }
+                        <ValidateInput
+                          value={attr.name || ""}
+                          placeholder="Nombre del atributo"
+                          validator={validateERName}
+                          onChange={(v) => updateAttribute(attr.id, "name", v)}
                         />
                       </td>
                       <td>
@@ -323,78 +350,89 @@ function ERRelationInspector() {
                           <IoClose />
                         </button>
                       </td>
-                    </tr>
+                    </motion.tr>
 
-                    {/* FILA DE SUB-ATRIBUTOS SI ES COMPUESTO */}
-                    {attr.kind === "composite" && (
-                      <tr className="subattributes-row">
-                        <td colSpan={3}>
-                          <table className="subattributes">
-                            <tbody>
-                              {attr.children?.map((child) => (
-                                <tr
-                                  key={child.id}
-                                  className="subattribute-item"
-                                >
-                                  <td>
-                                    <input
-                                      type="text"
-                                      placeholder="Nombre del atributo"
-                                      value={child.name}
-                                      onChange={(e) =>
-                                        updateSubattribute(
-                                          attr.id,
-                                          child.id,
-                                          e.target.value,
-                                        )
-                                      }
-                                    />
-                                  </td>
-                                  <td>
-                                    {" "}
-                                    <button
-                                      onClick={() => {
-                                        const newChildren =
-                                          attr.children.filter(
-                                            (c) => c.id !== child.id,
-                                          );
-                                        updateAttribute(
-                                          attr.id,
-                                          "children",
-                                          newChildren,
-                                        );
-                                      }}
+                    <AnimatePresence>
+                      {attr.kind === "composite" && (
+                        <tr className="subattributes-row">
+                          <td colSpan={3}>
+                            <motion.div
+                              layout
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                            >
+                              <table className="subattributes">
+                                <tbody>
+                                  {attr.children?.map((child) => (
+                                    <tr
+                                      key={child.id}
+                                      className="subattribute-item"
                                     >
-                                      <IoClose size={14} />
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                          <button
-                            className="properties__subattribute_add_button"
-                            onClick={() => addSubattribute(attr.id)}
-                          >
-                            + Sub-atributo
-                          </button>
-                        </td>
-                      </tr>
-                    )}
+                                      <td>
+                                        <ValidateInput
+                                          value={child.name}
+                                          placeholder="Nombre del atributo"
+                                          validator={validateERName}
+                                          onChange={(v) =>
+                                            updateSubattribute(
+                                              attr.id,
+                                              child.id,
+                                              v,
+                                            )
+                                          }
+                                        />
+                                      </td>
+                                      <td>
+                                        {" "}
+                                        <button
+                                          onClick={() => {
+                                            const newChildren =
+                                              attr.children.filter(
+                                                (c) => c.id !== child.id,
+                                              );
+                                            updateAttribute(
+                                              attr.id,
+                                              "children",
+                                              newChildren,
+                                            );
+                                          }}
+                                        >
+                                          <IoClose size={14} />
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                              <button
+                                className="properties__subattribute_add_button"
+                                onClick={() => addSubattribute(attr.id)}
+                              >
+                                + Sub-atributo
+                              </button>
+                            </motion.div>
+                          </td>
+                        </tr>
+                      )}
+                    </AnimatePresence>
                   </React.Fragment>
                 ))}
               </tbody>
             </>
           )}
         </table>
-        <button
+        <motion.button
+          layout
           className="properties__attribute_add_button"
           onClick={addAttribute}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           Agregar Atributo +
-        </button>
+        </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

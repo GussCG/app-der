@@ -23,6 +23,9 @@ export const ERROR_TYPES = {
 
   DUPLICATE_NAME: "DUPLICATE_NAME", // REGLA 18
   DUPLICATE_ATTRIBUTE_NAME: "DUPLICATE_ATTRIBUTE_NAME", // REGLA 19
+
+  INVALID_NAME_FORMAT: "INVALID_NAME_FORMAT", // REGLA 20
+  INVALID_ATTRIBUTE_NAME_FORMAT: "INVALID_ATTRIBUTE_NAME_FORMAT", // REGLA 21
 };
 
 export const ERROR_CATALOG = {
@@ -135,5 +138,20 @@ export const ERROR_CATALOG = {
       `El nombre de atributo "${n}" ya está siendo utilizado en la misma entidad o relación.`,
     suggestion:
       "Utiliza un nombre único para cada atributo dentro de la misma entidad o relación.",
+  },
+  [ERROR_TYPES.INVALID_NAME_FORMAT]: {
+    severity: "error",
+    title: "Formato de nombre inválido",
+    message: (n) => `El nombre "${n}" no cumple con el formato requerido.`,
+    suggestion:
+      "Asegúrate de que el nombre tenga entre 2 y 50 caracteres, comience con una letra y solo contenga letras, números, espacios o guiones bajos.",
+  },
+  [ERROR_TYPES.INVALID_ATTRIBUTE_NAME_FORMAT]: {
+    severity: "error",
+    title: "Formato de nombre de atributo inválido",
+    message: (n) =>
+      `El nombre del atributo del padre "${n}" no cumple con el formato requerido.`,
+    suggestion:
+      "Asegúrate de que el nombre del atributo tenga entre 2 y 50 caracteres, comience con una letra y solo contenga letras, números, espacios o guiones bajos.",
   },
 };

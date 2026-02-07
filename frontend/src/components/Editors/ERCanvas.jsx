@@ -44,18 +44,14 @@ export default function ERCanvas() {
     bgVariant,
     deleteElementsDiagram,
     selectedElementIds,
-    isAutoLayouting,
   } = useEditor();
   const { activeTool, setActiveTool } = useTool();
   const {
-    fitView,
     screenToFlowPosition,
     setNodes: rfSetNodes,
     getNodes,
-    setViewport,
+    fitView,
   } = useReactFlow();
-
-  console.log("ERCanvas render", { diagram });
 
   const isSyncingRef = useRef(false);
   const lastSelectionRef = useRef(null);
@@ -77,6 +73,9 @@ export default function ERCanvas() {
   useEffect(() => {
     selectedIdsRef.current = selectedElementIds;
   }, [selectedElementIds]);
+
+  const initialFitDoneRef = useRef(false);
+  const diagramChangedRef = useRef(false);
 
   useEffect(() => {
     if (isSyncingRef.current) return;
@@ -111,16 +110,45 @@ export default function ERCanvas() {
 
     requestAnimationFrame(() => {
       const selectedIds = lastSelectionRef.current;
+      if (selectedIds.length > 0) {
+        rfSetNodes((nds) =>
+          nds.map((n) =>
+            selectedIds.includes(n.id) ? { ...n, selected: true } : n,
+          ),
+        );
+      }
 
-      if (selectedIds.length === 0) return;
-
-      rfSetNodes((nds) =>
-        nds.map((n) =>
-          selectedIds.includes(n.id) ? { ...n, selected: true } : n,
-        ),
-      );
+      if (newNodes.length > 0) {
+        setTimeout(() => {
+          fitView({
+            padding: 0.2,
+            duration: 300,
+            minZoom: 0.1,
+            maxZoom: 2,
+          });
+        }, 50);
+      }
     });
+    diagramChangedRef.current = true;
   }, [diagram]);
+
+  useEffect(() => {
+    if (
+      nodes.length > 0 &&
+      (!initialFitDoneRef.current || diagramChangedRef.current)
+    ) {
+      setTimeout(() => {
+        fitView({
+          padding: 0.2,
+          duration: 300,
+          minZoom: 0.1,
+          maxZoom: 2,
+        });
+        initialFitDoneRef.current = true;
+        diagramChangedRef.current = false;
+      }, 100);
+    }
+  }, [nodes.length, fitView]);
 
   const onSelectionChange = useCallback(
     ({ nodes: selNodes }) => {
@@ -415,7 +443,6 @@ export default function ERCanvas() {
         onSelectionChange={onSelectionChange}
         nodeDragThreshold={8}
         onNodesDelete={onNodesDelete}
-        fitView
       >
         <Background variant={bgVariant} />
         <Controls showZoom={true} showFitView={false} showInteractive={false} />

@@ -5,25 +5,35 @@ export function validateAttributeNames(elements) {
 
   elements.forEach((el) => {
     const attributes = el.data?.attributes ?? [];
-
     if (!Array.isArray(attributes)) return;
 
-    const seen = new Set();
-
-    attributes.forEach((attr) => {
-      if (seen.has(attr.name)) {
-        errors.push({
-          type: ERROR_TYPES.DUPLICATE_ATTRIBUTE_NAME,
-          elementId: el.id,
-          elementKind: el.kind,
-          meta: {
-            attributeName: attr.name,
-          },
-        });
-      }
-      seen.add(attr.name);
-    });
+    validateLevel(attributes, el, errors);
   });
 
   return errors;
+}
+
+function validateLevel(attributes, el, errors) {
+  const seen = new Set();
+
+  attributes.forEach((attr) => {
+    if (!attr?.name) return;
+    const key = attr.name.trim().toLowerCase();
+    if (seen.has(key)) {
+      errors.push({
+        type: ERROR_TYPES.DUPLICATE_ATTRIBUTE_NAME,
+        elementId: el.id,
+        elementKind: el.kind,
+        meta: {
+          attributeName: attr.name,
+        },
+      });
+    }
+
+    seen.add(key);
+
+    if (Array.isArray(attr.children)) {
+      validateLevel(attr.children, el, errors);
+    }
+  });
 }

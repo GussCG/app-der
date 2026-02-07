@@ -4,6 +4,7 @@ import ReactFlow, {
   Controls,
   useNodesState,
   useEdgesState,
+  useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
 
@@ -33,7 +34,7 @@ function RelationalCanvas() {
   } = useEditor();
 
   const { activeTool } = useTool();
-
+  const { fitView } = useReactFlow();
   const isSyncingRef = useRef(false);
   const selectedIdsRef = useRef([]);
 
@@ -43,6 +44,9 @@ function RelationalCanvas() {
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  const initialFitDoneRef = useRef(false);
+  const diagramChangedRef = useRef(false);
 
   useEffect(() => {
     if (isSyncingRef.current) return;
@@ -73,7 +77,28 @@ function RelationalCanvas() {
         target: String(e.target),
       })),
     );
+
+    diagramChangedRef.current = true;
   }, [diagram, relationalPositions, relationalOverrides]);
+
+  useEffect(() => {
+    if (
+      nodes.length > 0 &&
+      (!initialFitDoneRef.current || diagramChangedRef.current)
+    ) {
+      setTimeout(() => {
+        fitView({
+          padding: 0.3,
+          duration: 300,
+          minZoom: 0.1,
+          maxZoom: 2,
+          includeHiddenNodes: false,
+        });
+        initialFitDoneRef.current = true;
+        diagramChangedRef.current = false;
+      }, 150);
+    }
+  }, [nodes.length, fitView]);
 
   const onSelectionChange = useCallback(
     ({ nodes: selNodes, edges: selEdges }) => {
@@ -122,9 +147,8 @@ function RelationalCanvas() {
         elementsSelectable={activeTool === "select"}
         panOnDrag={activeTool === "pan"}
         nodesConnectable={false}
-        fitView={nodes.length > 0}
       >
-        {nodes.length > 0 && <Background variant={bgVariant} />}
+        <Background variant={bgVariant} />
         <Controls showZoom={true} showFitView={false} showInteractive={false} />
       </ReactFlow>
     </div>

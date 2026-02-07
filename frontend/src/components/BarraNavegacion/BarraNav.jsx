@@ -20,6 +20,7 @@ import { downloadSQL, relationalTOSQL } from "../../utils/relationalToSQL.js";
 import { derToRelational } from "../../utils/derToRelational.js";
 import { sqlToRelational } from "../../utils/sqlToRelational.js";
 import AboutUsModal from "../Modals/AboutUsModal.jsx";
+import DiagramNameInput from "../Others/DiagramNameInput.jsx";
 
 const { FiDatabase, TbSql, LuTable2, LiaProjectDiagramSolid } = Icons;
 
@@ -88,6 +89,16 @@ function BarraNav() {
     action: null,
   });
 
+  const [confirmTutorial, setConfirmTutorial] = useState({
+    show: false,
+    action: null,
+  });
+
+  const [confirmOpenDiagram, setConfirmOpenDiagram] = useState({
+    show: false,
+    action: null,
+  });
+
   const { isShortcutsModalOpen, setIsShortcutsModalOpen } = useKeyboard();
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
@@ -107,14 +118,14 @@ function BarraNav() {
         }
       },
       "Abrir ...": () => {
-        const action = () => {
+        const action = async () => {
           openDiagram();
           setMode("er");
           setImportedRelationalData(null);
         };
 
         if (isDirty) {
-          setConfirmNew({ show: true, action });
+          setConfirmOpenDiagram({ show: true, action });
         } else {
           action();
         }
@@ -151,7 +162,17 @@ function BarraNav() {
       "Ocultar cuadrícula": () =>
         setBgVariant(bgVariant === null ? "dots" : null),
       "Abrir herramientas": () => alert("Abrir herramientas seleccionado"),
-      "¿Cómo usar?": () => startTutorial(),
+      "¿Cómo usar?": () => {
+        const action = () => {
+          startTutorial();
+        };
+
+        if (isDirty) {
+          setConfirmTutorial({ show: true, action });
+        } else {
+          action();
+        }
+      },
       "Atajos de teclado": () => setIsShortcutsModalOpen(true),
       "Cambiar de tema": () => toggleTheme(),
       "Acerca de": () => setIsAboutModalOpen(true),
@@ -269,15 +290,14 @@ function BarraNav() {
               <LuTable2 className="nav__header_icon" />
             </>
           )}
-          <input
-            type="text"
-            className="nav__filename"
-            value={`${diagramName}${isDirty ? "*" : ""}`}
-            onChange={(e) => {
-              setDiagramName(e.target.value.replace(/\*$/, ""));
-              setIsDirty(true);
+          <DiagramNameInput
+            diagramName={diagramName}
+            setDiagramName={setDiagramName}
+            isDirty={isDirty}
+            setIsDirty={setIsDirty}
+            onSave={() => {
+              executeValidation(() => saveDiagram(), "guardar");
             }}
-            data-tour="diagram-name-input"
           />
           <nav className="nav__tabs">
             {["archivo", "editar", "ver", "ayuda"].map((tipo) => (
@@ -369,6 +389,30 @@ function BarraNav() {
             onConfirm={() => {
               confirmNew.action();
               setConfirmNew({ show: false, action: null });
+            }}
+          />
+        )}
+
+        {confirmOpenDiagram.show && (
+          <ConfirmModal
+            title="¿Quieres abrir un diagrama?"
+            message="Se perderán los cambios no guardados. ¿Deseas continuar?"
+            onClose={() => setConfirmOpenDiagram({ show: false, action: null })}
+            onConfirm={() => {
+              confirmOpenDiagram.action();
+              setConfirmOpenDiagram({ show: false, action: null });
+            }}
+          />
+        )}
+
+        {confirmTutorial.show && (
+          <ConfirmModal
+            title="¿Quieres abrir el tutorial?"
+            message="Se perderán los cambios no guardados. ¿Deseas continuar?"
+            onClose={() => setConfirmTutorial({ show: false, action: null })}
+            onConfirm={() => {
+              confirmTutorial.action();
+              setConfirmTutorial({ show: false, action: null });
             }}
           />
         )}
