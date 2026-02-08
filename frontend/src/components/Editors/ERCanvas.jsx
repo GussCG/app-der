@@ -185,6 +185,8 @@ export default function ERCanvas() {
           return { ...rel, position: currentPos };
         }
 
+        const isRecursive = source.entityId === target.entityId;
+
         const sourceNode = nodeMap[source.entityId];
         const targetNode = nodeMap[target.entityId];
         const relNode = nodeMap[rel.id];
@@ -196,6 +198,17 @@ export default function ERCanvas() {
         const tCenter = getCenter(targetNode, "entity");
         const rCenter = getCenter(relNode, "relation");
 
+        let finalSourceHandle, finalTargetHandle;
+
+        if (isRecursive) {
+          const recHandles = getRecursiveHandles(sCenter, rCenter);
+          finalSourceHandle = recHandles.source.entity;
+          finalTargetHandle = recHandles.target.entity;
+        } else {
+          finalSourceHandle = chooseEntityHandle(sCenter, rCenter);
+          finalTargetHandle = chooseEntityHandle(tCenter, rCenter);
+        }
+
         return {
           ...rel,
           position: currentPos,
@@ -204,11 +217,11 @@ export default function ERCanvas() {
             connections: {
               source: {
                 ...source,
-                handleId: chooseEntityHandle(sCenter, rCenter),
+                handleId: finalSourceHandle,
               },
               target: {
                 ...target,
-                handleId: chooseEntityHandle(tCenter, rCenter),
+                handleId: finalTargetHandle,
               },
             },
           },
@@ -226,7 +239,7 @@ export default function ERCanvas() {
 
       setTimeout(() => {
         isSyncingRef.current = false;
-      }, 100);
+      }, 150);
     },
     [applyChange, diagram, getNodes],
   );

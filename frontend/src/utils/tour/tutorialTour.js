@@ -3,7 +3,7 @@ import "driver.js/dist/driver.css";
 
 export function startTutorialTour({ setMode, onFinish }) {
   let tour = driver({
-    allowClose: true,
+    allowClose: false,
     animate: true,
     smoothScroll: true,
     nextBtnText: "Siguiente",
@@ -106,7 +106,7 @@ export function startTutorialTour({ setMode, onFinish }) {
         popover: {
           title: "Nombre del Diagrama",
           description:
-            "Aquí puedes ver y editar el nombre de tu diagrama actual. Si hay cambios no guardados, se indicará con un asterisco (*).",
+            "Aquí puedes ver y editar el nombre de tu diagrama actual. Si hay cambios no guardados, se indicará con un asterisco (*). Si quieres guardar el diagrama, puedes dar enter después de editar el nombre o en Archivo > Guardar diagrama o ctrl + s.",
           position: "bottom",
         },
       },

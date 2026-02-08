@@ -69,8 +69,12 @@ export default function EREntityNode({ id, data, selected }) {
   }, [svgWidth, svgHeight, updateNodeInternals, id]);
 
   const getHandleStyle = (pos) => {
-    let top = centerY;
-    let left = centerX;
+    // Calcula la posición del rectángulo relativa al div contenedor
+    const rectCenterX = centerX; // Coordenada X del centro del rectángulo
+    const rectCenterY = centerY; // Coordenada Y del centro del rectángulo
+
+    let top = rectCenterY;
+    let left = rectCenterX;
 
     if (pos === "top") top -= ENTITY_H / 2;
     if (pos === "bottom") top += ENTITY_H / 2;
@@ -82,12 +86,14 @@ export default function EREntityNode({ id, data, selected }) {
       left: `${left}px`,
       opacity: 100,
       position: "absolute",
-      width: "2px",
-      height: "2px",
+      width: "6px",
+      height: "6px",
+      borderRadius: "50%",
       transform: "translate(-50%, -50%)",
-      pointerEvents: "none",
-      zIndex: 1000,
+      pointerEvents: "auto",
+      zIndex: 10,
       backgroundColor: data.color || "#0f1419",
+      border: `1px solid ${theme === "dark" ? "#ffffff" : "#000000"}`,
     };
   };
 

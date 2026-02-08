@@ -29,21 +29,26 @@ export function derToReactFlow(diagram) {
     const result = [];
 
     const relationNode = nodeMap[relation.id];
-    const relationCenter = getCenter(relationNode, "relation");
+    const entityNode = nodeMap[source.entityId];
+
+    const rCenter = getCenter(relationNode, "relation");
+    const sCenter = getCenter(entityNode, "entity");
+
+    const recHandles = recursive ? getRecursiveHandles(sCenter, rCenter) : null;
 
     if (source?.entityId) {
-      const entityNode = nodeMap[source.entityId];
-      const entityCenter = getCenter(entityNode, "entity");
-
       result.push({
         id: `e-${relation.id}-source`,
         source: source.entityId,
         target: relation.id,
-        sourceHandle:
-          source.handleId ?? chooseEntityHandle(entityCenter, relationCenter),
-        targetHandle: source.handleId
-          ? oppositeHandle(source.handleId)
-          : chooseRelationHandle(relationCenter, entityCenter),
+        sourceHandle: recursive
+          ? recHandles.source.entity
+          : (source.handleId ?? chooseEntityHandle(sCenter, rCenter)),
+        targetHandle: recursive
+          ? recHandles.source.relation
+          : source.handleId
+            ? oppositeHandle(source.handleId)
+            : chooseRelationHandle(rCenter, sCenter),
         type: "er",
         data: {
           side: "source",
@@ -63,11 +68,14 @@ export function derToReactFlow(diagram) {
         id: `e-${relation.id}-target`,
         source: relation.id,
         target: target.entityId,
-        sourceHandle: target.handleId
-          ? oppositeHandle(target.handleId)
-          : chooseRelationHandle(relationCenter, entityCenter),
-        targetHandle:
-          target.handleId ?? chooseEntityHandle(entityCenter, relationCenter),
+        sourceHandle: recursive
+          ? recHandles.target.relation
+          : target.handleId
+            ? oppositeHandle(target.handleId)
+            : chooseRelationHandle(rCenter, sCenter),
+        targetHandle: recursive
+          ? recHandles.target.entity
+          : (target.handleId ?? chooseEntityHandle(sCenter, rCenter)),
         type: "er",
         data: {
           side: "target",

@@ -1,4 +1,5 @@
 import { normalizeAttributes } from "./relational/normalizeAttributes";
+import { getSmartHandles } from "./relational/relSmartHandles";
 
 export function derToRelational(
   diagram,
@@ -88,6 +89,7 @@ export function derToRelational(
 
       const tableId = `mv-${entity.id}-${mvAttr.id}`;
       const tableName = `${entity.data.name}_${mvAttr.name}`;
+      const savedPos = relationalPositions[tableId];
 
       let mvColumns = [
         {
@@ -113,7 +115,7 @@ export function derToRelational(
       nodes.push({
         id: tableId,
         type: "relationalTable",
-        position: {
+        position: savedPos || {
           x: (savedPos?.x || entity.position.x) + 350,
           y: (savedPos?.y || entity.position.y) + 100,
         },
@@ -342,6 +344,26 @@ export function derToRelational(
       );
     }
   });
+
+  const nodesMap = new Map(nodes.map((n) => [n.id, n]));
+
+  edges = edges.map((edge) => {
+    const sourceNode = nodesMap.get(edge.source);
+    const targetNode = nodesMap.get(edge.target);
+
+    if (sourceNode && targetNode) {
+      // Usamos la utilidad
+      const { sourceHandle, targetHandle } = getSmartHandles(
+        sourceNode,
+        targetNode,
+      );
+      return { ...edge, sourceHandle, targetHandle };
+    }
+    return edge;
+  });
+
+  console.log("Nodos generados:", nodes);
+  console.log("Edges generados:", edges);
 
   return { nodes, edges };
 }

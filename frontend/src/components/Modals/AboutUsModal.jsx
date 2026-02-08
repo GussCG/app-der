@@ -19,7 +19,7 @@ function AboutUsModal({ onClose }) {
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.8, opacity: 0, y: 10 }}
       >
-        <h1>Acerca de</h1>
+        {/* <h1>Acerca de</h1> */}
         <button className="modal__close-button" onClick={onClose}>
           <IoClose />
         </button>

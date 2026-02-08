@@ -42,27 +42,34 @@ function RelationalTableNode({ id, data, selected }) {
     }
   }
 
+  const handles = [
+    { pos: Position.Left, id: "left" },
+    { pos: Position.Right, id: "right" },
+    { pos: Position.Top, id: "top" },
+    { pos: Position.Bottom, id: "bottom" },
+  ];
+
   return (
     <div
       className={`relational-table ${selected ? "selected" : ""}`}
       style={containerStyle}
     >
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="left"
-        style={{
-          visibility: "hidden",
-        }}
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="right"
-        style={{
-          visibility: "hidden",
-        }}
-      />
+      {handles.map(({ pos, id }) => (
+        <div key={id}>
+          <Handle
+            type="source"
+            position={pos}
+            id={id}
+            style={{ visibility: "hidden" }}
+          />
+          <Handle
+            type="target"
+            position={pos}
+            id={`${id}-target`}
+            style={{ visibility: "hidden" }}
+          />
+        </div>
+      ))}
 
       <div className="header" style={headerStyle}>
         <h3>{data.name}</h3>

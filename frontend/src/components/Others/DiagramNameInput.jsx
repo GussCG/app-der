@@ -47,7 +47,10 @@ function DiagramNameInput({
   };
 
   return (
-    <div className={`nav__filename-container ${classname}`}>
+    <div
+      className={`nav__filename-container ${classname}`}
+      data-tour="diagram-name-input"
+    >
       <ValidateInput
         id="diagram-name-input"
         value={editingValue}

@@ -488,8 +488,10 @@
         justify-content: center;
 
         h2 {
+          width: 100%;
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 4px;
 
           font-family: $font-primary;
@@ -502,12 +504,13 @@
             width: auto;
             font-family: monospace;
             padding: 2px 6px;
-            background-color: var(--body-border-color);
+            background-color: var(--modal-version-bg-color);
             border-radius: 4px;
 
             font-size: 16px;
             font-weight: 300;
             margin-left: 10px;
+            color: var(--modal-version-color);
           }
         }
 
@@ -569,6 +572,11 @@
           }
 
           &.credits {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             h3 {
               font-size: 15px;
             }
@@ -601,7 +609,7 @@
               font-family: $font-primary;
               font-size: 12px;
               color: var(--modal-color);
-              font-weight: 100;
+              font-weight: 200;
               opacity: 1;
               margin-bottom: 4px;
 

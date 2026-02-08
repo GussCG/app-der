@@ -66,39 +66,30 @@ export default function ERRelationshipNode({ id, data, selected }) {
     updateNodeInternals(id);
   }, [id, svgWidth, svgHeight, updateNodeInternals]);
 
-  const getDiamondHandlePosition = (pos) => {
-    const dx = pos === "right" ? 1 : pos === "left" ? -1 : 0;
-    const dy = pos === "bottom" ? 1 : pos === "top" ? -1 : 0;
-
-    // Fórmula de intersección para un rombo (Diamond intersection)
-    const t = 1 / (Math.abs(dx) / halfW + Math.abs(dy) / halfH);
-
-    return {
-      x: centerX + dx * t * halfW,
-      y: centerY + dy * t * halfH,
-    };
-  };
-
   const getHandleStyle = (pos) => {
     let top = centerY;
     let left = centerX;
 
-    if (pos === "top") top -= halfH;
-    if (pos === "bottom") top += halfH;
-    if (pos === "left") left -= halfW;
-    if (pos === "right") left += halfW;
+    const offsetW = DIAMOND_W / 2;
+    const offsetH = DIAMOND_H / 2;
+
+    if (pos === "top") top -= offsetH;
+    if (pos === "bottom") top += offsetH;
+    if (pos === "left") left -= offsetW;
+    if (pos === "right") left += offsetW;
 
     return {
       top: `${top}px`,
       left: `${left}px`,
-      opacity: 100,
+      opacity: 1,
       position: "absolute",
-      width: "2px",
-      height: "2px",
+      width: "6px",
+      height: "6px",
+      borderRadius: "50%",
       transform: "translate(-50%, -50%)",
-      zIndex: 20,
       pointerEvents: "none",
       backgroundColor: data.color || "#0f1419",
+      border: `1px solid ${theme === "dark" ? "#ffffff" : "#000000"}`,
     };
   };
 

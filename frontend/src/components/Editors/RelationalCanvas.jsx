@@ -13,6 +13,7 @@ import RelationalEdge from "../Nodes/Relational/RelationalEdge";
 import { useEditor } from "../../context/EditorContext";
 import { useTool } from "../../context/ToolContext";
 import { derToRelational } from "../../utils/derToRelational";
+import { getSmartHandles } from "../../utils/relational/relSmartHandles";
 
 const nodeTypes = {
   relationalTable: RelationalTableNode,
@@ -34,7 +35,7 @@ function RelationalCanvas() {
   } = useEditor();
 
   const { activeTool } = useTool();
-  const { fitView } = useReactFlow();
+  const { fitView, getNodes } = useReactFlow();
   const isSyncingRef = useRef(false);
   const selectedIdsRef = useRef([]);
 
@@ -57,17 +58,14 @@ function RelationalCanvas() {
       relationalOverrides,
     );
 
-    setNodes(
-      finalNodes.map((n) => ({
+    setNodes((prevNodes) => {
+      return finalNodes.map((n) => ({
         ...n,
         type: "relationalTable",
-        position: {
-          x: Number.isFinite(n.position?.x) ? n.position.x : 0,
-          y: Number.isFinite(n.position?.y) ? n.position.y : 0,
-        },
+        position: relationalPositions[n.id] || n.position || { x: 0, y: 0 },
         selected: selectedIdsRef.current.includes(n.id),
-      })),
-    );
+      }));
+    });
 
     setEdges(
       finalEdges.map((e) => ({
@@ -122,7 +120,7 @@ function RelationalCanvas() {
       // Liberar el bloqueo de sincronización después de un breve delay
       setTimeout(() => {
         isSyncingRef.current = false;
-      }, 100);
+      }, 150);
     },
     [updateRelationalPosition],
   );
@@ -130,6 +128,39 @@ function RelationalCanvas() {
   const onPaneClick = useCallback(() => {
     setSelectedElementIds([]);
   }, [setSelectedElementIds]);
+
+  const onNodeDrag = useCallback(
+    (event, node, draggedNodes) => {
+      setEdges((eds) => {
+        const allNodes = getNodes();
+        const nodeMap = new Map(allNodes.map((n) => [n.id, n]));
+
+        return eds.map((e) => {
+          const isAffected = draggedNodes.some(
+            (dn) => dn.id === e.source || dn.id === e.target,
+          );
+          if (!isAffected) return e;
+
+          const sourceNode = nodeMap.get(e.source);
+          const targetNode = nodeMap.get(e.target);
+
+          if (!sourceNode || !targetNode) return e;
+
+          const { sourceHandle, targetHandle } = getSmartHandles(
+            sourceNode,
+            targetNode,
+          );
+
+          return {
+            ...e,
+            sourceHandle,
+            targetHandle,
+          };
+        });
+      });
+    },
+    [getNodes, setEdges],
+  );
 
   return (
     <div className="editor__canvas" data-tour="relational-canvas">
@@ -140,6 +171,7 @@ function RelationalCanvas() {
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         onSelectionChange={onSelectionChange}
         onPaneClick={onPaneClick}

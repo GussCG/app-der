@@ -13,8 +13,23 @@ export default function ERBezierEdge({
   const { theme } = useTheme();
   const color = data.color || "#888";
 
+  console.log("Edge coordinates:", {
+    id,
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    sourceHandleId,
+    targetHandleId,
+    data,
+  });
+
   const getControlPoints = () => {
-    const offset = data.isRecursive ? 120 : 50;
+    const distance = Math.sqrt(
+      (targetX - sourceX) ** 2 + (targetY - sourceY) ** 2,
+    );
+    // El offset determina qué tan "lejos" sale el cable antes de doblarse
+    const offset = Math.min(distance * 0.25, 50);
 
     const getParam = (handleId) => {
       switch (handleId) {
@@ -43,9 +58,9 @@ export default function ERBezierEdge({
   };
 
   const { c1x, c1y, c2x, c2y } = getControlPoints();
-  const path = `M ${sourceX},${sourceY} C ${c1x},${c1y} ${c2x},${c2y} ${targetX},${targetY}`;
+  const path = `M ${Math.round(sourceX)},${Math.round(sourceY)} C ${Math.round(c1x)},${Math.round(c1y)} ${Math.round(c2x)},${Math.round(c2y)} ${Math.round(targetX)},${Math.round(targetY)}`;
 
-  // 2. Función Bezier para posicionar el label (cardinalidad)
+  // Función Bezier para posicionar el label (cardinalidad)
   const bezier = (t, p0, p1, p2, p3) => {
     const mt = 1 - t;
     return (
@@ -59,6 +74,7 @@ export default function ERBezierEdge({
   const T = data.side === "source" ? 0.2 : 0.8;
   const labelX = bezier(T, sourceX, c1x, c2x, targetX);
   const labelY = bezier(T, sourceY, c1y, c2y, targetY);
+
   return (
     <>
       {data.participation === "total" ? (

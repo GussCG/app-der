@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useEditor } from "./EditorContext";
 import { startTutorialTour } from "../utils/tour/tutorialTour";
@@ -34,14 +34,15 @@ export function TourProvider({ children }) {
   const [isLoading, setIsLoading] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
 
-  const startTutorial = async () => {
+  const startTutorial = useCallback(async () => {
     setIsLoading(true);
     setIsTourActive(true);
+
     setMode("er");
 
     try {
       const response = await fetch("/tour/DiagramaTour.der");
-      if (!response.ok) throw new Error("Error al cargar");
+      if (!response.ok) throw new Error("Error al cargar el tutorial");
 
       const erTutorial = await response.json();
 
@@ -53,27 +54,35 @@ export function TourProvider({ children }) {
 
       setTimeout(() => {
         setIsLoading(false);
+
         startTutorialTour({
           setMode,
           onFinish: () => {
+            console.log("Tour finalizado, limpiando...");
             setIsTourActive(false);
+
             createNewDiagram();
-            setMode("er");
+
+            setTimeout(() => {
+              setMode("er");
+              console.log("Modo cambiado a ER después del tour");
+            }, 100);
           },
         });
       }, 1500);
     } catch (error) {
-      console.error(error);
+      console.error("Error al cargar tutorial:", error);
       setIsLoading(false);
       setIsTourActive(false);
+      setMode("er");
     }
-  };
+  }, [loadDiagramFromObject, createNewDiagram, setMode]);
 
-  const finishAndClean = () => {
+  const finishAndClean = useCallback(() => {
     createNewDiagram();
     setMode("er");
     setShowFinishModal(false);
-  };
+  }, [createNewDiagram, setMode]);
 
   return (
     <TourContext.Provider

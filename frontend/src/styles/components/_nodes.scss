@@ -4,10 +4,11 @@
   position: relative;
   padding: 0;
   background: transparent !important;
-  border: 2px dashed transparent !important;
+  box-sizing: border-box;
 
   &.selected {
-    border: 2px dashed var(--node-selected-border) !important;
+    outline: 2px dashed var(--node-selected-border) !important;
+    border: none !important;
   }
 }
 
@@ -15,15 +16,23 @@
   position: relative;
   padding: 0;
   background: transparent !important;
-  border: 2px dashed transparent !important;
+  box-sizing: border-box !important;
+  border: none !important;
 
   &.selected {
-    border: 2px dashed var(--node-selected-border) !important;
+    outline: 2px dashed var(--node-selected-border) !important;
+    border: none !important;
   }
 }
 
 .react-flow__handle {
-  z-index: 10 !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
 }
 
 .er-edge-path {
