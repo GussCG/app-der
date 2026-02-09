@@ -64,6 +64,13 @@ import { LuLassoSelect } from "react-icons/lu";
 import { FaEraser } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
 
+import { FaTable } from "react-icons/fa6";
+import { FaProjectDiagram } from "react-icons/fa";
+
+import { RiAiGenerate } from "react-icons/ri";
+import { FaArrowUp } from "react-icons/fa";
+import { FaArrowDown } from "react-icons/fa";
+
 const Icons = {
   GoAlertFill,
   FaCircleCheck,
@@ -122,6 +129,11 @@ const Icons = {
   LuLassoSelect,
   FaEraser,
   MdDelete,
+  FaTable,
+  FaProjectDiagram,
+  RiAiGenerate,
+  FaArrowUp,
+  FaArrowDown,
 };
 
 export default Icons;

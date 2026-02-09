@@ -1,0 +1,364 @@
+@use "../variables" as *;
+
+.ai__button {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+
+  position: absolute;
+  top: 50px;
+  right: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  grid-area: main;
+  background-color: var(--toolbar-bg-color);
+  border: none;
+  isolation: isolate;
+
+  cursor: pointer;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    color: var(--toolbar-icon-color);
+  }
+
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+.ai__button::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  z-index: -1;
+  filter: blur(4px);
+
+  background: conic-gradient(
+    from var(--angle),
+    #ffd500,
+    #f01bff,
+    #8520ff,
+    #ffd500
+  );
+
+  animation: ai-color-flow 2s linear infinite;
+}
+
+.ai__button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--toolbar-bg-color);
+  border-radius: 8px;
+  z-index: -1;
+}
+
+.ai__panel {
+  grid-area: main;
+  position: absolute;
+  z-index: 30;
+  top: 100px;
+  right: 60px;
+
+  width: 300px;
+  height: 420px;
+
+  display: grid;
+  grid-template-rows: 60px minmax(0, 1fr) auto;
+  grid-template-areas: "header" "content" "footer";
+
+  background-color: var(--toolbar-bg-color);
+  border-radius: 15px;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 17px;
+    z-index: -2;
+    filter: blur(4px);
+
+    background: conic-gradient(
+      from var(--angle),
+      #ffd500,
+      #f01bff,
+      #8520ff,
+      #ffd500
+    );
+
+    animation: ai-color-flow 2s linear infinite;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    background: var(--toolbar-bg-color);
+    border-radius: 16px;
+    z-index: -1;
+  }
+
+  .ai__header {
+    grid-area: header;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+
+    border: none;
+    overflow: hidden;
+    background-clip: padding-box;
+    z-index: 0;
+
+    h2 {
+      width: 100%;
+      text-align: center;
+      color: var(--properties-h1-color);
+      font-size: 16px;
+      font-family: $font-primary;
+      margin: 0;
+    }
+
+    .ai__close-button {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--properties-h1-color);
+      cursor: pointer;
+
+      transition: transform 0.2s ease;
+
+      svg {
+        width: 20px;
+        height: 20px;
+        color: var(--properties-h1-color);
+      }
+
+      &:hover {
+        transform: scale(1.2);
+      }
+    }
+  }
+
+  .ai__messages {
+    position: relative;
+    grid-area: content;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    gap: 8px;
+
+    .ai__message {
+      max-width: 80%;
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.4;
+      font-family: $font-primary;
+
+      text-align: left;
+
+      &--user {
+        background-color: var(--ai-role-user-bg);
+        color: var(--ai-role-user-color);
+        align-self: flex-end;
+      }
+
+      &--ai {
+        background-color: var(--ai-role-ai-bg);
+        color: var(--ai-role-ai-color);
+        align-self: flex-start;
+      }
+    }
+  }
+
+  .ai__scroll-button {
+    position: absolute;
+    bottom: 64px;
+    right: 50%;
+    transform: translateX(50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: var(--ai-scroll-button-bg);
+    border: none;
+    cursor: pointer;
+    z-index: 1;
+
+    transition:
+      transform 0.15s ease,
+      opacity 0.15s ease;
+
+    svg {
+      width: 16px;
+      height: 16px;
+      color: var(--ai-scroll-button-color);
+    }
+
+    &:hover {
+      transform: translateX(50%) scale(1.1);
+      opacity: 0.9;
+    }
+  }
+
+  .ai__input {
+    grid-area: footer;
+
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+
+    padding: 8px 10px;
+    min-height: 48px;
+    max-height: 180px;
+
+    background-color: var(--ai-input-bg);
+
+    box-sizing: border-box;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+
+    textarea {
+      flex: 1;
+      resize: none;
+
+      min-height: 32px;
+      max-height: 140px;
+
+      background: transparent;
+      padding: 8px;
+      border: none;
+      outline: none;
+
+      color: var(--ai-input-color);
+      font-family: $font-primary;
+      font-size: 14px;
+      line-height: 1.4;
+
+      overflow-y: auto;
+    }
+
+    .ai__chat-button {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background-color: var(--ai-button-bg);
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+
+      transition:
+        transform 0.15s ease,
+        opacity 0.15s ease;
+
+      svg {
+        width: 16px;
+        height: 16px;
+        color: var(--ai-button-color);
+      }
+
+      &:hover {
+        transform: scale(1.05);
+        opacity: 0.9;
+      }
+
+      &:disabled {
+        background-color: var(--ai-button-bg);
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+    }
+  }
+
+  .ai__loader {
+    align-self: flex-start;
+    max-width: 80%;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 8px 12px;
+    border-radius: 12px;
+
+    font-size: 14px;
+    font-family: $font-primary;
+    color: var(--ai-loader-color);
+
+    background: linear-gradient(
+      120deg,
+      rgba(255, 213, 0, 0.382),
+      rgba(240, 27, 255, 0.292),
+      rgba(115, 0, 255, 0.276)
+    );
+  }
+
+  .ai__loaer-text {
+    white-space: nowrap;
+  }
+
+  .ai__dots {
+    display: inline-flex;
+    gap: 3px;
+
+    i {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: currentColor;
+      opacity: 0.3;
+
+      animation: ai-dot 1.2s infinite ease-in-out;
+    }
+
+    i:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    i:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+  }
+}
+
+@keyframes ai-color-flow {
+  to {
+    --angle: 360deg;
+  }
+}
+
+@keyframes ai-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+  }
+  40% {
+    opacity: 1;
+  }
+}

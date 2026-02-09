@@ -15,7 +15,7 @@ import { useEditor } from "../../../context/EditorContext";
 export default function EREntityNode({ id, data, selected }) {
   const { name, attributes } = data;
   const { theme } = useTheme();
-  const { deleteElementsDiagram } = useEditor();
+  const { deleteElementsDiagram, selectedElementIds } = useEditor();
   const updateNodeInternals = useUpdateNodeInternals();
 
   const layout = getEntityLayout(name, attributes);
@@ -216,7 +216,7 @@ export default function EREntityNode({ id, data, selected }) {
         })}
       </svg>
 
-      {selected && (
+      {selected && selectedElementIds.length === 1 && (
         <ERDeleteNodeButton onDelete={() => deleteElementsDiagram([id])} />
       )}
     </div>

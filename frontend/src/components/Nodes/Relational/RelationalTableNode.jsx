@@ -21,6 +21,7 @@ function RelationalTableNode({ id, data, selected }) {
       : `2px solid ${data.color || "#323c4c"}`,
     color: theme === "dark" ? "#fff" : "#000",
     transition: "all 0.2s ease-in-out",
+    animation: selected ? "element-pulse 1.5s infinite" : "none",
   };
 
   function formatColumnType(col) {

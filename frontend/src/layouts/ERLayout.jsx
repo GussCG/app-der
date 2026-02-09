@@ -10,6 +10,8 @@ import ERCanvas from "../components/Editors/ERCanvas";
 import LimitModal from "../components/Modals/LimitModal";
 import ValidationErrorModal from "../components/Modals/ValidationErrorModal";
 import { AnimatePresence } from "framer-motion";
+import AIButton from "../components/AI/AIButton.jsx";
+import AIChatPanel from "../components/AI/AIChatPanel.jsx";
 
 function ERLayout() {
   const {
@@ -38,6 +40,8 @@ function ERLayout() {
     }
   }, [selectedElementIds]);
 
+  const [aiOpen, setAiOpen] = useState(false);
+
   return (
     <>
       <div className="app__layout er">
@@ -60,6 +64,14 @@ function ERLayout() {
               errors={validationErrors}
               onClose={() => setValidationState("idle")}
             />
+          )}
+        </AnimatePresence>
+
+        <AIButton onClick={() => setAiOpen((v) => !v)} active={aiOpen} />
+
+        <AnimatePresence>
+          {aiOpen && (
+            <AIChatPanel open={aiOpen} onClose={() => setAiOpen(false)} />
           )}
         </AnimatePresence>
       </div>

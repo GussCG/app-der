@@ -5,10 +5,12 @@
   padding: 0;
   background: transparent !important;
   box-sizing: border-box;
+  border-radius: 15px;
 
   &.selected {
     outline: 2px dashed var(--node-selected-border) !important;
     border: none !important;
+    animation: element-pulse 1.5s infinite;
   }
 }
 
@@ -18,10 +20,12 @@
   background: transparent !important;
   box-sizing: border-box !important;
   border: none !important;
+  border-radius: 15px;
 
   &.selected {
     outline: 2px dashed var(--node-selected-border) !important;
     border: none !important;
+    animation: element-pulse 1.5s infinite;
   }
 }
 

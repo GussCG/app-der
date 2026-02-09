@@ -1,6 +1,7 @@
 @use "../variables" as *;
 
 .barra__nav {
+  position: relative;
   width: auto;
   height: 64px;
   background-color: var(--header-bg-color);

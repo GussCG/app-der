@@ -8,7 +8,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-import { useEffect, useRef, useCallback, useMemo } from "react";
+import { useEffect, useRef, useCallback, useMemo, act } from "react";
 
 import { useEditor } from "../../context/EditorContext";
 import { useTool } from "../../context/ToolContext";
@@ -456,6 +456,7 @@ export default function ERCanvas() {
         onSelectionChange={onSelectionChange}
         nodeDragThreshold={8}
         onNodesDelete={onNodesDelete}
+        elementsSelectable={activeTool !== "pan"}
       >
         <Background variant={bgVariant} />
         <Controls showZoom={true} showFitView={false} showInteractive={false} />

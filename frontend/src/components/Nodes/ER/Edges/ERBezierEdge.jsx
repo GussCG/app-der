@@ -13,17 +13,6 @@ export default function ERBezierEdge({
   const { theme } = useTheme();
   const color = data.color || "#888";
 
-  console.log("Edge coordinates:", {
-    id,
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    sourceHandleId,
-    targetHandleId,
-    data,
-  });
-
   const getControlPoints = () => {
     const distance = Math.sqrt(
       (targetX - sourceX) ** 2 + (targetY - sourceY) ** 2,

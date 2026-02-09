@@ -55,27 +55,6 @@ function KeyboardShortcutsModal({ onClose }) {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Nuevo Diagrama</td>
-                    <td className="shortcut">
-                      <div className="shortcut__ctrl">Ctrl</div>+
-                      <div className="shortcut__key">N</div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Abrir Diagrama</td>
-                    <td className="shortcut">
-                      <div className="shortcut__ctrl">Ctrl</div>+
-                      <div className="shortcut__key">O</div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Guardar Diagrama</td>
-                    <td className="shortcut">
-                      <div className="shortcut__ctrl">Ctrl</div>+
-                      <div className="shortcut__key">S</div>
-                    </td>
-                  </tr>
-                  <tr>
                     <td>Deshacer</td>
                     <td className="shortcut">
                       <div className="shortcut__ctrl">Ctrl</div>+
@@ -100,13 +79,6 @@ function KeyboardShortcutsModal({ onClose }) {
                     <td className="shortcut">
                       <div className="shortcut__ctrl">Ctrl</div>+
                       <div className="shortcut__key">D</div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Limpiar Lienzo</td>
-                    <td className="shortcut">
-                      <div className="shortcut__ctrl">Ctrl</div>+
-                      <div className="shortcut__key">L</div>
                     </td>
                   </tr>
                   <tr>

@@ -1,4 +1,4 @@
-import { createElement, useEffect, useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef } from "react";
 import Icons from "../Others/IconProvider.jsx";
 import BarraDesplegable from "./BarraDesplegable.jsx";
 import ValidationStatus from "./ValidationStatus.jsx";
@@ -22,7 +22,7 @@ import { sqlToRelational } from "../../utils/sqlToRelational.js";
 import AboutUsModal from "../Modals/AboutUsModal.jsx";
 import DiagramNameInput from "../Others/DiagramNameInput.jsx";
 
-const { FiDatabase, TbSql, LuTable2, LiaProjectDiagramSolid } = Icons;
+const { TbSql, FaTable, FaProjectDiagram } = Icons;
 
 function BarraNav() {
   const { mode, setMode } = useEditorMode();
@@ -138,6 +138,8 @@ function BarraNav() {
           const nodes = getNodes();
           const edges = getEdges();
 
+          if (nodes.length === 0) return;
+
           exportDiagramAsPng(nodes, edges, diagramName);
         }, "exportar imagen"),
       Deshacer: () => mode === "er" && canUndo && undo(),
@@ -154,14 +156,21 @@ function BarraNav() {
         }
       },
       "Limpiar lienzo": () => {
-        createNewDiagram();
-        setMode("er");
-        setImportedRelationalData(null);
+        const action = () => {
+          createNewDiagram();
+          setMode("er");
+          setImportedRelationalData(null);
+        };
+
+        if (isDirty) {
+          setConfirmNew({ show: true, action });
+        } else {
+          action();
+        }
       },
       "Ajustar pantalla": () => fitToScreen(fitView),
       "Ocultar cuadrícula": () =>
         setBgVariant(bgVariant === null ? "dots" : null),
-      "Abrir herramientas": () => alert("Abrir herramientas seleccionado"),
       "¿Cómo usar?": () => {
         const action = () => {
           startTutorial();
@@ -282,12 +291,15 @@ function BarraNav() {
         <div className="nav__menu">
           {mode === "er" && (
             <>
-              <LiaProjectDiagramSolid className="nav__header_icon" />
+              <FaProjectDiagram
+                className="nav__header_icon"
+                title="Modo Entidad-Relación"
+              />
             </>
           )}
           {mode === "relational" && (
             <>
-              <LuTable2 className="nav__header_icon" />
+              <FaTable className="nav__header_icon" title="Modo Relacional" />
             </>
           )}
           <DiagramNameInput
@@ -343,7 +355,7 @@ function BarraNav() {
                 }
                 data-tour="switch-to-relational-mode-button"
               >
-                <FiDatabase />
+                <FaTable />
                 Ver en Relacional
               </button>
             </>
@@ -358,7 +370,7 @@ function BarraNav() {
                 }}
                 data-tour="switch-to-er-mode-button"
               >
-                <LiaProjectDiagramSolid />
+                <FaProjectDiagram />
                 Regresar a E-R
               </button>
               <button

@@ -5,6 +5,8 @@ import HidePanelButton from "../Others/TogglePanelButton.jsx";
 import { useEditor } from "../../context/EditorContext.jsx";
 import { useEditorMode } from "../../context/EditorModeContext.jsx";
 import { derToRelational } from "../../utils/derToRelational.js";
+import { useTool } from "../../context/ToolContext.jsx";
+import { useReactFlow } from "reactflow";
 
 const {
   FaSearch,
@@ -26,6 +28,8 @@ function BarraElementos({ hidden, onToggle }) {
     relationalOverrides,
   } = useEditor();
   const { isER, isRelational } = useEditorMode();
+  const { setActiveTool } = useTool();
+  const { setNodes } = useReactFlow();
 
   const [search, setSearch] = useState("");
 
@@ -127,6 +131,15 @@ function BarraElementos({ hidden, onToggle }) {
                     selectedElementIds.includes(item.id) ? "selected" : ""
                   }`}
                   onClick={() => {
+                    setActiveTool("select");
+
+                    setNodes((nodes) =>
+                      nodes.map((n) => ({
+                        ...n,
+                        selected: n.id === item.id,
+                      })),
+                    );
+
                     setSelectedElementIds([item.id]);
                   }}
                 >

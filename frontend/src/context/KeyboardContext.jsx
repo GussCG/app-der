@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { useTool } from "./ToolContext";
 import { useEditor } from "./EditorContext";
 import { useEditorMode } from "./EditorModeContext";
@@ -7,9 +7,6 @@ import { useReactFlow } from "reactflow";
 import {
   openKeyboardShortcutsModal,
   fitToScreen,
-  exportDiagramAsPng,
-  openAppTour,
-  openAboutModal,
 } from "../utils/diagramActions";
 
 import { HotKeys } from "react-hotkeys";
@@ -19,26 +16,39 @@ const KeyboardContext = createContext();
 export function KeyboardProvider({ children, flowRef }) {
   const { setActiveTool } = useTool();
   const { toggleTheme } = useTheme();
-  const { mode, setMode } = useEditorMode();
-  const { fitView, getEdges, getNodes } = useReactFlow();
+  const { mode } = useEditorMode();
+  const { fitView } = useReactFlow();
   const {
-    selectedElementIds,
-    setSelectedElementIds,
     diagram,
-    setDiagram,
-    bgVariant,
-    setBgVariant,
-    saveDiagram,
-    createNewDiagram,
-    openDiagram,
     undo,
     redo,
     canUndo,
     canRedo,
+    selectedElementIds,
+    setSelectedElementIds,
+    bgVariant,
+    setBgVariant,
     deleteElementsDiagram,
     duplicateSelectedElements,
+    validationState,
   } = useEditor();
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+
+  const executeValidation = (action, nameAction) => {
+    const isEmpty =
+      diagram.entities.length === 0 && diagram.relations.length === 0;
+
+    if (isEmpty || validationState === "valid") {
+      action();
+    } else {
+      setConfirmValidation({
+        show: true,
+        title: `¿Continuar con ${nameAction}?`,
+        message: `Para ${nameAction} es necesario validar el diagrama. ¿Deseas validar y continuar?`,
+        onConfirm: action,
+      });
+    }
+  };
 
   const keyMap = {
     SELECT_TOOL: "v",
@@ -46,14 +56,9 @@ export function KeyboardProvider({ children, flowRef }) {
     ENTITY_TOOL: "e",
     RELATION_TOOL: "r",
     DELETE_ELEMENT: "del",
-    NEW_DIAGRAM: "ctrl+n",
-    OPEN_DIAGRAM: "ctrl+o",
-    SAVE_DIAGRAM: "ctrl+s",
-    EXPORT_PNG: "ctrl+e",
     UNDO: "ctrl+z",
     REDO: "ctrl+y",
     DUPLICATE_ELEMENT: "ctrl+d",
-    CLEAR_CANVAS: "ctrl+l",
     FIT_TO_SCREEN: "ctrl+a",
     TOGGLE_GRID: "ctrl+g",
     OPEN_SHORTCUTS_MODAL: "ctrl+/",
@@ -71,49 +76,12 @@ export function KeyboardProvider({ children, flowRef }) {
         setSelectedElementIds([]);
       }
     },
-    NEW_DIAGRAM: () => {
-      const action = () => {
-        createNewDiagram();
-        setMode("er");
-      };
-
-      if (isDirty) {
-        setConfirmNew({ show: true, action });
-      } else {
-        action();
-      }
-    },
-    OPEN_DIAGRAM: () => {
-      const action = () => {
-        openDiagram();
-        setMode("er");
-      };
-
-      if (isDirty) {
-        setConfirmNew({ show: true, action });
-      } else {
-        action();
-      }
-    },
-    SAVE_DIAGRAM: () => saveDiagram(),
-    EXPORT_IMAGE: () => {
-      const nodes = getNodes();
-      const edges = getEdges();
-
-      if (nodes.length === 0) return;
-
-      exportDiagramAsPng(nodes, edges, diagram?.name || "diagrama");
-    },
     UNDO: () => mode === "er" && canUndo && undo(),
     REDO: () => mode === "er" && canRedo && redo(),
     DUPLICATE_ELEMENT: () => {
       if (mode === "er") {
         duplicateSelectedElements();
       }
-    },
-    CLEAR_CANVAS: () => {
-      createNewDiagram();
-      setMode("er");
     },
     FIT_TO_SCREEN: () => fitToScreen(fitView),
     ZOOM_IN: () => flowRef.current?.zoomIn(),

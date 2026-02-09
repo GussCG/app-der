@@ -1,11 +1,13 @@
 .app__layout {
+  position: relative;
   height: 100vh;
   display: grid;
+  overflow: clip;
 
   &.relational,
   &.er {
     grid-template-columns: auto 1fr auto;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: 64px 1fr;
 
     grid-template-areas:
       "nav nav nav"

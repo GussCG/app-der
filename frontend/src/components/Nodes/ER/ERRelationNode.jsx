@@ -14,10 +14,12 @@ import {
 import { useTheme } from "../../../context/ThemeContext";
 import ERAttributeNode from "./ERAttributeNode";
 import ERDeleteNodeButton from "./ERDeleteNodeButton";
+import { useEditor } from "../../../context/EditorContext";
 
 export default function ERRelationshipNode({ id, data, selected }) {
   const { name, attributes = [] } = data;
   const { theme } = useTheme();
+  const { selectedElementIds, deleteElementsDiagram } = useEditor();
   const updateNodeInternals = useUpdateNodeInternals();
 
   const layout = getRelationLayout(name, attributes);
@@ -214,7 +216,7 @@ export default function ERRelationshipNode({ id, data, selected }) {
         })}
       </svg>
 
-      {selected && (
+      {selected && selectedElementIds.length === 1 && (
         <ERDeleteNodeButton onDelete={() => deleteElementsDiagram([id])} />
       )}
     </div>
