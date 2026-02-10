@@ -7,6 +7,7 @@
   grid-area: main;
   position: relative;
   min-height: 0;
+  overflow: hidden;
 
   z-index: 0;
 
@@ -73,5 +74,66 @@
 
   a {
     display: none;
+  }
+
+  .canvas__ai-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      padding: 2px;
+      background:
+        radial-gradient(
+          circle at var(--x) var(--y),
+          #ffd500 0%,
+          transparent 25%
+        ),
+        radial-gradient(
+          circle at var(--y) var(--x),
+          #f01bff 0%,
+          transparent 25%
+        );
+
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: ai-cloud-move 6s ease-in-out infinite alternate;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      filter: blur(80px);
+      background:
+        radial-gradient(
+          circle at var(--x) var(--y),
+          #ffd500 0%,
+          transparent 40%
+        ),
+        radial-gradient(
+          circle at var(--y) var(--x),
+          #f01bff 0%,
+          transparent 40%
+        ),
+        radial-gradient(circle at 50% 50%, #8520ff 10%, transparent 60%);
+      opacity: 0.3; // Opacidad base del aura
+      animation: ai-cloud-move 8s ease-in-out infinite alternate-reverse;
+    }
   }
 }

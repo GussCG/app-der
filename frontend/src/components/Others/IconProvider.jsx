@@ -70,6 +70,9 @@ import { FaProjectDiagram } from "react-icons/fa";
 import { RiAiGenerate } from "react-icons/ri";
 import { FaArrowUp } from "react-icons/fa";
 import { FaArrowDown } from "react-icons/fa";
+import { TbWand } from "react-icons/tb";
+import { TbWandOff } from "react-icons/tb";
+import { RiChatAiLine } from "react-icons/ri";
 
 const Icons = {
   GoAlertFill,
@@ -134,6 +137,9 @@ const Icons = {
   RiAiGenerate,
   FaArrowUp,
   FaArrowDown,
+  TbWand,
+  TbWandOff,
+  RiChatAiLine,
 };
 
 export default Icons;

@@ -8,7 +8,8 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-import { useEffect, useRef, useCallback, useMemo, act } from "react";
+import { useEffect, useRef, useCallback, useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { useEditor } from "../../context/EditorContext";
 import { useTool } from "../../context/ToolContext";
@@ -44,6 +45,7 @@ export default function ERCanvas() {
     bgVariant,
     deleteElementsDiagram,
     selectedElementIds,
+    isAILoading,
   } = useEditor();
   const { activeTool, setActiveTool } = useTool();
   const {
@@ -437,7 +439,20 @@ export default function ERCanvas() {
   };
 
   return (
-    <div className="editor__canvas" data-tour="er-canvas">
+    <motion.div className={`editor__canvas`} data-tour="er-canvas">
+      <AnimatePresence>
+        {isAILoading && (
+          <motion.div
+            key="ai-aura"
+            className="canvas__ai-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+          />
+        )}
+      </AnimatePresence>
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -462,6 +477,6 @@ export default function ERCanvas() {
         <Controls showZoom={true} showFitView={false} showInteractive={false} />
         {/* <MiniMap /> */}
       </ReactFlow>
-    </div>
+    </motion.div>
   );
 }

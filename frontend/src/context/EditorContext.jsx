@@ -2,6 +2,11 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { saveDERFile, openDERFile } from "../utils/derFile";
 import { validateDiagram } from "../utils/validation/validateDiagram";
 import { autoLayoutERDiagram } from "../utils/autolayout/autoLayoutELK";
+import { DER_SCHEMA_PROMPT } from "../utils/ai/DiagramSchema";
+import { GoogleGenAI } from "@google/genai";
+
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 const EditorContext = createContext();
 
@@ -426,6 +431,54 @@ export function EditorProvider({ children }) {
     localStorage.setItem("autosave-der", JSON.stringify(payload));
   }, [diagram, diagramName, relationalPositions, relationalOverrides, isDirty]);
 
+  const [isAILoading, setIsAILoading] = useState(false);
+  const askAI = async (instruction) => {
+    if (!ai) throw new Error("API key de Gemini no configurada");
+
+    setIsAILoading(true);
+
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: DER_SCHEMA_PROMPT },
+              { text: `DIAGRAMA ACTUAL: ${JSON.stringify(diagram)}` },
+              { text: `INSTRUCCIÓN: ${instruction}` },
+            ],
+          },
+        ],
+        config: {
+          temperature: 0.1,
+          responseMimeType: "application/json",
+        },
+      });
+
+      let text = response.text;
+      if (!text) throw new Error("Respuesta vacía del modelo");
+
+      const cleanedText = text.replace(/```json|```/g, "").trim();
+      const result = JSON.parse(cleanedText);
+      const newEntities = result.diagram?.entities || result.entities;
+      const newRelations = result.diagram?.relations || result.relations;
+
+      if (newEntities) {
+        applyChange({
+          ...diagram,
+          entities: newEntities,
+          relations: newRelations || [],
+        });
+      }
+    } catch (e) {
+      console.error("Error al comunicarse con la API de Gemini:", e);
+      throw e;
+    } finally {
+      setIsAILoading(false);
+    }
+  };
+
   return (
     <EditorContext.Provider
       value={{
@@ -484,6 +537,9 @@ export function EditorProvider({ children }) {
         importedRelationalData,
         setImportedRelationalData,
         importRelationalData,
+
+        isAILoading,
+        askAI,
       }}
     >
       {children}

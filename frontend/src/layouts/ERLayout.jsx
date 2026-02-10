@@ -41,6 +41,16 @@ function ERLayout() {
   }, [selectedElementIds]);
 
   const [aiOpen, setAiOpen] = useState(false);
+  const [buttonPosition, setButtonPosition] = useState(null);
+
+  const handleOpenAIPanel = (coords) => {
+    setButtonPosition(coords);
+    setAiOpen(true);
+  };
+
+  const handleCloseAIPanel = () => {
+    setAiOpen(false);
+  };
 
   return (
     <>
@@ -67,11 +77,18 @@ function ERLayout() {
           )}
         </AnimatePresence>
 
-        <AIButton onClick={() => setAiOpen((v) => !v)} active={aiOpen} />
+        <AnimatePresence mode="wait">
+          {!aiOpen && <AIButton onClick={handleOpenAIPanel} active={aiOpen} />}
+        </AnimatePresence>
 
         <AnimatePresence>
           {aiOpen && (
-            <AIChatPanel open={aiOpen} onClose={() => setAiOpen(false)} />
+            <AIChatPanel
+              key={"chat-panel"}
+              open={aiOpen}
+              onClose={handleCloseAIPanel}
+              originPosition={buttonPosition}
+            />
           )}
         </AnimatePresence>
       </div>

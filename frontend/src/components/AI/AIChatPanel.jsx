@@ -3,10 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import Icons from "../Others/IconProvider.jsx";
 import AIMessage from "./AIMessage.jsx";
 import AILoader from "./AILoader.jsx";
+import { useEditor } from "../../context/EditorContext.jsx";
 
-const { IoClose, FaArrowUp, FaArrowDown } = Icons;
+const { IoClose, FaArrowDown, TbWand, TbWandOff } = Icons;
 
-function AIChatPanel({ open, onClose }) {
+const PANEL_WIDTH = 300;
+const PANEL_HEIGHT = 420;
+
+function AIChatPanel({ open, onClose, originPosition }) {
+  const { askAI } = useEditor();
+
   const [messages, setMessages] = useState([
     {
       role: "ai",
@@ -20,14 +26,15 @@ function AIChatPanel({ open, onClose }) {
 
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
+  const panelRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, thinking]);
+    if (open) scrollToBottom();
+  }, [messages, thinking, open]);
 
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
@@ -36,7 +43,7 @@ function AIChatPanel({ open, onClose }) {
     setShowScrollBtn(isFarFromBottom);
   };
 
-  function sendMessage() {
+  async function sendMessage() {
     if (thinking) return;
     if (!input.trim()) return;
 
@@ -46,16 +53,32 @@ function AIChatPanel({ open, onClose }) {
     setInput("");
     setThinking(true);
 
-    setTimeout(() => {
-      setThinking(false);
+    if (containerRef.current) {
+      const textarea = containerRef.current.querySelector("textarea");
+      if (textarea) textarea.style.height = "auto";
+    }
+
+    try {
+      await askAI(text);
+
       setMessages((msgs) => [
         ...msgs,
         {
           role: "ai",
-          text: "¡Gracias por tu mensaje! Estoy procesando tu solicitud.",
+          text: "¡Diagrama actualizado correctamente! He aplicado los cambios que solicitaste.",
         },
       ]);
-    }, 2000);
+    } catch (error) {
+      setMessages((msgs) => [
+        ...msgs,
+        {
+          role: "ai",
+          text: "Ocurrió un error al comunicarse con la IA. Intenta de nuevo.",
+        },
+      ]);
+    } finally {
+      setThinking(false);
+    }
   }
 
   function handleChange(e) {
@@ -65,67 +88,128 @@ function AIChatPanel({ open, onClose }) {
     e.target.style.height = `${e.target.scrollHeight}px`;
   }
 
-  if (!open) return null;
+  if (!open && !originPosition) return null;
+
+  const finalX = originPosition
+    ? originPosition.x - PANEL_WIDTH + originPosition.width
+    : 60;
+  const finalY = originPosition ? originPosition.y : 100;
 
   return (
-    <div className="ai__panel">
-      <header className="ai__header">
-        <h2>AppDER-IA</h2>
-        <button className="ai__close-button" onClick={onClose}>
-          <IoClose />
-        </button>
-      </header>
+    <motion.div
+      className="ai__panel"
+      ref={panelRef}
+      initial={{
+        opacity: 0,
+        scale: 0.5,
+        x: originPosition?.x || 0,
+        y: originPosition?.y || 0,
+        width: originPosition?.width || 40,
+        height: originPosition?.height || 40,
+        transformOrigin: "top right",
+      }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+        x: finalX,
+        y: finalY,
+        width: PANEL_WIDTH,
+        height: PANEL_HEIGHT,
+      }}
+      exit={{
+        opacity: 0,
+        scale: 0.5,
+        x: originPosition?.x || 0,
+        y: originPosition?.y || 0,
+        width: originPosition?.width || 40,
+        height: originPosition?.height || 40,
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 260,
+        damping: 25,
+      }}
+      style={{ isolation: "isolate" }}
+    >
+      <motion.div
+        className="ai__panel-content-wrapper"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: 0.1 } }}
+        style={{
+          display: "grid",
+          gridTemplateRows: "60px minmax(0, 1fr) auto",
+          gridTemplateAreas: '"header" "content" "footer"',
+          width: "100%",
+          height: "100%",
+          borderRadius: "inherit",
+          overflow: "hidden",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <header className="ai__header">
+          <h2>AppDER-IA</h2>
+          <button className="ai__close-button" onClick={onClose}>
+            <IoClose />
+          </button>
+        </header>
 
-      <div className="ai__messages" ref={containerRef} onScroll={handleScroll}>
-        {messages.map((msg, i) => (
-          <AIMessage key={i} {...msg} />
-        ))}
-        {thinking && <AILoader />}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      <AnimatePresence>
-        {showScrollBtn && (
-          <motion.button
-            className="ai__scroll-button"
-            onClick={scrollToBottom}
-            initial={{ opacity: 0, y: 10, x: "50%" }}
-            animate={{ opacity: 1, y: 0, x: "50%" }}
-            exit={{ opacity: 0, y: 10, x: "50%" }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-          >
-            <FaArrowDown />
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      <footer className="ai__input">
-        <textarea
-          rows={1}
-          value={input}
-          disabled={thinking}
-          placeholder={
-            thinking ? "Espera un momento..." : "Escribe tu mensaje..."
-          }
-          onChange={handleChange}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              if (thinking) return;
-              e.preventDefault();
-              sendMessage();
-            }
-          }}
-        />
-        <button
-          className={"ai__chat-button"}
-          onClick={sendMessage}
-          disabled={thinking}
+        <div
+          className="ai__messages"
+          ref={containerRef}
+          onScroll={handleScroll}
         >
-          <FaArrowUp />
-        </button>
-      </footer>
-    </div>
+          {messages.map((msg, i) => (
+            <AIMessage key={i} {...msg} />
+          ))}
+          {thinking && <AILoader />}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        <AnimatePresence>
+          {showScrollBtn && (
+            <motion.button
+              className="ai__scroll-button"
+              onClick={scrollToBottom}
+              initial={{ opacity: 0, y: 10, x: "50%" }}
+              animate={{ opacity: 1, y: 0, x: "50%" }}
+              exit={{ opacity: 0, y: 10, x: "50%" }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+            >
+              <FaArrowDown />
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        <footer className="ai__input">
+          <textarea
+            rows={1}
+            value={input}
+            disabled={thinking}
+            placeholder={
+              thinking ? "Espera un momento..." : "Escribe tu mensaje..."
+            }
+            onChange={handleChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                if (thinking) return;
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
+          />
+          <button
+            className={"ai__chat-button"}
+            onClick={sendMessage}
+            disabled={thinking}
+          >
+            {thinking ? <TbWandOff /> : <TbWand />}
+          </button>
+        </footer>
+      </motion.div>
+    </motion.div>
   );
 }
 

@@ -41,12 +41,6 @@ body {
   border-radius: 6px;
 }
 
-@property --angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-
 @keyframes element-pulse {
   0% {
     box-shadow: 0 0 0 0 var(--node-selected-border);

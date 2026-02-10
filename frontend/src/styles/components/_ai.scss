@@ -1,5 +1,21 @@
 @use "../variables" as *;
 
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@property --x {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@property --y {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
 .ai__button {
   width: 40px;
   height: 40px;
@@ -15,14 +31,14 @@
 
   grid-area: main;
   background-color: var(--toolbar-bg-color);
-  border: none;
+  border: 1px solid var(--ai-button-border-color);
   isolation: isolate;
 
   cursor: pointer;
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     color: var(--toolbar-icon-color);
   }
 
@@ -31,52 +47,49 @@
   &:hover {
     transform: scale(1.1);
   }
-}
 
-.ai__button::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  z-index: -1;
-  filter: blur(4px);
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    z-index: -1;
+    filter: blur(4px);
 
-  background: conic-gradient(
-    from var(--angle),
-    #ffd500,
-    #f01bff,
-    #8520ff,
-    #ffd500
-  );
+    background: conic-gradient(
+      from var(--angle),
+      #ffd500,
+      #f01bff,
+      #8520ff,
+      #ffd500
+    );
 
-  animation: ai-color-flow 2s linear infinite;
-}
+    animation: ai-color-flow 2s linear infinite;
+  }
 
-.ai__button::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--toolbar-bg-color);
-  border-radius: 8px;
-  z-index: -1;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--toolbar-bg-color);
+    border-radius: 8px;
+    z-index: -1;
+  }
 }
 
 .ai__panel {
   grid-area: main;
   position: absolute;
   z-index: 30;
-  top: 100px;
-  right: 60px;
+  pointer-events: auto;
 
-  width: 300px;
-  height: 420px;
-
-  display: grid;
-  grid-template-rows: 60px minmax(0, 1fr) auto;
-  grid-template-areas: "header" "content" "footer";
+  top: 0;
+  left: 0;
 
   background-color: var(--toolbar-bg-color);
   border-radius: 15px;
+
+  overflow: visible;
 
   &::before {
     content: "";
@@ -360,5 +373,24 @@
   }
   40% {
     opacity: 1;
+  }
+}
+
+@keyframes ai-cloud-move {
+  0% {
+    --x: 10%;
+    --y: 10%;
+  }
+  40% {
+    --x: 80%;
+    --y: 20%;
+  }
+  70% {
+    --x: 30%;
+    --y: 90%;
+  }
+  100% {
+    --x: 90%;
+    --y: 80%;
   }
 }
