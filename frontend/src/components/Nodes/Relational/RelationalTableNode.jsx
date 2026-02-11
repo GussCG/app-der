@@ -2,11 +2,13 @@ import Icons from "../../Others/IconProvider";
 import { Handle, Position } from "reactflow";
 import { colorToBgNode } from "../../../utils/colorToBgNode";
 import { useTheme } from "../../../context/ThemeContext";
+import { useEditor } from "../../../context/EditorContext";
 
 const { FaKey } = Icons;
 
 function RelationalTableNode({ id, data, selected }) {
   const { theme } = useTheme();
+  const { relationalOverrides } = useEditor();
 
   const headerStyle = {
     backgroundColor: colorToBgNode(data.color, 0.2),
@@ -25,7 +27,8 @@ function RelationalTableNode({ id, data, selected }) {
   };
 
   function formatColumnType(col) {
-    switch (col.type) {
+    const type = (col.type || "int").toLowerCase();
+    switch (type) {
       case "varchar":
         return `VARCHAR(${col.length || 255})`;
 
@@ -77,58 +80,71 @@ function RelationalTableNode({ id, data, selected }) {
       </div>
 
       <div className="body">
-        {data.columns.map((col, index) => (
-          <div
-            key={index}
-            className="column"
-            style={{
-              borderBottom:
-                index !== data.columns.length - 1
-                  ? `1px dashed ${colorToBgNode(data.color, 0.35)}`
-                  : "none",
-            }}
-          >
-            <span className="icon">
-              {col.isPk ? (
-                <FaKey style={{ color: "#f1c40f" }} />
-              ) : col.isFk ? (
-                <FaKey style={{ color: "#95a5a6" }} />
-              ) : null}
-            </span>
-            <span className="name">{col.name}</span>
-            <span className="type">{formatColumnType(col)}</span>
+        {data.columns.map((col, index) => {
+          // 4. LÓGICA DE OVERRIDE: Mezclamos la data de la columna con el override
+          const override = relationalOverrides?.[id]?.[col.name] ?? {};
 
-            <div className="extras">
-              {col.isNotNull && (
-                <span
-                  style={{
-                    backgroundColor: colorToBgNode(data.color, 0.35),
-                  }}
-                >
-                  NOT NULL
-                </span>
-              )}
-              {col.isUnique && (
-                <span
-                  style={{
-                    backgroundColor: colorToBgNode(data.color, 0.35),
-                  }}
-                >
-                  UNIQUE
-                </span>
-              )}
-              {col.isAutoIncrement && (
-                <span
-                  style={{
-                    backgroundColor: colorToBgNode(data.color, 0.35),
-                  }}
-                >
-                  AUTO_INCREMENT
-                </span>
-              )}
+          // Creamos un objeto que prioriza el override pero mantiene la base
+          const effectiveCol = {
+            ...col,
+            ...override,
+            // Las llaves PK/FK suelen venir de la estructura,
+            // pero si permites cambiarlas en el inspector, el override mandaría
+            isPk: col.isPk,
+            isFk: col.isFk,
+            isNotNull: col.isPk ? true : (override.isNotNull ?? col.isNotNull),
+            isUnique: col.isPk ? true : (override.isUnique ?? col.isUnique),
+          };
+
+          return (
+            <div
+              key={index}
+              className="column"
+              style={{
+                borderBottom:
+                  index !== data.columns.length - 1
+                    ? `1px dashed ${colorToBgNode(data.color, 0.35)}`
+                    : "none",
+              }}
+            >
+              <span className="icon">
+                {effectiveCol.isPk ? (
+                  <FaKey style={{ color: "#f1c40f" }} />
+                ) : effectiveCol.isFk ? (
+                  <FaKey style={{ color: "#95a5a6" }} />
+                ) : null}
+              </span>
+              <span className="name">{effectiveCol.name}</span>
+
+              {/* 5. Usamos la columna con overrides aplicada */}
+              <span className="type">{formatColumnType(effectiveCol)}</span>
+
+              <div className="extras">
+                {effectiveCol.isNotNull && (
+                  <span
+                    style={{ backgroundColor: colorToBgNode(data.color, 0.35) }}
+                  >
+                    NOT NULL
+                  </span>
+                )}
+                {effectiveCol.isUnique && (
+                  <span
+                    style={{ backgroundColor: colorToBgNode(data.color, 0.35) }}
+                  >
+                    UNIQUE
+                  </span>
+                )}
+                {effectiveCol.isAutoIncrement && (
+                  <span
+                    style={{ backgroundColor: colorToBgNode(data.color, 0.35) }}
+                  >
+                    AI
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

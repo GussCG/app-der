@@ -29,7 +29,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
               min={1}
               value={override.length ?? col.length ?? 255}
               onChange={(e) => {
-                updateOverride(table.name, col.name, {
+                updateOverride(table.id, col.name, {
                   length: Number(e.target.value),
                 });
               }}
@@ -51,7 +51,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
               min={1}
               value={override.precision ?? col.precision ?? 10}
               onChange={(e) => {
-                updateOverride(table.name, col.name, {
+                updateOverride(table.id, col.name, {
                   precision: Number(e.target.value),
                 });
               }}
@@ -61,7 +61,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
               min={0}
               value={override.scale ?? col.scale ?? 0}
               onChange={(e) => {
-                updateOverride(table.name, col.name, {
+                updateOverride(table.id, col.name, {
                   scale: Number(e.target.value),
                 });
               }}
@@ -89,7 +89,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
                   className="remove-tag"
                   onClick={() => {
                     const newVals = currentValues.filter((_, i) => i !== idx);
-                    updateOverride(table.name, col.name, { values: newVals });
+                    updateOverride(table.id, col.name, { values: newVals });
                   }}
                 >
                   <IoClose />
@@ -113,7 +113,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
               if (e.key === "Enter" && e.target.value.trim()) {
                 const newVal = e.target.value.trim();
                 if (!currentValues.includes(newVal)) {
-                  updateOverride(table.name, col.name, {
+                  updateOverride(table.id, col.name, {
                     values: [...currentValues, newVal],
                   });
                 }
@@ -173,7 +173,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
 
           <tbody>
             {table.columns.map((col) => {
-              const override = overrides?.[table.name]?.[col.name] ?? {};
+              const override = overrides?.[table.id]?.[col.name] ?? {};
               const currentType = override.type ?? col.type;
 
               const isPK = col.isPk;
@@ -225,7 +225,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
                           value={currentType}
                           disabled={isTypeDisabled}
                           onChange={(e) =>
-                            updateOverride(table.name, col.name, {
+                            updateOverride(table.id, col.name, {
                               type: e.target.value,
                             })
                           }
@@ -287,7 +287,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
                           checked={effectiveNN}
                           disabled={isPK || isFK}
                           onChange={(e) => {
-                            updateOverride(table.name, col.name, {
+                            updateOverride(table.id, col.name, {
                               isNotNull: e.target.checked,
                             });
                           }}
@@ -306,7 +306,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
                           checked={effectiveUQ}
                           disabled={isPK || isFK}
                           onChange={(e) => {
-                            updateOverride(table.name, col.name, {
+                            updateOverride(table.id, col.name, {
                               isUnique: e.target.checked,
                             });
                           }}
@@ -325,7 +325,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
                           checked={effectiveAI}
                           disabled={!canBeAi || isFK}
                           onChange={(e) => {
-                            updateOverride(table.name, col.name, {
+                            updateOverride(table.id, col.name, {
                               isAutoIncrement: e.target.checked,
                             });
                           }}
@@ -375,7 +375,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
                                 override.onDelete || col.onDelete || "RESTRICT"
                               }
                               onChange={(e) => {
-                                updateOverride(table.name, col.name, {
+                                updateOverride(table.id, col.name, {
                                   onDelete: e.target.value,
                                 });
                               }}
@@ -395,7 +395,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
                                 override.onUpdate || col.onUpdate || "RESTRICT"
                               }
                               onChange={(e) => {
-                                updateOverride(table.name, col.name, {
+                                updateOverride(table.id, col.name, {
                                   onUpdate: e.target.value,
                                 });
                               }}

@@ -45,7 +45,14 @@ function RelationalLayout() {
   const selectedTable = useMemo(() => {
     if (selectedElementIds.length !== 1) return null;
     const selectedId = selectedElementIds[0];
-    return relationalData.nodes.find((n) => n.id === selectedId)?.data || null;
+    const node = relationalData.nodes.find((n) => n.id === selectedId);
+
+    if (!node) return null;
+
+    return {
+      id: node.id,
+      ...node.data,
+    };
   }, [selectedElementIds, relationalData]);
 
   useEffect(() => {

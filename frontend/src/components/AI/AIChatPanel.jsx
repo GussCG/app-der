@@ -8,17 +8,10 @@ import { useEditor } from "../../context/EditorContext.jsx";
 const { IoClose, FaArrowDown, TbWand, TbWandOff } = Icons;
 
 const PANEL_WIDTH = 300;
-const PANEL_HEIGHT = 420;
+const PANEL_HEIGHT = 450;
 
-function AIChatPanel({ open, onClose, originPosition }) {
-  const { askAI } = useEditor();
-
-  const [messages, setMessages] = useState([
-    {
-      role: "ai",
-      text: "Hola, soy tu asistente de inteligencia artificial. ¿En qué puedo ayudarte con tu diagrama ER?",
-    },
-  ]);
+function AIChatPanel({ open, onClose }) {
+  const { askAI, aiMessages, setAiMessages } = useEditor();
 
   const [thinking, setThinking] = useState(false);
   const [input, setInput] = useState("");
@@ -29,47 +22,50 @@ function AIChatPanel({ open, onClose, originPosition }) {
   const panelRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }, 100);
   };
 
   useEffect(() => {
     if (open) scrollToBottom();
-  }, [messages, thinking, open]);
+  }, [aiMessages, thinking, open]);
 
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
-
     const isFarFromBottom = scrollHeight - scrollTop - clientHeight > 100;
     setShowScrollBtn(isFarFromBottom);
   };
 
+  const textareaRef = useRef(null);
+
   async function sendMessage() {
-    if (thinking) return;
-    if (!input.trim()) return;
+    if (thinking || !input.trim()) return;
 
     const text = input;
-
-    setMessages((msgs) => [...msgs, { role: "user", text }]);
+    setAiMessages((msgs) => [...msgs, { role: "user", text }]);
     setInput("");
     setThinking(true);
 
-    if (containerRef.current) {
-      const textarea = containerRef.current.querySelector("textarea");
-      if (textarea) textarea.style.height = "auto";
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "32px"; // Vuelve a su altura mínima inicial
     }
 
     try {
-      await askAI(text);
+      const response = await askAI(text);
 
-      setMessages((msgs) => [
+      setAiMessages((msgs) => [
         ...msgs,
         {
           role: "ai",
-          text: "¡Diagrama actualizado correctamente! He aplicado los cambios que solicitaste.",
+          text: response.message,
         },
       ]);
     } catch (error) {
-      setMessages((msgs) => [
+      setAiMessages((msgs) => [
         ...msgs,
         {
           role: "ai",
@@ -83,70 +79,52 @@ function AIChatPanel({ open, onClose, originPosition }) {
 
   function handleChange(e) {
     setInput(e.target.value);
-
     e.target.style.height = "auto";
-    e.target.style.height = `${e.target.scrollHeight}px`;
+    const nextHeight = Math.min(e.target.scrollHeight, 120);
+    e.target.style.height = `${nextHeight}px`;
   }
 
-  if (!open && !originPosition) return null;
-
-  const finalX = originPosition
-    ? originPosition.x - PANEL_WIDTH + originPosition.width
-    : 60;
-  const finalY = originPosition ? originPosition.y : 100;
+  if (!open) return null;
 
   return (
     <motion.div
-      className="ai__panel"
+      className={`ai__panel`}
       ref={panelRef}
       initial={{
         opacity: 0,
         scale: 0.5,
-        x: originPosition?.x || 0,
-        y: originPosition?.y || 0,
-        width: originPosition?.width || 40,
-        height: originPosition?.height || 40,
+        width: 40,
+        height: 40,
         transformOrigin: "top right",
       }}
       animate={{
         opacity: 1,
         scale: 1,
-        x: finalX,
-        y: finalY,
         width: PANEL_WIDTH,
         height: PANEL_HEIGHT,
       }}
       exit={{
         opacity: 0,
         scale: 0.5,
-        x: originPosition?.x || 0,
-        y: originPosition?.y || 0,
-        width: originPosition?.width || 40,
-        height: originPosition?.height || 40,
+        width: 40,
+        height: 40,
+        transformOrigin: "top right",
       }}
+      style={{ opacity: 0, scale: 0.5, width: 40, height: 40 }}
       transition={{
         type: "spring",
         stiffness: 260,
         damping: 25,
       }}
-      style={{ isolation: "isolate" }}
     >
       <motion.div
         className="ai__panel-content-wrapper"
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0, transition: { duration: 0.1 } }}
-        style={{
-          display: "grid",
-          gridTemplateRows: "60px minmax(0, 1fr) auto",
-          gridTemplateAreas: '"header" "content" "footer"',
-          width: "100%",
-          height: "100%",
-          borderRadius: "inherit",
-          overflow: "hidden",
-          position: "relative",
-          zIndex: 1,
+        animate={{
+          opacity: 1,
+          transition: { delay: 0.4 },
         }}
+        exit={{ opacity: 0 }}
       >
         <header className="ai__header">
           <h2>AppDER-IA</h2>
@@ -160,7 +138,7 @@ function AIChatPanel({ open, onClose, originPosition }) {
           ref={containerRef}
           onScroll={handleScroll}
         >
-          {messages.map((msg, i) => (
+          {aiMessages.map((msg, i) => (
             <AIMessage key={i} {...msg} />
           ))}
           {thinking && <AILoader />}
@@ -183,8 +161,9 @@ function AIChatPanel({ open, onClose, originPosition }) {
           )}
         </AnimatePresence>
 
-        <footer className="ai__input">
+        <div className="ai__input">
           <textarea
+            ref={textareaRef}
             rows={1}
             value={input}
             disabled={thinking}
@@ -207,6 +186,13 @@ function AIChatPanel({ open, onClose, originPosition }) {
           >
             {thinking ? <TbWandOff /> : <TbWand />}
           </button>
+        </div>
+
+        <footer className="ai__footer-warning">
+          <p>
+            Recuerda que esta IA es una herramienta de apoyo y puede cometer
+            errores. Verifica siempre la información proporcionada.
+          </p>
         </footer>
       </motion.div>
     </motion.div>

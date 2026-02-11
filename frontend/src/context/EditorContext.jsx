@@ -44,13 +44,13 @@ export function EditorProvider({ children }) {
 
   const [isAutoLayouting, setIsAutoLayouting] = useState(false);
 
-  const updateRelationalOverride = (table, column, patch) => {
+  const updateRelationalOverride = (elementId, column, patch) => {
     setRelationalOverrides((prev) => ({
       ...prev,
-      [table]: {
-        ...prev[table],
+      [elementId]: {
+        ...prev[elementId],
         [column]: {
-          ...prev[table]?.[column],
+          ...prev[elementId]?.[column],
           ...patch,
         },
       },
@@ -78,6 +78,14 @@ export function EditorProvider({ children }) {
     setSelectedElementIds([]);
     setValidationState("idle");
     setValidationErrors([]);
+    setRelationalOverrides({});
+    setRelationalPositions({});
+    setAiMessages([
+      {
+        role: "ai",
+        text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+      },
+    ]);
   };
 
   const applyChange = (newDiagram) => {
@@ -236,7 +244,12 @@ export function EditorProvider({ children }) {
   };
 
   const saveDiagram = () => {
-    saveDERFile({ diagram, diagramName });
+    saveDERFile({
+      diagram,
+      diagramName,
+      relationalPositions,
+      relationalOverrides,
+    });
     localStorage.removeItem("autosave-der");
     setIsDirty(false);
   };
@@ -259,6 +272,12 @@ export function EditorProvider({ children }) {
         setSelectedElementIds([]);
         setValidationState("idle");
         setValidationErrors([]);
+        setAiMessages([
+          {
+            role: "ai",
+            text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+          },
+        ]);
       },
     });
   };
@@ -284,6 +303,12 @@ export function EditorProvider({ children }) {
     setSelectedElementIds([]);
     setValidationState("idle");
     setValidationErrors([]);
+    setAiMessages([
+      {
+        role: "ai",
+        text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+      },
+    ]);
   };
 
   const validateCurrentDiagram = async () => {
@@ -432,6 +457,12 @@ export function EditorProvider({ children }) {
   }, [diagram, diagramName, relationalPositions, relationalOverrides, isDirty]);
 
   const [isAILoading, setIsAILoading] = useState(false);
+  const [aiMessages, setAiMessages] = useState([
+    {
+      role: "ai",
+      text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+    },
+  ]);
   const askAI = async (instruction) => {
     if (!ai) throw new Error("API key de Gemini no configurada");
 
@@ -455,21 +486,20 @@ export function EditorProvider({ children }) {
           responseMimeType: "application/json",
         },
       });
+      const result = JSON.parse(response.text);
 
-      let text = response.text;
-      if (!text) throw new Error("Respuesta vacía del modelo");
+      // Validación de basura
+      if (result.error === "INVALID_PROMPT") {
+        return {
+          success: false,
+          message:
+            "Lo siento, no he podido entender esa instrucción. ¿Podrías intentar explicarlo de otra forma?",
+        };
+      }
 
-      const cleanedText = text.replace(/```json|```/g, "").trim();
-      const result = JSON.parse(cleanedText);
-      const newEntities = result.diagram?.entities || result.entities;
-      const newRelations = result.diagram?.relations || result.relations;
-
-      if (newEntities) {
-        applyChange({
-          ...diagram,
-          entities: newEntities,
-          relations: newRelations || [],
-        });
+      if (result.diagram) {
+        applyChange(result.diagram);
+        return { success: true, message: result.explanation };
       }
     } catch (e) {
       console.error("Error al comunicarse con la API de Gemini:", e);
@@ -539,6 +569,8 @@ export function EditorProvider({ children }) {
         importRelationalData,
 
         isAILoading,
+        aiMessages,
+        setAiMessages,
         askAI,
       }}
     >

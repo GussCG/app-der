@@ -41,10 +41,8 @@ function ERLayout() {
   }, [selectedElementIds]);
 
   const [aiOpen, setAiOpen] = useState(false);
-  const [buttonPosition, setButtonPosition] = useState(null);
 
-  const handleOpenAIPanel = (coords) => {
-    setButtonPosition(coords);
+  const handleOpenAIPanel = (data) => {
     setAiOpen(true);
   };
 
@@ -85,9 +83,8 @@ function ERLayout() {
           {aiOpen && (
             <AIChatPanel
               key={"chat-panel"}
-              open={aiOpen}
+              open={true}
               onClose={handleCloseAIPanel}
-              originPosition={buttonPosition}
             />
           )}
         </AnimatePresence>

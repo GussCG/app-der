@@ -1,5 +1,6 @@
 import { useEditor } from "../../context/EditorContext.jsx";
 import { useEditorMode } from "../../context/EditorModeContext.jsx";
+import AIChatPanel from "../AI/AIChatPanel.jsx";
 import Icons from "../Others/IconProvider.jsx";
 import HidePanelButton from "../Others/TogglePanelButton.jsx";
 import EREntityInspector from "./ER/EREntityInspector.jsx";

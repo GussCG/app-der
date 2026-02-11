@@ -8,18 +8,7 @@ function AIButton({ onClick, active }) {
 
   const handleClick = (e) => {
     e.stopPropagation();
-
-    const buttonRect = buttonRef.current.getBoundingClientRect();
-    const mainRect = document
-      .querySelector(".editor__canvas")
-      .getBoundingClientRect();
-
-    onClick({
-      x: buttonRect.left - mainRect.left,
-      y: buttonRect.top - mainRect.top,
-      width: buttonRect.width,
-      height: buttonRect.height,
-    });
+    onClick();
   };
 
   return (

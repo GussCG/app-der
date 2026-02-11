@@ -7,11 +7,11 @@
   background-color: var(--header-bg-color);
   border: 1px var(--body-border-color) solid;
   border-top: 1px solid transparent;
+  overflow: visible;
 
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  overflow-y: auto;
 
   grid-area: inspector;
 
@@ -114,6 +114,8 @@
   }
 
   .properties__container {
+    flex: 1;
+    overflow-y: auto;
     border-top: 1px solid var(--body-border-color);
     display: flex;
     flex-direction: column;
