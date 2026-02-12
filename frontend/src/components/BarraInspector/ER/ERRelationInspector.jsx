@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useEditor } from "../../../context/EditorContext";
-import { Colorful } from "@uiw/react-color";
+import { Compact } from "@uiw/react-color";
 import Icons from "../../Others/IconProvider";
 import { AnimatePresence, motion } from "framer-motion";
 import ValidateInput from "../../Others/ValidateInput";
@@ -11,8 +11,6 @@ const { IoClose } = Icons;
 function ERRelationInspector() {
   const { selectedElement, updateElement, diagram, usedColors } = useEditor();
   if (!selectedElement || selectedElement.kind !== "relation") return null;
-
-  const [showColorPicker, setShowColorPicker] = useState(false);
 
   const { name, connections, attributes = [] } = selectedElement.data;
 
@@ -160,46 +158,25 @@ function ERRelationInspector() {
         <div className="color-row">
           <label htmlFor="entity-color">Color de la entidad</label>
 
-          <div className="color-picker-wrapper">
-            <button
-              className="color-swatch"
-              onClick={() => setShowColorPicker((v) => !v)}
-              style={{
-                backgroundColor: selectedElement.data.color || "#323c4c",
-              }}
-            />
-
-            <AnimatePresence>
-              {showColorPicker && (
-                <motion.div
-                  className="color-picker-popover"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <Colorful
-                    color={selectedElement.data.color || "#323c4c"}
-                    onChange={(color) => {
-                      updateElement({
-                        ...selectedElement,
-                        data: {
-                          ...selectedElement.data,
-                          color: color.hex,
-                        },
-                      });
-                    }}
-                    disableAlpha={true}
-                  />
-                  <button
-                    className="color-picker-close"
-                    onClick={() => setShowColorPicker(false)}
-                  >
-                    <IoClose />
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <Compact
+            key={selectedElement.id}
+            style={{
+              width: "100%",
+              background: "transparent",
+              boxShadow: "none",
+            }}
+            color={selectedElement.data.color || "#323c4c"}
+            onChange={(color) => {
+              const updatedData = {
+                ...selectedElement,
+                data: {
+                  ...selectedElement.data,
+                  color: color.hex,
+                },
+              };
+              updateElement(updatedData);
+            }}
+          />
         </div>
 
         {usedColors.length > 0 && (
@@ -208,27 +185,26 @@ function ERRelationInspector() {
               Colores usados en el diagrama
             </span>
 
-            <div className="used-colors__list">
-              {usedColors.map((c) => {
-                const isActive =
-                  c === (selectedElement.data.color || "").toLowerCase();
-
-                return (
-                  <button
-                    key={c}
-                    className={`used-colors__item ${isActive ? "active" : ""}`}
-                    style={{ backgroundColor: c }}
-                    onClick={() => {
-                      updateElement({
-                        ...selectedElement,
-                        data: { ...selectedElement.data, color: c },
-                      });
-                    }}
-                    title={c}
-                  />
-                );
-              })}
-            </div>
+            <Compact
+              key={`used-${selectedElement.id}`}
+              style={{
+                width: "100%",
+                background: "transparent",
+                boxShadow: "none",
+              }}
+              color={selectedElement.data.color || "#323c4c"}
+              colors={usedColors}
+              onChange={(color) => {
+                const updatedData = {
+                  ...selectedElement,
+                  data: {
+                    ...selectedElement.data,
+                    color: color.hex,
+                  },
+                };
+                updateElement(updatedData);
+              }}
+            />
           </div>
         )}
       </div>

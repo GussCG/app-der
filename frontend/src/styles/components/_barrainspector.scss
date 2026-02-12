@@ -219,7 +219,8 @@
         .color-row {
           margin-top: 10px;
           display: flex;
-          align-items: center;
+          flex-direction: column;
+          align-items: flex-start;
           justify-content: center;
           gap: 20px;
 
@@ -304,28 +305,60 @@
           flex-direction: column;
           gap: 8px;
 
-          .used-colors__list {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
+          .w-color-compact {
+            gap: 0 !important;
 
-            .used-colors__item {
-              width: 24px;
-              height: 24px;
-              border-radius: 15px;
-              cursor: pointer;
-              border: 2px solid var(--body-border-color);
+            .w-color-compact-input-wrapper {
+              visibility: hidden;
+              opacity: 0;
+              display: none;
+              height: 0;
+              margin: 0 !important;
+            }
+          }
+        }
 
-              transition:
-                box-shadow 0.2s ease,
-                opacity 0.2s ease;
+        .w-color-compact {
+          width: 100% !important;
+          background-color: var(--properties-input-bg-color) !important;
+          padding: 8px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          border: none !important;
+          gap: 10px !important;
 
-              &.active {
-                box-shadow: 0 0 0 3px var(--properties-button-color);
-              }
+          .w-color-swatch {
+            display: grid !important;
+            grid-template-columns: repeat(
+              auto-fill,
+              minmax(25px, 1fr)
+            ) !important;
+            gap: 6px;
+            width: 100%;
 
-              &:hover {
-                opacity: 0.7;
+            > div {
+              width: auto !important;
+              height: 25px !important;
+              margin: 0 !important;
+              border-radius: 5px !important;
+            }
+          }
+
+          .w-color-compact-input-wrapper {
+            input,
+            span {
+              font-family: $font-primary !important;
+              font-size: 12px !important;
+              color: var(--properties-label-color) !important;
+              font-weight: 400 !important;
+              line-height: 145% !important;
+              letter-spacing: -0.5% !important;
+
+              > div {
+                width: 20px !important;
+                height: 20px !important;
+                border-radius: 5px !important;
               }
             }
           }
