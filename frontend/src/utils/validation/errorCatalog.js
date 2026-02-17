@@ -1,5 +1,5 @@
 export const ERROR_TYPES = {
-  ENTITY_NO_ATTRIBUTES: "ËNTITY_NO_ATTRIBUTES", // REGLA 1
+  ENTITY_NO_ATTRIBUTES: "ENTITY_NO_ATTRIBUTES", // REGLA 1
   STRONG_ENTITY_NO_KEY: "STRONG_ENTITY_NO_KEY", // REGLA 2
   ISOLATED_ENTITY: "ISOLATED_ENTITY", // REGLA 4
 
@@ -26,6 +26,11 @@ export const ERROR_TYPES = {
 
   INVALID_NAME_FORMAT: "INVALID_NAME_FORMAT", // REGLA 20
   INVALID_ATTRIBUTE_NAME_FORMAT: "INVALID_ATTRIBUTE_NAME_FORMAT", // REGLA 21
+
+  MAX_ATTRIBUTES_ENTITY_EXCEEDED: "MAX_ATTRIBUTES_ENTITY_EXCEEDED", // REGLA 22 max 15 atributos por entidad
+  MAX_ATTRIBUTES_RELATION_EXCEEDED: "MAX_ATTRIBUTES_RELATION_EXCEEDED", // REGLA 23 max 6 atributos por relación
+  COMPOSITE_ATTRIBUTE_MIN_CHILDREN: "COMPOSITE_ATTRIBUTE_MIN_CHILDREN", // REGLA 24 un atributo compuesto debe tener al menos 2 atributos hijos
+  COMPOSITE_ATTRIBUTE_MAX_CHILDREN: "COMPOSITE_ATTRIBUTE_MAX_CHILDREN", // REGLA 25 un atributo compuesto no puede tener más de 5 atributos hijos
 };
 
 export const ERROR_CATALOG = {
@@ -153,5 +158,37 @@ export const ERROR_CATALOG = {
       `El nombre del atributo del padre "${n}" no cumple con el formato requerido.`,
     suggestion:
       "Asegúrate de que el nombre del atributo tenga entre 2 y 50 caracteres, comience con una letra y solo contenga letras, números, espacios o guiones bajos.",
+  },
+  [ERROR_TYPES.MAX_ATTRIBUTES_ENTITY_EXCEEDED]: {
+    severity: "warning",
+    title: "Límite de atributos en entidad excedido",
+    message: (n) =>
+      `La entidad "${n}" ha excedido el límite de atributos permitidos.`,
+    suggestion:
+      "Las entidades no deben tener más de 15 atributos. Considera simplificar la entidad o usar atributos compuestos.",
+  },
+  [ERROR_TYPES.MAX_ATTRIBUTES_RELATION_EXCEEDED]: {
+    severity: "warning",
+    title: "Límite de atributos en relación excedido",
+    message: (n) =>
+      `La relación "${n}" ha excedido el límite de atributos permitidos.`,
+    suggestion:
+      "Las relaciones no deben tener más de 6 atributos. Considera simplificar la relación o usar atributos compuestos.",
+  },
+  [ERROR_TYPES.COMPOSITE_ATTRIBUTE_MIN_CHILDREN]: {
+    severity: "error",
+    title: "Atributo compuesto con pocos hijos",
+    message: (n) =>
+      `El atributo compuesto "${n}" debe tener al menos 2 atributos hijos.`,
+    suggestion:
+      "Agrega al menos dos atributos simples como hijos del atributo compuesto.",
+  },
+  [ERROR_TYPES.COMPOSITE_ATTRIBUTE_MAX_CHILDREN]: {
+    severity: "error",
+    title: "Atributo compuesto con demasiados hijos",
+    message: (n) =>
+      `El atributo compuesto "${n}" no puede tener más de 5 atributos hijos.`,
+    suggestion:
+      "Reduce el número de atributos hijos a un máximo de 5 para mantener la claridad del modelo.",
   },
 };

@@ -59,6 +59,45 @@ export function validateRelations(relations, entities) {
         });
       }
     }
+
+    // Regla 23: Una relación no puede tener más de 6 atributos
+    if (attributes.length > 6) {
+      errors.push({
+        type: ERROR_TYPES.MAX_ATTRIBUTES_RELATION_EXCEEDED,
+        elementId: r.id,
+        elementKind: "relation",
+        meta: { name: r.data.name },
+      });
+    }
+
+    // Regla 24 y 25: Atributo compuesto con menos de 2 o más de 5 atributos hijos
+    attributes.forEach((attr) => {
+      if (attr.kind === "composite") {
+        const childCount = attr.children.length || 0;
+
+        if (childCount < 2) {
+          errors.push({
+            type: ERROR_TYPES.COMPOSITE_ATTRIBUTE_MIN_CHILDREN,
+            elementId: r.id,
+            elementKind: "relation",
+            meta: {
+              name: attr.name || "Atributo sin nombre",
+            },
+          });
+        }
+
+        if (childCount > 5) {
+          errors.push({
+            type: ERROR_TYPES.COMPOSITE_ATTRIBUTE_MAX_CHILDREN,
+            elementId: r.id,
+            elementKind: "relation",
+            meta: {
+              name: attr.name || "Atributo sin nombre",
+            },
+          });
+        }
+      }
+    });
   });
 
   return errors;

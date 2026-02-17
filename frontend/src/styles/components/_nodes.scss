@@ -29,6 +29,20 @@
   }
 }
 
+.note__node {
+  position: relative;
+  padding: 10px;
+  background: transparent !important;
+  box-sizing: border-box;
+  border-radius: 10px;
+
+  &.selected {
+    outline: 2px dashed var(--node-selected-border) !important;
+    border: none !important;
+    animation: element-pulse 1.5s infinite;
+  }
+}
+
 .react-flow__handle {
   box-sizing: border-box !important;
   margin: 0 !important;

@@ -38,7 +38,7 @@ export function TourProvider({ children }) {
     setIsLoading(true);
     setIsTourActive(true);
 
-    setMode("er");
+    setMode("er", true);
 
     try {
       const response = await fetch("/tour/DiagramaTour.der");
@@ -56,17 +56,15 @@ export function TourProvider({ children }) {
         setIsLoading(false);
 
         startTutorialTour({
-          setMode,
+          setMode: (mode, force = true) => setMode(mode, force),
           onFinish: () => {
-            console.log("Tour finalizado, limpiando...");
             setIsTourActive(false);
+            setIsLoading(false);
 
             createNewDiagram();
-
-            setTimeout(() => {
-              setMode("er");
-              console.log("Modo cambiado a ER después del tour");
-            }, 100);
+            requestAnimationFrame(() => {
+              setMode("er", true);
+            });
           },
         });
       }, 1500);

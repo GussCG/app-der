@@ -13,6 +13,7 @@ const EditorContext = createContext();
 const EMPTY_DIAGRAM = {
   entities: [],
   relations: [],
+  notes: [],
 };
 
 export function EditorProvider({ children }) {
@@ -157,6 +158,16 @@ export function EditorProvider({ children }) {
       };
     }
 
+    const note = diagram.notes?.find((n) => n.id === selectedElementIds[0]);
+
+    if (note) {
+      return {
+        id: note.id,
+        kind: "note",
+        data: note.data,
+      };
+    }
+
     return null;
   }, [selectedElementIds, diagram]);
 
@@ -166,15 +177,51 @@ export function EditorProvider({ children }) {
       entities:
         updated.kind === "entity"
           ? diagram.entities.map((e) =>
-              e.id === updated.id ? { ...e, data: updated.data } : e,
+              e.id === updated.id
+                ? {
+                    ...e,
+                    data: updated.data,
+                    // Preservar width/height si existen
+                    width: updated.width || e.width,
+                    height: updated.height || e.height,
+                  }
+                : e,
             )
           : diagram.entities,
       relations:
         updated.kind === "relation"
           ? diagram.relations.map((r) =>
-              r.id === updated.id ? { ...r, data: updated.data } : r,
+              r.id === updated.id
+                ? {
+                    ...r,
+                    data: updated.data,
+                    width: updated.width || r.width,
+                    height: updated.height || r.height,
+                  }
+                : r,
             )
           : diagram.relations,
+      notes:
+        updated.kind === "note"
+          ? diagram.notes.map((n) => {
+              if (n.id !== updated.id) return n;
+
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  ...updated.data,
+                  style: {
+                    ...(n.data.style || {}),
+                    ...(updated.data.style || {}),
+                  },
+                },
+                width: updated.width || n.width,
+                height: updated.height || n.height,
+                erPosition: n.erPosition,
+              };
+            })
+          : diagram.notes,
     });
   };
 
@@ -242,6 +289,13 @@ export function EditorProvider({ children }) {
       ...duplicatedRelations.map((r) => r.id),
     ]);
   };
+
+  const isDiagramEmpty = useMemo(() => {
+    const entities = diagram?.entities || [];
+    const relations = diagram?.relations || [];
+
+    return entities.length === 0 && relations.length === 0;
+  }, [diagram]);
 
   const saveDiagram = () => {
     saveDERFile({
@@ -509,6 +563,45 @@ export function EditorProvider({ children }) {
     }
   };
 
+  const addNote = (position = { x: 100, y: 100 }) => {
+    const newNote = {
+      id: crypto.randomUUID(),
+      type: "note",
+      erPosition: position,
+      relationalPosition: position,
+      width: 180,
+      height: 100,
+      data: {
+        text: "Nueva nota",
+        style: {
+          fontFamily: "Arial",
+          fontSize: 14,
+          fontWeight: 400,
+          fontStyle: "normal",
+          textAlign: "left",
+          color: "#000000",
+          backgroundColor: "#ffff88",
+          borderTopLeftRadius: 8,
+          borderTopRightRadius: 8,
+          borderBottomLeftRadius: 8,
+          borderBottomRightRadius: 8,
+          borderColor: "#000000",
+          borderWidth: 1,
+          borderStyle: "solid",
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
+          paddingLeft: 8,
+        },
+      },
+    };
+
+    applyChange({
+      ...diagram,
+      notes: [...(diagram.notes || []), newNote],
+    });
+  };
+
   return (
     <EditorContext.Provider
       value={{
@@ -517,6 +610,7 @@ export function EditorProvider({ children }) {
         setDiagramName,
         isDirty,
         setIsDirty,
+        isDiagramEmpty,
         saveDiagram,
         openDiagram,
         loadDiagramFromObject,
@@ -572,6 +666,8 @@ export function EditorProvider({ children }) {
         aiMessages,
         setAiMessages,
         askAI,
+
+        addNote,
       }}
     >
       {children}

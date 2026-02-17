@@ -27,10 +27,12 @@ import ERRelationNode from "../Nodes/ER/ERRelationNode.jsx";
 import ERCardinalityEdge from "../Nodes/ER/Edges/ERCardinalityEdge.jsx";
 import ERManhattanEdge from "../Nodes/ER/Edges/ERManhattanEdge.jsx";
 import ERBezierEdge from "../Nodes/ER/Edges/ERBezierEdge.jsx";
+import NoteNode from "../Nodes/Notes/NoteNode.jsx";
 
 const nodeTypes = {
   entity: EREntityNode,
   relation: ERRelationNode,
+  note: NoteNode,
 };
 
 const edgeTypes = {
@@ -61,10 +63,7 @@ export default function ERCanvas() {
   const initial = useMemo(() => {
     const data = derToReactFlow(diagram);
     return {
-      nodes: data.nodes.map((n) => ({
-        ...n,
-        type: n.type === "relation" ? "relation" : "entity",
-      })),
+      nodes: data.nodes,
       edges: data.edges,
     };
   }, []); // Solo al montar
@@ -237,6 +236,10 @@ export default function ERCanvas() {
           return dragged ? { ...e, position: dragged.position } : e;
         }),
         relations: updatedRelations,
+        notes: (diagram.notes || []).map((note) => {
+          const dragged = draggedNodes.find((dn) => dn.id === note.id);
+          return dragged ? { ...note, erPosition: dragged.position } : note;
+        }),
       });
 
       setTimeout(() => {
@@ -299,7 +302,12 @@ export default function ERCanvas() {
   );
 
   const onPaneClick = (event) => {
-    if (activeTool !== "entity" && activeTool !== "relation") return;
+    if (
+      activeTool !== "entity" &&
+      activeTool !== "relation" &&
+      activeTool !== "note"
+    )
+      return;
 
     const position = screenToFlowPosition({
       x: event.clientX,
@@ -357,6 +365,43 @@ export default function ERCanvas() {
       applyChange({
         ...diagram,
         relations: [...diagram.relations, newRelation],
+      });
+    } else if (activeTool === "note") {
+      const newNote = {
+        id: crypto.randomUUID(),
+        erPosition: position,
+        relationalPosition: position,
+        width: 180,
+        height: 100,
+        type: "note",
+        data: {
+          text: "Nueva nota",
+          style: {
+            fontFamily: "Arial",
+            fontSize: 14,
+            fontWeight: 400,
+            fontStyle: "normal",
+            textAlign: "left",
+            color: "#000000",
+            backgroundColor: "#ffff88",
+            borderTopLeftRadius: 8,
+            borderTopRightRadius: 8,
+            borderBottomLeftRadius: 8,
+            borderBottomRightRadius: 8,
+            borderColor: "#000000",
+            borderWidth: 1,
+            borderStyle: "solid",
+            paddingTop: 8,
+            paddingRight: 8,
+            paddingBottom: 8,
+            paddingLeft: 8,
+          },
+        },
+      };
+
+      applyChange({
+        ...diagram,
+        notes: [...(diagram.notes || []), newNote],
       });
     }
 

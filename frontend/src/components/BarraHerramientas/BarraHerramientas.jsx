@@ -19,6 +19,7 @@ const {
   LuLayoutDashboard,
   FaEraser,
   LuLassoSelect,
+  IoText,
 } = Icons;
 
 export default function BarraHerramientas() {
@@ -171,6 +172,16 @@ export default function BarraHerramientas() {
           </div> */}
         </>
       )}
+
+      <div
+        className={`toolbar__item ${activeTool === "note" ? "active" : ""}`}
+        onClick={() => handleClick("note")}
+        data-tour="tool-add-text"
+      >
+        <div className="toolbar__icon" title="Texto">
+          <IoText />
+        </div>
+      </div>
     </div>
   );
 }

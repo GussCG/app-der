@@ -50,6 +50,9 @@ function ERRelationInspector() {
   };
 
   const addAttribute = () => {
+    if (attributes.length >= 6) {
+      return;
+    }
     updateElement({
       ...selectedElement,
       data: {
@@ -78,6 +81,10 @@ function ERRelationInspector() {
   };
 
   const addSubattribute = (parentId) => {
+    const parentAttr = attributes.find((attr) => attr.id === parentId);
+    if (!parentAttr || parentAttr.kind !== "composite") return;
+    if (parentAttr.children.length >= 5) return;
+
     const newSub = { id: crypto.randomUUID(), name: "", kind: "simple" };
     updateElement({
       ...selectedElement,
@@ -214,7 +221,7 @@ function ERRelationInspector() {
         data-tour="inspector-cardinality"
       >
         <h2>Cardinalidad</h2>
-        <table className="attributes">
+        <table className="cardinality">
           <thead>
             <tr>
               <th>Entidad</th>
@@ -274,139 +281,156 @@ function ERRelationInspector() {
         className="properties__attributes"
         data-tour="inspector-attributes-section"
       >
-        <h2>Atributos de la relación</h2>
-        <table className="attributes">
-          {attributes.length > 0 && (
-            <>
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Tipo</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
+        <div className="properties__attributes-header">
+          <h2>Atributos de la relación</h2>
+          <span
+            className={`limit-counter ${attributes.length >= 15 ? "limit-reached" : ""}`}
+          >
+            {attributes.length}/15
+          </span>
+        </div>
 
-              <tbody>
-                {attributes.map((attr) => (
-                  <React.Fragment key={attr.id}>
-                    <motion.tr
-                      layout
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "40px" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      style={{ overflow: "hidden", display: "table-row" }}
-                    >
-                      <td>
-                        <ValidateInput
-                          value={attr.name || ""}
-                          placeholder="Nombre del atributo"
-                          validator={validateERName}
-                          onChange={(v) => updateAttribute(attr.id, "name", v)}
-                        />
-                      </td>
-                      <td>
-                        <select
-                          value={attr.kind}
-                          onChange={(e) =>
-                            updateAttribute(attr.id, "kind", e.target.value)
-                          }
-                        >
-                          <option value="simple">Simple</option>
-                          <option value="composite">Compuesto</option>
-                          <option value="derived">Derivado</option>
-                          <option value="multivalued">Multivaluado</option>
-                        </select>
-                      </td>
-                      <td>
-                        <button
-                          onClick={() => removeAttribute(attr.id)}
-                          className="attributes__delete_button"
-                        >
-                          <IoClose />
-                        </button>
-                      </td>
-                    </motion.tr>
+        <div className="table-wrapper">
+          <table className="attributes">
+            {attributes.length > 0 && (
+              <>
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
 
-                    <AnimatePresence>
-                      {attr.kind === "composite" && (
-                        <tr className="subattributes-row">
-                          <td colSpan={3}>
-                            <motion.div
-                              layout
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                            >
-                              <table className="subattributes">
-                                <tbody>
-                                  {attr.children?.map((child) => (
-                                    <tr
-                                      key={child.id}
-                                      className="subattribute-item"
-                                    >
-                                      <td>
-                                        <ValidateInput
-                                          value={child.name}
-                                          placeholder="Nombre del atributo"
-                                          validator={validateERName}
-                                          onChange={(v) =>
-                                            updateSubattribute(
-                                              attr.id,
-                                              child.id,
-                                              v,
-                                            )
-                                          }
-                                        />
-                                      </td>
-                                      <td>
-                                        {" "}
-                                        <button
-                                          onClick={() => {
-                                            const newChildren =
-                                              attr.children.filter(
-                                                (c) => c.id !== child.id,
-                                              );
-                                            updateAttribute(
-                                              attr.id,
-                                              "children",
-                                              newChildren,
-                                            );
-                                          }}
-                                        >
-                                          <IoClose size={14} />
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                              <button
-                                className="properties__subattribute_add_button"
-                                onClick={() => addSubattribute(attr.id)}
+                <tbody>
+                  {attributes.map((attr) => (
+                    <React.Fragment key={attr.id}>
+                      <motion.tr
+                        layout
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "40px" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        style={{ overflow: "hidden", display: "table-row" }}
+                      >
+                        <td>
+                          <ValidateInput
+                            value={attr.name || ""}
+                            placeholder="Nombre del atributo"
+                            validator={validateERName}
+                            onChange={(v) =>
+                              updateAttribute(attr.id, "name", v)
+                            }
+                          />
+                        </td>
+                        <td>
+                          <select
+                            value={attr.kind}
+                            onChange={(e) =>
+                              updateAttribute(attr.id, "kind", e.target.value)
+                            }
+                          >
+                            <option value="simple">Simple</option>
+                            <option value="composite">Compuesto</option>
+                            <option value="derived">Derivado</option>
+                            <option value="multivalued">Multivaluado</option>
+                          </select>
+                        </td>
+                        <td>
+                          <button
+                            onClick={() => removeAttribute(attr.id)}
+                            className="attributes__delete_button"
+                          >
+                            <IoClose />
+                          </button>
+                        </td>
+                      </motion.tr>
+
+                      <AnimatePresence>
+                        {attr.kind === "composite" && (
+                          <tr className="subattributes-row">
+                            <td colSpan={3}>
+                              <motion.div
+                                layout
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
                               >
-                                + Sub-atributo
-                              </button>
-                            </motion.div>
-                          </td>
-                        </tr>
-                      )}
-                    </AnimatePresence>
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </>
-          )}
-        </table>
-        <motion.button
-          layout
-          className="properties__attribute_add_button"
-          onClick={addAttribute}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          Agregar Atributo +
-        </motion.button>
+                                <table className="subattributes">
+                                  <tbody>
+                                    {attr.children?.map((child) => (
+                                      <tr
+                                        key={child.id}
+                                        className="subattribute-item"
+                                      >
+                                        <td>
+                                          <ValidateInput
+                                            value={child.name}
+                                            placeholder="Nombre del atributo"
+                                            validator={validateERName}
+                                            onChange={(v) =>
+                                              updateSubattribute(
+                                                attr.id,
+                                                child.id,
+                                                v,
+                                              )
+                                            }
+                                          />
+                                        </td>
+                                        <td>
+                                          {" "}
+                                          <button
+                                            onClick={() => {
+                                              const newChildren =
+                                                attr.children.filter(
+                                                  (c) => c.id !== child.id,
+                                                );
+                                              updateAttribute(
+                                                attr.id,
+                                                "children",
+                                                newChildren,
+                                              );
+                                            }}
+                                          >
+                                            <IoClose size={14} />
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                                <button
+                                  className={`properties__subattribute_add_button ${attr.children.length >= 5 ? "disabled" : ""}`}
+                                  onClick={() => addSubattribute(attr.id)}
+                                  disabled={attr.children.length >= 5}
+                                >
+                                  {attr.children.length >= 5
+                                    ? "Máximo 5 subatributos"
+                                    : "Agregar subatributo +"}
+                                </button>
+                              </motion.div>
+                            </td>
+                          </tr>
+                        )}
+                      </AnimatePresence>
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </>
+            )}
+          </table>
+          <motion.button
+            className={`properties__attribute_add_button ${attributes.length >= 6 ? "disabled" : ""}`}
+            onClick={addAttribute}
+            disabled={attributes.length >= 6}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {attributes.length >= 6
+              ? "Máximo 6 atributos"
+              : "Agregar atributo +"}
+          </motion.button>
+        </div>
       </div>
     </motion.div>
   );

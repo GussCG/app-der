@@ -74,6 +74,15 @@ import { TbWand } from "react-icons/tb";
 import { TbWandOff } from "react-icons/tb";
 import { RiChatAiLine } from "react-icons/ri";
 
+import { IoText } from "react-icons/io5";
+import { CiTextAlignCenter } from "react-icons/ci";
+import { CiTextAlignJustify } from "react-icons/ci";
+import { CiTextAlignLeft } from "react-icons/ci";
+import { CiTextAlignRight } from "react-icons/ci";
+import { PiTextBBold } from "react-icons/pi";
+import { PiTextItalicBold } from "react-icons/pi";
+import { FaLink } from "react-icons/fa";
+
 const Icons = {
   GoAlertFill,
   FaCircleCheck,
@@ -140,6 +149,14 @@ const Icons = {
   TbWand,
   TbWandOff,
   RiChatAiLine,
+  IoText,
+  CiTextAlignCenter,
+  CiTextAlignJustify,
+  CiTextAlignLeft,
+  CiTextAlignRight,
+  PiTextBBold,
+  PiTextItalicBold,
+  FaLink,
 };
 
 export default Icons;
