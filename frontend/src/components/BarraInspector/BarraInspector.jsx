@@ -56,8 +56,7 @@ function BarraInspector({
           )}
 
           {/* RELACIONAL */}
-          {/* selectedElement?.kind === "entity" && */}
-          {isRelational && table && (
+          {isRelational && table && Array.isArray(table.columns) && (
             <RelEntityInspector
               table={table}
               overrides={overrides}
@@ -67,6 +66,7 @@ function BarraInspector({
 
           {/* NOTA */}
           {selectedElement?.kind === "note" && <NoteInspector />}
+          {isRelational && table?.type === "note" && <NoteInspector />}
         </>
       )}
     </motion.div>

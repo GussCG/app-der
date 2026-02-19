@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Icons from "../Others/IconProvider.jsx";
 import AIMessage from "./AIMessage.jsx";
 import AILoader from "./AILoader.jsx";
+import ConfirmModal from "../Modals/ConfirmModal.jsx";
 import { useEditor } from "../../context/EditorContext.jsx";
 
 const { IoClose, FaArrowDown, TbWand, TbWandOff } = Icons;
@@ -11,7 +12,7 @@ const PANEL_WIDTH = 300;
 const PANEL_HEIGHT = 450;
 
 function AIChatPanel({ open, onClose }) {
-  const { askAI, aiMessages, setAiMessages } = useEditor();
+  const { askAI, aiMessages, setAiMessages, isDirty } = useEditor();
 
   const [thinking, setThinking] = useState(false);
   const [input, setInput] = useState("");
@@ -181,7 +182,14 @@ function AIChatPanel({ open, onClose }) {
           />
           <button
             className={"ai__chat-button"}
-            onClick={sendMessage}
+            onClick={() => {
+              const action = () => sendMessage();
+              if (isDirty) {
+                setConfirmNew({ show: true, action });
+              } else {
+                action();
+              }
+            }}
             disabled={thinking}
           >
             {thinking ? <TbWandOff /> : <TbWand />}

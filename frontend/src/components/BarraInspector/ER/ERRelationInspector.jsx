@@ -236,7 +236,7 @@ function ERRelationInspector() {
                 <td>
                   {/* Entidad */}
                   <select
-                    value={connections[side].entityId}
+                    value={connections[side].entityId || ""}
                     onChange={(e) =>
                       updateConnection(side, "entityId", e.target.value)
                     }

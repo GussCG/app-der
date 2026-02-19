@@ -82,6 +82,7 @@ import { CiTextAlignRight } from "react-icons/ci";
 import { PiTextBBold } from "react-icons/pi";
 import { PiTextItalicBold } from "react-icons/pi";
 import { FaLink } from "react-icons/fa";
+import { FaNoteSticky } from "react-icons/fa6";
 
 const Icons = {
   GoAlertFill,
@@ -157,6 +158,7 @@ const Icons = {
   PiTextBBold,
   PiTextItalicBold,
   FaLink,
+  FaNoteSticky,
 };
 
 export default Icons;

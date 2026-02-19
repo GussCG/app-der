@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useEditor } from "../../../context/EditorContext.jsx";
 import { Compact } from "@uiw/react-color";
 import { hsvaToRgbaString, rgbaToHsva } from "@uiw/color-convert";
@@ -18,11 +18,126 @@ const {
   FaLock,
 } = Icons;
 
+const parseRgba = (colorString) => {
+  if (!colorString) return null;
+
+  // Si es un color hexadecimal o rgb, convertir a rgba
+  const tempDiv = document.createElement("div");
+  tempDiv.style.color = colorString;
+  document.body.appendChild(tempDiv);
+  const computedColor = window.getComputedStyle(tempDiv).color;
+  document.body.removeChild(tempDiv);
+
+  // Parsear rgba(r, g, b, a)
+  const match = computedColor.match(
+    /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+\.?\d*))?\)/,
+  );
+  if (match) {
+    return {
+      r: parseInt(match[1]),
+      g: parseInt(match[2]),
+      b: parseInt(match[3]),
+      a: match[4] ? parseFloat(match[4]) : 1,
+    };
+  }
+  return null;
+};
+
+const rgbaToHsvaManual = (r, g, b, a = 1) => {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h, s;
+  const v = max;
+
+  const d = max - min;
+  s = max === 0 ? 0 : d / max;
+
+  if (max === min) {
+    h = 0;
+  } else {
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
+      default:
+        h = 0;
+    }
+    h /= 6;
+  }
+
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    v: Math.round(v * 100),
+    a: a,
+  };
+};
+
+const createDefaultHsva = (colorType = "text") => {
+  switch (colorType) {
+    case "text":
+      return { h: 0, s: 0, v: 0, a: 1 }; // Negro
+    case "background":
+      return { h: 60, s: 100, v: 100, a: 1 }; // Amarillo
+    case "border":
+      return { h: 0, s: 0, v: 0, a: 1 }; // Negro
+    default:
+      return { h: 0, s: 0, v: 0, a: 1 };
+  }
+};
+
+const safeColorToHsva = (colorString, defaultValue = "text") => {
+  if (!colorString) return createDefaultHsva(defaultValue);
+
+  try {
+    // Intentar con la librería primero
+    const hsva = rgbaToHsva(colorString);
+    if (hsva && !isNaN(hsva.v)) {
+      return {
+        h: hsva.h ?? 0,
+        s: hsva.s ?? 0,
+        v: hsva.v ?? (defaultValue === "text" ? 0 : 100),
+        a: hsva.a ?? 1,
+      };
+    }
+  } catch (error) {
+    console.warn(
+      "Error with rgbaToHsva, trying manual conversion:",
+      colorString,
+    );
+  }
+
+  // Si falla, intentar parseo manual
+  const rgba = parseRgba(colorString);
+  if (rgba && !isNaN(rgba.r)) {
+    return rgbaToHsvaManual(rgba.r, rgba.g, rgba.b, rgba.a);
+  }
+
+  // Si todo falla, devolver valores por defecto
+  return createDefaultHsva(defaultValue);
+};
+
 function NoteInspector() {
   const { selectedElement, updateElement } = useEditor();
-  if (!selectedElement) return null;
 
-  const { text, style = {} } = selectedElement.data;
+  const isInternalUpdate = useRef(false);
+
+  const isNote = selectedElement && selectedElement.kind === "note";
+  if (!isNote) return null;
+
+  const data = selectedElement?.data || {};
+  const text = data.text || "";
+  const style = data.style || {};
 
   const [separateRadius, setSeparateRadius] = useState(() => {
     const {
@@ -40,6 +155,7 @@ function NoteInspector() {
       ]).size > 1
     );
   });
+
   const [separatePadding, setSeparatePadding] = useState(() => {
     const { paddingTop, paddingRight, paddingBottom, paddingLeft } = style;
     return (
@@ -47,18 +163,75 @@ function NoteInspector() {
     );
   });
 
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showBGColorPicker, setShowBGColorPicker] = useState(false);
+  const [showBorderColorPicker, setShowBorderColorPicker] = useState(false);
+
+  const [textHsva, setTextHsva] = useState(() =>
+    safeColorToHsva(style.color, "text"),
+  );
+  const [bgHsva, setBgHsva] = useState(() =>
+    safeColorToHsva(style.backgroundColor, "background"),
+  );
+  const [borderHsva, setBorderHsva] = useState(() =>
+    safeColorToHsva(style.borderColor, "border"),
+  );
+  const [borderWidthInput, setBorderWidthInput] = useState(
+    style.borderWidth ?? "",
+  );
+
+  useEffect(() => {
+    if (!selectedElement?.data?.style) return;
+
+    if (!isInternalUpdate.current) {
+      const currentStyle = selectedElement.data.style;
+
+      setTextHsva(safeColorToHsva(currentStyle.color, "text"));
+      setBgHsva(safeColorToHsva(currentStyle.backgroundColor, "background"));
+      setBorderHsva(safeColorToHsva(currentStyle.borderColor, "border"));
+      setBorderWidthInput(currentStyle.borderWidth ?? "");
+
+      setSeparateRadius(() => {
+        const {
+          borderTopLeftRadius,
+          borderTopRightRadius,
+          borderBottomLeftRadius,
+          borderBottomRightRadius,
+        } = currentStyle;
+        return (
+          new Set([
+            borderTopLeftRadius,
+            borderTopRightRadius,
+            borderBottomLeftRadius,
+            borderBottomRightRadius,
+          ]).size > 1
+        );
+      });
+
+      setSeparatePadding(() => {
+        const { paddingTop, paddingRight, paddingBottom, paddingLeft } =
+          currentStyle;
+        return (
+          new Set([paddingTop, paddingRight, paddingBottom, paddingLeft]).size >
+          1
+        );
+      });
+    }
+
+    isInternalUpdate.current = false;
+  }, [selectedElement?.id, selectedElement?.data?.style]);
+
   const updateStyle = (updates) => {
     if (!selectedElement) return;
+
+    isInternalUpdate.current = true;
 
     updateElement({
       id: selectedElement.id,
       kind: "note",
       data: {
         ...selectedElement.data,
-        style: {
-          ...selectedElement.data.style,
-          ...updates,
-        },
+        style: { ...selectedElement.data.style, ...updates },
       },
     });
   };
@@ -75,51 +248,7 @@ function NoteInspector() {
     });
   };
 
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [colorHsva, setColorHsva] = useState({ h: 0, s: 0, v: 0, a: 1 });
-  const [showBGColorPicker, setShowBGColorPicker] = useState(false);
-  const [bgColorHsva, setBGColorHsva] = useState({ h: 0, s: 0, v: 0, a: 1 });
-  const [showBorderColorPicker, setShowBorderColorPicker] = useState(false);
-  const [borderColorHsva, setBorderColorHsva] = useState({
-    h: 0,
-    s: 0,
-    v: 0,
-    a: 1,
-  });
-
-  useEffect(() => {
-    if (selectedElement) {
-      setColorHsva(rgbaToHsva(style.color || "rgba(0,0,0,1)"));
-      setBGColorHsva(
-        rgbaToHsva(style.backgroundColor || "rgba(255,255,136,1)"),
-      );
-      setBorderColorHsva(rgbaToHsva(style.borderColor || "rgba(0,0,0,1)"));
-    }
-  }, [selectedElement.id]);
-
-  const handleColorChange = (newColor, type) => {
-    const hsva = newColor.hsva;
-    const rgbaString = hsvaToRgbaString(hsva);
-
-    if (type === "text") {
-      setColorHsva(hsva);
-      updateStyle({ color: rgbaString });
-    } else if (type === "background") {
-      setBGColorHsva(hsva);
-      updateStyle({ backgroundColor: rgbaString });
-    } else if (type === "border") {
-      setBorderColorHsva(hsva);
-      updateStyle({ borderColor: rgbaString });
-    }
-  };
-
-  const [borderWidthInput, setBorderWidthInput] = useState(
-    style.borderWidth ?? "",
-  );
-
-  useEffect(() => {
-    setBorderWidthInput(style.borderWidth ?? "");
-  }, [selectedElement.id]);
+  console.log({ textHsva, bgHsva, borderHsva });
 
   return (
     <motion.div className="properties__container note">
@@ -229,7 +358,7 @@ function NoteInspector() {
             <button
               className="color-swatch"
               onClick={() => setShowColorPicker(!showColorPicker)}
-              style={{ backgroundColor: hsvaToRgbaString(colorHsva) }}
+              style={{ backgroundColor: hsvaToRgbaString(textHsva) }}
             />
 
             <AnimatePresence>
@@ -241,9 +370,15 @@ function NoteInspector() {
                   exit={{ opacity: 0 }}
                 >
                   <Colorful
-                    color={colorHsva}
-                    onChange={(color) => handleColorChange(color, "text")}
-                    disableAlpha={false}
+                    color={textHsva}
+                    disableAlpha={true}
+                    onChange={(color) => {
+                      setTextHsva(color.hsva);
+                      isInternalUpdate.current = true;
+                      updateStyle({
+                        color: hsvaToRgbaString(color.hsva),
+                      });
+                    }}
                   />
                   <button
                     className="color-picker-close"
@@ -265,7 +400,7 @@ function NoteInspector() {
               className="color-swatch"
               onClick={() => setShowBGColorPicker(!showBGColorPicker)}
               style={{
-                backgroundColor: hsvaToRgbaString(bgColorHsva),
+                backgroundColor: hsvaToRgbaString(bgHsva),
               }}
             />
 
@@ -278,9 +413,15 @@ function NoteInspector() {
                   exit={{ opacity: 0 }}
                 >
                   <Colorful
-                    color={bgColorHsva}
-                    onChange={(color) => handleColorChange(color, "background")}
+                    color={bgHsva}
                     disableAlpha={false}
+                    onChange={(color) => {
+                      setBgHsva(color.hsva);
+                      isInternalUpdate.current = true;
+                      updateStyle({
+                        backgroundColor: hsvaToRgbaString(color.hsva),
+                      });
+                    }}
                   />
                   <button
                     className="color-picker-close"
@@ -306,15 +447,16 @@ function NoteInspector() {
               const val = e.target.value;
               if (val === "") {
                 setBorderWidthInput("");
+                isInternalUpdate.current = true;
                 updateStyle({ borderWidth: 0 });
                 return;
               }
 
               if (/^\d+$/.test(val)) {
                 const num = Number(val);
-
                 if (num <= 10) {
                   setBorderWidthInput(val);
+                  isInternalUpdate.current = true;
                   updateStyle({ borderWidth: num });
                 }
               }
@@ -330,7 +472,7 @@ function NoteInspector() {
               className="color-swatch"
               onClick={() => setShowBorderColorPicker((v) => !v)}
               style={{
-                backgroundColor: hsvaToRgbaString(borderColorHsva),
+                backgroundColor: hsvaToRgbaString(borderHsva),
               }}
             />
 
@@ -343,9 +485,15 @@ function NoteInspector() {
                   exit={{ opacity: 0 }}
                 >
                   <Colorful
-                    color={borderColorHsva}
-                    onChange={(color) => handleColorChange(color, "border")}
+                    color={borderHsva}
                     disableAlpha={false}
+                    onChange={(color) => {
+                      setBorderHsva(color.hsva);
+                      isInternalUpdate.current = true;
+                      updateStyle({
+                        borderColor: hsvaToRgbaString(color.hsva),
+                      });
+                    }}
                   />
                   <button
                     className="color-picker-close"

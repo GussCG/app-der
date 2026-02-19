@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import { saveDERFile, openDERFile } from "../utils/derFile";
 import { validateDiagram } from "../utils/validation/validateDiagram";
 import { autoLayoutERDiagram } from "../utils/autolayout/autoLayoutELK";
@@ -45,6 +52,22 @@ export function EditorProvider({ children }) {
 
   const [isAutoLayouting, setIsAutoLayouting] = useState(false);
 
+  const getStructuralSnapshot = (diagram) => ({
+    entities: diagram.entities.map((e) => ({
+      id: e.id,
+      name: e.data.name,
+      weak: e.data.weak,
+      attributes: e.data.attributes,
+    })),
+    relations: diagram.relations.map((r) => ({
+      id: r.id,
+      name: r.data.name,
+      connections: r.data.connections,
+    })),
+  });
+
+  const lastValidatedStructureRef = useRef(null);
+
   const updateRelationalOverride = (elementId, column, patch) => {
     setRelationalOverrides((prev) => ({
       ...prev,
@@ -84,21 +107,29 @@ export function EditorProvider({ children }) {
     setAiMessages([
       {
         role: "ai",
-        text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+        text: "Hola, soy tu asistente de inteligencia artificial DER-IA. Recuerda que puedes pedirme que te ayude a crear un diagrama ER desde cero, o que modifique el diagrama actual según tus indicaciones. Si no has guardado tu diagrama actual, ten en cuenta que se perderán los cambios no guardados al crear un nuevo diagrama. ¿En qué puedo ayudarte con tu diagrama ER?",
       },
     ]);
   };
 
-  const applyChange = (newDiagram) => {
+  const applyChange = (updater) => {
+    const newPresent =
+      typeof updater === "function" ? updater(diagram) : updater;
+
+    const newStructural = JSON.stringify(getStructuralSnapshot(newPresent));
+
     setHistory((prev) => ({
       past: [...prev.past, prev.present],
-      present: newDiagram,
+      present: newPresent,
       future: [],
     }));
 
     setIsDirty(true);
-    setValidationState("idle");
-    setValidationErrors([]);
+
+    if (newStructural !== lastValidatedStructureRef.current) {
+      setValidationState("idle");
+      setValidationErrors([]);
+    }
   };
 
   const undo = () => {
@@ -228,20 +259,20 @@ export function EditorProvider({ children }) {
   const deleteElementsDiagram = (elementIds) => {
     const ids = new Set(elementIds);
 
-    applyChange({
-      entities: diagram.entities.filter((entity) => !ids.has(entity.id)),
-      relations: diagram.relations.filter((relation) => {
-        // borrar relaciones seleccionadas
+    applyChange((prev) => ({
+      ...prev,
+      entities: prev.entities.filter((entity) => !ids.has(entity.id)),
+      relations: prev.relations.filter((relation) => {
         if (ids.has(relation.id)) return false;
 
-        // borrar relaciones conectadas a entidades borradas
-        const { source, target } = relation.data.connections || {};
+        const { source, target } = relation.data?.connections || {};
         const connectedToDeletedEntity =
           ids.has(source?.entityId) || ids.has(target?.entityId);
 
         return !connectedToDeletedEntity;
       }),
-    });
+      notes: prev.notes?.filter((note) => !ids.has(note.id)) || [],
+    }));
 
     setSelectedElementIds([]);
   };
@@ -256,38 +287,53 @@ export function EditorProvider({ children }) {
 
     const ids = new Set(selectedElementIds);
 
-    const duplicatedEntities = diagram.entities
-      .filter((e) => ids.has(e.id))
-      .map((e) => ({
-        ...e,
-        id: crypto.randomUUID(),
-        position: {
-          x: e.position.x + 20,
-          y: e.position.y + 20,
-        },
-      }));
+    applyChange((prev) => {
+      const duplicatedEntities = prev.entities
+        .filter((e) => ids.has(e.id))
+        .map((e) => ({
+          ...e,
+          id: crypto.randomUUID(),
+          position: {
+            x: e.position.x + 20,
+            y: e.position.y + 20,
+          },
+        }));
 
-    const duplicatedRelations = diagram.relations
-      .filter((r) => ids.has(r.id))
-      .map((r) => ({
-        ...r,
-        id: crypto.randomUUID(),
-        position: {
-          x: r.position.x + 20,
-          y: r.position.y + 20,
-        },
-      }));
+      const duplicatedRelations = prev.relations
+        .filter((r) => ids.has(r.id))
+        .map((r) => ({
+          ...r,
+          id: crypto.randomUUID(),
+          position: {
+            x: r.position.x + 20,
+            y: r.position.y + 20,
+          },
+        }));
 
-    applyChange({
-      ...diagram,
-      entities: [...diagram.entities, ...duplicatedEntities],
-      relations: [...diagram.relations, ...duplicatedRelations],
+      const duplicatedNotes = (prev.notes || [])
+        .filter((n) => ids.has(n.id))
+        .map((n) => ({
+          ...n,
+          id: crypto.randomUUID(),
+          erPosition: {
+            x: n.erPosition.x + 20,
+            y: n.erPosition.y + 20,
+          },
+          relationalPosition: {
+            x: n.relationalPosition.x + 20,
+            y: n.relationalPosition.y + 20,
+          },
+        }));
+
+      return {
+        ...prev,
+        entities: [...prev.entities, ...duplicatedEntities],
+        relations: [...prev.relations, ...duplicatedRelations],
+        notes: [...(prev.notes || []), ...duplicatedNotes],
+      };
     });
 
-    setSelectedElementIds([
-      ...duplicatedEntities.map((e) => e.id),
-      ...duplicatedRelations.map((r) => r.id),
-    ]);
+    setSelectedElementIds([]);
   };
 
   const isDiagramEmpty = useMemo(() => {
@@ -329,7 +375,7 @@ export function EditorProvider({ children }) {
         setAiMessages([
           {
             role: "ai",
-            text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+            text: "Hola, soy tu asistente de inteligencia artificial DER-IA. Recuerda que puedes pedirme que te ayude a crear un diagrama ER desde cero, o que modifique el diagrama actual según tus indicaciones. Si no has guardado tu diagrama actual, ten en cuenta que se perderán los cambios no guardados al crear un nuevo diagrama. ¿En qué puedo ayudarte con tu diagrama ER?",
           },
         ]);
       },
@@ -360,7 +406,7 @@ export function EditorProvider({ children }) {
     setAiMessages([
       {
         role: "ai",
-        text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+        text: "Hola, soy tu asistente de inteligencia artificial DER-IA. Recuerda que puedes pedirme que te ayude a crear un diagrama ER desde cero, o que modifique el diagrama actual según tus indicaciones. Si no has guardado tu diagrama actual, ten en cuenta que se perderán los cambios no guardados al crear un nuevo diagrama. ¿En qué puedo ayudarte con tu diagrama ER?",
       },
     ]);
   };
@@ -383,6 +429,9 @@ export function EditorProvider({ children }) {
     } else {
       setValidationErrors([]);
       setValidationState("valid");
+      lastValidatedStructureRef.current = JSON.stringify(
+        getStructuralSnapshot(diagram),
+      );
     }
 
     return errors.length === 0;
@@ -398,13 +447,13 @@ export function EditorProvider({ children }) {
   const usedColors = useMemo(() => {
     const colors = new Set();
 
-    diagram.entities.forEach((e) => {
+    (diagram?.entities || []).forEach((e) => {
       if (e.data?.color) {
         colors.add(e.data.color.toLowerCase());
       }
     });
 
-    diagram.relations.forEach((r) => {
+    (diagram?.relations || []).forEach((r) => {
       if (r.data?.color) {
         colors.add(r.data.color.toLowerCase());
       }
@@ -514,7 +563,7 @@ export function EditorProvider({ children }) {
   const [aiMessages, setAiMessages] = useState([
     {
       role: "ai",
-      text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+      text: "Hola, soy tu asistente de inteligencia artificial DER-IA. Recuerda que puedes pedirme que te ayude a crear un diagrama ER desde cero, o que modifique el diagrama actual según tus indicaciones. Si no has guardado tu diagrama actual, ten en cuenta que se perderán los cambios no guardados al crear un nuevo diagrama. ¿En qué puedo ayudarte con tu diagrama ER?",
     },
   ]);
   const askAI = async (instruction) => {

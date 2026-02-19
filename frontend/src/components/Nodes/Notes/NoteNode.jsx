@@ -1,7 +1,12 @@
 import { memo } from "react";
+import { useEditor } from "../../../context/EditorContext";
+import { useEditorMode } from "../../../context/EditorModeContext";
+import ERDeleteNodeButton from "../ER/ERDeleteNodeButton";
 
 function NoteNode({ id, data, selected }) {
   const { style = {}, text } = data;
+  const { deleteElementsDiagram } = useEditor();
+  const { mode } = useEditorMode();
 
   // Valores por defecto para evitar undefined
   const defaultStyle = {
@@ -9,10 +14,10 @@ function NoteNode({ id, data, selected }) {
     paddingRight: 8,
     paddingBottom: 8,
     paddingLeft: 8,
-    backgroundColor: "#ffff88",
-    color: "#000000",
+    backgroundColor: "rgba(255,255,136,1)",
+    color: "rgba(0,0,0,1)",
     borderWidth: 1,
-    borderColor: "#000000",
+    borderColor: "rgba(0,0,0,1)",
     borderStyle: "solid",
     fontSize: 14,
     borderRadius: 8,
@@ -54,6 +59,9 @@ function NoteNode({ id, data, selected }) {
       >
         {text}
       </div>
+      {selected && (
+        <ERDeleteNodeButton onDelete={() => deleteElementsDiagram([id])} />
+      )}
     </div>
   );
 }

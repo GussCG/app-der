@@ -31,7 +31,7 @@
 
 .note__node {
   position: relative;
-  padding: 10px;
+  padding: 24px;
   background: transparent !important;
   box-sizing: border-box;
   border-radius: 10px;
@@ -159,12 +159,13 @@
 
 .er__delete-btn {
   position: absolute;
-  bottom: -14px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 0;
+  right: 0;
 
-  width: 24px;
-  height: 24px;
+  margin: 5px;
+
+  width: 18px;
+  height: 18px;
   border: 2px solid var(--btn-border);
   border-radius: 50%;
   background-color: var(--btn-bg);
@@ -182,5 +183,10 @@
   &:hover {
     background-color: var(--btn-hover-bg);
     color: var(--btn-hover-color);
+  }
+
+  svg {
+    width: 10px;
+    height: 10px;
   }
 }
