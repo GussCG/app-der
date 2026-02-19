@@ -49,20 +49,10 @@ export default function BarraHerramientas() {
         onClick={() => handleClick("select")}
         data-tour="tool-select"
       >
-        <div className="toolbar__icon" title="Seleccionar">
+        <div className="toolbar__icon" title="Seleccionar (V)">
           <LuMousePointer2 />
         </div>
       </div>
-
-      {/* SELECT LAZO */}
-      {/* <div
-        className={`toolbar__item ${activeTool === "lasso" ? "active" : ""}`}
-        onClick={() => handleClick("lasso")}
-      >
-        <div className="toolbar__icon" title="Lazo de Selección">
-          <LuLassoSelect />
-        </div>
-      </div> */}
 
       {/* PAN */}
       <div
@@ -70,7 +60,7 @@ export default function BarraHerramientas() {
         onClick={() => handleClick("pan")}
         data-tour="tool-pan"
       >
-        <div className="toolbar__icon" title="Movimiento Libre">
+        <div className="toolbar__icon" title="Movimiento Libre (M)">
           <FaRegHandPaper />
         </div>
       </div>
@@ -84,7 +74,7 @@ export default function BarraHerramientas() {
             onClick={() => handleClick("entity")}
             data-tour="tool-add-entity"
           >
-            <div className="toolbar__icon" title="Entidad">
+            <div className="toolbar__icon" title="Entidad (E)">
               <LuRectangleHorizontal />
             </div>
           </div>
@@ -97,79 +87,10 @@ export default function BarraHerramientas() {
             onClick={() => handleClick("relation")}
             data-tour="tool-add-relation"
           >
-            <div className="toolbar__icon" title="Relación">
+            <div className="toolbar__icon" title="Relación (R)">
               <CgShapeRhombus />
             </div>
           </div>
-
-          {/* BORRADOR */}
-          {/* <div
-            className={`toolbar__item ${
-              activeTool === "eraser" ? "active" : ""
-            }`}
-            onClick={() => handleClick("eraser")}
-          >
-            <div className="toolbar__icon" title="Borrador">
-              <FaEraser />
-            </div>
-          </div> */}
-
-          {/* AUTOLAYOUT */}
-          {/* <div className={`toolbar__item`} onClick={() => autoLayoutDiagram()}>
-            <div className="toolbar__icon" title="Autolayout">
-              <MdOutlineTableChart />
-            </div>
-          </div> */}
-          {/* <div
-            className={`toolbar__item tool--has-variants ${
-              openVariants ? "open" : ""
-            } ${
-              ["one-to-one", "one-to-many", "many-to-many"].includes(activeTool)
-                ? "active"
-                : ""
-            }`}
-            onClick={handleParentClick}
-          >
-            <div className="toolbar__icon" title="Relación">
-              {getParentIcon()}
-            </div>
-            {openVariants && (
-              <div className="variants">
-                {[
-                  {
-                    tool: "one-to-one",
-                    Icon: TbRelationOneToOne,
-                    title: "Uno a Uno",
-                  },
-                  {
-                    tool: "one-to-many",
-                    Icon: TbRelationOneToMany,
-                    title: "Uno a Muchos",
-                  },
-                  {
-                    tool: "many-to-many",
-                    Icon: TbRelationManyToMany,
-                    title: "Muchos a Muchos",
-                  },
-                ].map(({ tool, Icon, title }) => (
-                  <div
-                    key={tool}
-                    className={`toolbar__item_variant ${
-                      activeTool === tool ? "active" : ""
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleClick(tool);
-                    }}
-                  >
-                    <div className="toolbar__icon" title={`Relación ${title}`}>
-                      <Icon />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div> */}
         </>
       )}
 
@@ -178,7 +99,7 @@ export default function BarraHerramientas() {
         onClick={() => handleClick("note")}
         data-tour="tool-add-text"
       >
-        <div className="toolbar__icon" title="Texto">
+        <div className="toolbar__icon" title="Texto (T)">
           <IoText />
         </div>
       </div>

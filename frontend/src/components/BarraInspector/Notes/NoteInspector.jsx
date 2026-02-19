@@ -4,6 +4,7 @@ import { Compact } from "@uiw/react-color";
 import { hsvaToRgbaString, rgbaToHsva } from "@uiw/color-convert";
 import { Colorful } from "@uiw/react-color";
 import { AnimatePresence, motion } from "framer-motion";
+import { allFonts } from "../../../constants/fonts.js";
 import Icons from "../../Others/IconProvider.jsx";
 
 const {
@@ -248,8 +249,6 @@ function NoteInspector() {
     });
   };
 
-  console.log({ textHsva, bgHsva, borderHsva });
-
   return (
     <motion.div className="properties__container note">
       <div className="properties__item">
@@ -279,12 +278,15 @@ function NoteInspector() {
           <select
             value={style.fontFamily}
             onChange={(e) => updateStyle({ fontFamily: e.target.value })}
+            style={{
+              fontFamily: style.fontFamily,
+            }}
           >
-            <option value="Arial">Arial</option>
-            <option value="Verdana">Verdana</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Courier New">Courier</option>
-            <option value="Times New Roman">Times</option>
+            {allFonts.map((font) => (
+              <option key={font} value={font} style={{ fontFamily: font }}>
+                {font}
+              </option>
+            ))}
           </select>
         </div>
 

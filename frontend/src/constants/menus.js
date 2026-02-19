@@ -28,12 +28,11 @@ const MENUS = {
     {
       icon: LuFileText,
       label: "Nuevo diagrama",
-      command: "Ctrl+N",
     },
-    { icon: LuFileInput, label: "Abrir ...", command: "Ctrl+O", divider: true },
+    { icon: LuFileInput, label: "Abrir ...", divider: true },
     // { icon: TbSql, label: "Importar SQL", command: "Ctrl+I", },
-    { icon: MdOutlineSave, label: "Guardar diagrama", command: "Ctrl+S" },
-    { icon: FaImage, label: "Exportar imagen", command: "Ctrl+E" },
+    { icon: MdOutlineSave, label: "Guardar diagrama" },
+    { icon: FaImage, label: "Exportar imagen" },
   ],
   editar: [
     { icon: BiUndo, label: "Deshacer", command: "Ctrl+Z" },
@@ -41,7 +40,7 @@ const MENUS = {
     {
       icon: RiDeleteBin6Line,
       label: "Eliminar",
-      command: "Supr",
+      command: "Supr | Del",
       divider: true,
     },
     {
@@ -52,7 +51,6 @@ const MENUS = {
     {
       icon: MdOutlineCleaningServices,
       label: "Limpiar lienzo",
-      command: "Ctrl+L",
     },
   ],
   ver: [

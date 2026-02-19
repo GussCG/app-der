@@ -55,6 +55,7 @@ export function KeyboardProvider({ children, flowRef }) {
     PAN_TOOL: "m",
     ENTITY_TOOL: "e",
     RELATION_TOOL: "r",
+    TEXT_TOOL: "t",
     DELETE_ELEMENT: "del",
     UNDO: "ctrl+z",
     REDO: "ctrl+y",
@@ -70,6 +71,7 @@ export function KeyboardProvider({ children, flowRef }) {
     PAN_TOOL: () => setActiveTool("pan"),
     ENTITY_TOOL: () => mode === "er" && setActiveTool("entity"),
     RELATION_TOOL: () => mode === "er" && setActiveTool("relation"),
+    TEXT_TOOL: () => setActiveTool("note"),
     DELETE_ELEMENT: () => {
       if (mode === "er" && selectedElementIds.length > 0) {
         deleteElementsDiagram(selectedElementIds);

@@ -8,6 +8,23 @@ import LimitModal from "./components/Modals/LimitModal.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { ReactFlowProvider } from "reactflow";
 import { TourProvider } from "./context/TourContext.jsx";
+import WebFont from "webfontloader";
+
+WebFont.load({
+  google: {
+    families: [
+      "Roboto:400,700",
+      "Poppins:400,700",
+      "Montserrat:400,700",
+      "Lato:400,700",
+      "Open Sans:400,700",
+      "Raleway:400,700",
+      "Source Sans Pro:400,700",
+      "Oswald:400,700",
+      "Merriweather:400,700",
+    ],
+  },
+});
 
 function App() {
   return (
