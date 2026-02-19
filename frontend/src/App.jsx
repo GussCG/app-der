@@ -1,4 +1,5 @@
 import "./styles/App.scss";
+import { useEffect, useState } from "react";
 import { EditorModeProvider } from "./context/EditorModeContext.jsx";
 import Layout from "./layouts/Layout.jsx";
 import { ToolProvider } from "./context/ToolContext.jsx";
@@ -27,6 +28,30 @@ WebFont.load({
 });
 
 function App() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkScreen = () => {
+      setIsMobile(window.innerWidth < 1090);
+    };
+    checkScreen();
+    window.addEventListener("resize", checkScreen);
+
+    return () => window.removeEventListener("resize", checkScreen);
+  });
+
+  if (isMobile) {
+    return (
+      <div className="mobile__block">
+        <h1> Dispositivo no compatible</h1>
+        <p>
+          Esta aplicación está optimizada para computadoras y tablets. Por favor
+          accede desde una pantalla más grande.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <ThemeProvider>
       <ReactFlowProvider>

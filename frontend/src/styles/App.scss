@@ -14,3 +14,27 @@
       "elements main inspector";
   }
 }
+
+.mobile__block {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 40px;
+
+  background-color: var(--body-bg-color);
+
+  h1 {
+    color: var(--properties-h1-color);
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  p {
+    color: var(--properties-label-color);
+    font-size: 16px;
+  }
+}
