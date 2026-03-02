@@ -5,7 +5,6 @@ import Layout from "./layouts/Layout.jsx";
 import { ToolProvider } from "./context/ToolContext.jsx";
 import { EditorProvider } from "./context/EditorContext.jsx";
 import { KeyboardProvider } from "./context/KeyboardContext.jsx";
-import LimitModal from "./components/Modals/LimitModal.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { ReactFlowProvider } from "reactflow";
 import { TourProvider } from "./context/TourContext.jsx";
