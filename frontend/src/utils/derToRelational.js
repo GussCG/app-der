@@ -345,6 +345,18 @@ export function derToRelational(
     }
   });
 
+  (diagram.notes || []).forEach((note) => {
+    nodes.push({
+      id: note.id,
+      type: "note",
+      position: note.relationalPosition ||
+        relationalPositions[note.id] || { x: 0, y: 0 },
+      width: note.width || 180,
+      height: note.height || 100,
+      data: note.data,
+    });
+  });
+
   const nodesMap = new Map(nodes.map((n) => [n.id, n]));
 
   edges = edges.map((edge) => {
@@ -361,9 +373,6 @@ export function derToRelational(
     }
     return edge;
   });
-
-  console.log("Nodos generados:", nodes);
-  console.log("Edges generados:", edges);
 
   return { nodes, edges };
 }

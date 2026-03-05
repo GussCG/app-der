@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import { saveDERFile, openDERFile } from "../utils/derFile";
 import { validateDiagram } from "../utils/validation/validateDiagram";
 import { autoLayoutERDiagram } from "../utils/autolayout/autoLayoutELK";
@@ -13,6 +20,7 @@ const EditorContext = createContext();
 const EMPTY_DIAGRAM = {
   entities: [],
   relations: [],
+  notes: [],
 };
 
 export function EditorProvider({ children }) {
@@ -43,6 +51,22 @@ export function EditorProvider({ children }) {
   const [relationalOverrides, setRelationalOverrides] = useState({});
 
   const [isAutoLayouting, setIsAutoLayouting] = useState(false);
+
+  const getStructuralSnapshot = (diagram) => ({
+    entities: diagram.entities.map((e) => ({
+      id: e.id,
+      name: e.data.name,
+      weak: e.data.weak,
+      attributes: e.data.attributes,
+    })),
+    relations: diagram.relations.map((r) => ({
+      id: r.id,
+      name: r.data.name,
+      connections: r.data.connections,
+    })),
+  });
+
+  const lastValidatedStructureRef = useRef(null);
 
   const updateRelationalOverride = (elementId, column, patch) => {
     setRelationalOverrides((prev) => ({
@@ -83,21 +107,29 @@ export function EditorProvider({ children }) {
     setAiMessages([
       {
         role: "ai",
-        text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+        text: "Hola, soy tu asistente de inteligencia artificial DER-IA. Recuerda que puedes pedirme que te ayude a crear un diagrama ER desde cero, o que modifique el diagrama actual según tus indicaciones. Si no has guardado tu diagrama actual, ten en cuenta que se perderán los cambios no guardados al crear un nuevo diagrama. ¿En qué puedo ayudarte con tu diagrama ER?",
       },
     ]);
   };
 
-  const applyChange = (newDiagram) => {
+  const applyChange = (updater) => {
+    const newPresent =
+      typeof updater === "function" ? updater(diagram) : updater;
+
+    const newStructural = JSON.stringify(getStructuralSnapshot(newPresent));
+
     setHistory((prev) => ({
       past: [...prev.past, prev.present],
-      present: newDiagram,
+      present: newPresent,
       future: [],
     }));
 
     setIsDirty(true);
-    setValidationState("idle");
-    setValidationErrors([]);
+
+    if (newStructural !== lastValidatedStructureRef.current) {
+      setValidationState("idle");
+      setValidationErrors([]);
+    }
   };
 
   const undo = () => {
@@ -157,6 +189,16 @@ export function EditorProvider({ children }) {
       };
     }
 
+    const note = diagram.notes?.find((n) => n.id === selectedElementIds[0]);
+
+    if (note) {
+      return {
+        id: note.id,
+        kind: "note",
+        data: note.data,
+      };
+    }
+
     return null;
   }, [selectedElementIds, diagram]);
 
@@ -166,35 +208,71 @@ export function EditorProvider({ children }) {
       entities:
         updated.kind === "entity"
           ? diagram.entities.map((e) =>
-              e.id === updated.id ? { ...e, data: updated.data } : e,
+              e.id === updated.id
+                ? {
+                    ...e,
+                    data: updated.data,
+                    // Preservar width/height si existen
+                    width: updated.width || e.width,
+                    height: updated.height || e.height,
+                  }
+                : e,
             )
           : diagram.entities,
       relations:
         updated.kind === "relation"
           ? diagram.relations.map((r) =>
-              r.id === updated.id ? { ...r, data: updated.data } : r,
+              r.id === updated.id
+                ? {
+                    ...r,
+                    data: updated.data,
+                    width: updated.width || r.width,
+                    height: updated.height || r.height,
+                  }
+                : r,
             )
           : diagram.relations,
+      notes:
+        updated.kind === "note"
+          ? diagram.notes.map((n) => {
+              if (n.id !== updated.id) return n;
+
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  ...updated.data,
+                  style: {
+                    ...(n.data.style || {}),
+                    ...(updated.data.style || {}),
+                  },
+                },
+                width: updated.width || n.width,
+                height: updated.height || n.height,
+                erPosition: n.erPosition,
+              };
+            })
+          : diagram.notes,
     });
   };
 
   const deleteElementsDiagram = (elementIds) => {
     const ids = new Set(elementIds);
 
-    applyChange({
-      entities: diagram.entities.filter((entity) => !ids.has(entity.id)),
-      relations: diagram.relations.filter((relation) => {
-        // borrar relaciones seleccionadas
+    applyChange((prev) => ({
+      ...prev,
+      entities: prev.entities.filter((entity) => !ids.has(entity.id)),
+      relations: prev.relations.filter((relation) => {
         if (ids.has(relation.id)) return false;
 
-        // borrar relaciones conectadas a entidades borradas
-        const { source, target } = relation.data.connections || {};
+        const { source, target } = relation.data?.connections || {};
         const connectedToDeletedEntity =
           ids.has(source?.entityId) || ids.has(target?.entityId);
 
         return !connectedToDeletedEntity;
       }),
-    });
+      notes: prev.notes?.filter((note) => !ids.has(note.id)) || [],
+    }));
 
     setSelectedElementIds([]);
   };
@@ -209,39 +287,61 @@ export function EditorProvider({ children }) {
 
     const ids = new Set(selectedElementIds);
 
-    const duplicatedEntities = diagram.entities
-      .filter((e) => ids.has(e.id))
-      .map((e) => ({
-        ...e,
-        id: crypto.randomUUID(),
-        position: {
-          x: e.position.x + 20,
-          y: e.position.y + 20,
-        },
-      }));
+    applyChange((prev) => {
+      const duplicatedEntities = prev.entities
+        .filter((e) => ids.has(e.id))
+        .map((e) => ({
+          ...e,
+          id: crypto.randomUUID(),
+          position: {
+            x: e.position.x + 20,
+            y: e.position.y + 20,
+          },
+        }));
 
-    const duplicatedRelations = diagram.relations
-      .filter((r) => ids.has(r.id))
-      .map((r) => ({
-        ...r,
-        id: crypto.randomUUID(),
-        position: {
-          x: r.position.x + 20,
-          y: r.position.y + 20,
-        },
-      }));
+      const duplicatedRelations = prev.relations
+        .filter((r) => ids.has(r.id))
+        .map((r) => ({
+          ...r,
+          id: crypto.randomUUID(),
+          position: {
+            x: r.position.x + 20,
+            y: r.position.y + 20,
+          },
+        }));
 
-    applyChange({
-      ...diagram,
-      entities: [...diagram.entities, ...duplicatedEntities],
-      relations: [...diagram.relations, ...duplicatedRelations],
+      const duplicatedNotes = (prev.notes || [])
+        .filter((n) => ids.has(n.id))
+        .map((n) => ({
+          ...n,
+          id: crypto.randomUUID(),
+          erPosition: {
+            x: n.erPosition.x + 20,
+            y: n.erPosition.y + 20,
+          },
+          relationalPosition: {
+            x: n.relationalPosition.x + 20,
+            y: n.relationalPosition.y + 20,
+          },
+        }));
+
+      return {
+        ...prev,
+        entities: [...prev.entities, ...duplicatedEntities],
+        relations: [...prev.relations, ...duplicatedRelations],
+        notes: [...(prev.notes || []), ...duplicatedNotes],
+      };
     });
 
-    setSelectedElementIds([
-      ...duplicatedEntities.map((e) => e.id),
-      ...duplicatedRelations.map((r) => r.id),
-    ]);
+    setSelectedElementIds([]);
   };
+
+  const isDiagramEmpty = useMemo(() => {
+    const entities = diagram?.entities || [];
+    const relations = diagram?.relations || [];
+
+    return entities.length === 0 && relations.length === 0;
+  }, [diagram]);
 
   const saveDiagram = () => {
     saveDERFile({
@@ -275,7 +375,7 @@ export function EditorProvider({ children }) {
         setAiMessages([
           {
             role: "ai",
-            text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+            text: "Hola, soy tu asistente de inteligencia artificial DER-IA. Recuerda que puedes pedirme que te ayude a crear un diagrama ER desde cero, o que modifique el diagrama actual según tus indicaciones. Si no has guardado tu diagrama actual, ten en cuenta que se perderán los cambios no guardados al crear un nuevo diagrama. ¿En qué puedo ayudarte con tu diagrama ER?",
           },
         ]);
       },
@@ -306,7 +406,7 @@ export function EditorProvider({ children }) {
     setAiMessages([
       {
         role: "ai",
-        text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+        text: "Hola, soy tu asistente de inteligencia artificial DER-IA. Recuerda que puedes pedirme que te ayude a crear un diagrama ER desde cero, o que modifique el diagrama actual según tus indicaciones. Si no has guardado tu diagrama actual, ten en cuenta que se perderán los cambios no guardados al crear un nuevo diagrama. ¿En qué puedo ayudarte con tu diagrama ER?",
       },
     ]);
   };
@@ -329,6 +429,9 @@ export function EditorProvider({ children }) {
     } else {
       setValidationErrors([]);
       setValidationState("valid");
+      lastValidatedStructureRef.current = JSON.stringify(
+        getStructuralSnapshot(diagram),
+      );
     }
 
     return errors.length === 0;
@@ -344,13 +447,13 @@ export function EditorProvider({ children }) {
   const usedColors = useMemo(() => {
     const colors = new Set();
 
-    diagram.entities.forEach((e) => {
+    (diagram?.entities || []).forEach((e) => {
       if (e.data?.color) {
         colors.add(e.data.color.toLowerCase());
       }
     });
 
-    diagram.relations.forEach((r) => {
+    (diagram?.relations || []).forEach((r) => {
       if (r.data?.color) {
         colors.add(r.data.color.toLowerCase());
       }
@@ -460,7 +563,7 @@ export function EditorProvider({ children }) {
   const [aiMessages, setAiMessages] = useState([
     {
       role: "ai",
-      text: "Hola, soy tu asistente de inteligencia artificial DER-IA. ¿En qué puedo ayudarte con tu diagrama ER?",
+      text: "Hola, soy tu asistente de inteligencia artificial DER-IA. Recuerda que puedes pedirme que te ayude a crear un diagrama ER desde cero, o que modifique el diagrama actual según tus indicaciones. Si no has guardado tu diagrama actual, ten en cuenta que se perderán los cambios no guardados al crear un nuevo diagrama. ¿En qué puedo ayudarte con tu diagrama ER?",
     },
   ]);
   const askAI = async (instruction) => {
@@ -509,6 +612,45 @@ export function EditorProvider({ children }) {
     }
   };
 
+  const addNote = (position = { x: 100, y: 100 }) => {
+    const newNote = {
+      id: crypto.randomUUID(),
+      type: "note",
+      erPosition: position,
+      relationalPosition: position,
+      width: 180,
+      height: 100,
+      data: {
+        text: "Nueva nota",
+        style: {
+          fontFamily: "Arial",
+          fontSize: 14,
+          fontWeight: 400,
+          fontStyle: "normal",
+          textAlign: "left",
+          color: "#000000",
+          backgroundColor: "#ffff88",
+          borderTopLeftRadius: 8,
+          borderTopRightRadius: 8,
+          borderBottomLeftRadius: 8,
+          borderBottomRightRadius: 8,
+          borderColor: "#000000",
+          borderWidth: 1,
+          borderStyle: "solid",
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
+          paddingLeft: 8,
+        },
+      },
+    };
+
+    applyChange({
+      ...diagram,
+      notes: [...(diagram.notes || []), newNote],
+    });
+  };
+
   return (
     <EditorContext.Provider
       value={{
@@ -517,6 +659,7 @@ export function EditorProvider({ children }) {
         setDiagramName,
         isDirty,
         setIsDirty,
+        isDiagramEmpty,
         saveDiagram,
         openDiagram,
         loadDiagramFromObject,
@@ -572,6 +715,8 @@ export function EditorProvider({ children }) {
         aiMessages,
         setAiMessages,
         askAI,
+
+        addNote,
       }}
     >
       {children}

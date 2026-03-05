@@ -168,6 +168,12 @@ function KeyboardShortcutsModal({ onClose }) {
                       <div className="shortcut__key">R</div>
                     </td>
                   </tr>
+                  <tr>
+                    <td>Herramienta de Creación de Texto</td>
+                    <td className="shortcut">
+                      <div className="shortcut__key">T</div>
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>

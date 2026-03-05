@@ -2,6 +2,18 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 
 export function startTutorialTour({ setMode, onFinish }) {
+  let isFinished = false;
+
+  const forceSetMode = (mode) => {
+    setMode(mode, true);
+  };
+
+  const handleFinish = () => {
+    if (isFinished) return;
+    isFinished = true;
+    onFinish?.();
+  };
+
   let tour = driver({
     allowClose: false,
     animate: true,
@@ -9,15 +21,13 @@ export function startTutorialTour({ setMode, onFinish }) {
     nextBtnText: "Siguiente",
     prevBtnText: "Anterior",
     doneBtnText: "Finalizar",
-    closeBtnText: "Cerrar",
     overlayClickNext: false,
     showProgress: true,
     progressText: "Paso {{current}} de {{total}}",
-
     popoverClass: "tutorial-popover",
 
     onDestroyed: () => {
-      onFinish?.();
+      handleFinish();
     },
 
     steps: [
@@ -157,6 +167,26 @@ export function startTutorialTour({ setMode, onFinish }) {
           description:
             "Selecciona una entidad en el área de trabajo para abrir el inspector y explorar sus propiedades.",
           position: "bottom",
+          showButtons: [""],
+        },
+        onHighlighted: (element, step, { driver }) => {
+          const elementsList = element.querySelectorAll(".elements__item");
+
+          const handleSelection = () => {
+            setTimeout(() => {
+              driver.moveNext();
+            }, 100);
+          };
+
+          element.addEventListener(
+            "click",
+            (e) => {
+              if (e.target.closest(".elements__item")) {
+                handleSelection();
+              }
+            },
+            { once: true },
+          );
         },
       },
       // Con el inspector abierto mostrar cada una de sus partes (primero nombre)
@@ -217,6 +247,16 @@ export function startTutorialTour({ setMode, onFinish }) {
           description:
             "Antes de cambiar al modo relacional, asegúrate de validar tu diagrama ER para verificar que no haya errores.",
           position: "bottom",
+          showButtons: [""],
+        },
+        onHighlighted: (element, step, { driver }) => {
+          const handleClick = () => {
+            setTimeout(() => {
+              driver.moveNext();
+            }, 2550);
+          };
+
+          element.addEventListener("click", handleClick, { once: true });
         },
       },
       // Boton cambiar a modo relacional otra vez
@@ -227,6 +267,18 @@ export function startTutorialTour({ setMode, onFinish }) {
           description:
             "Haz clic en este botón para cambiar al modo de edición relacional.",
           position: "bottom",
+          showButtons: [""],
+        },
+        onHighlighted: (element, step, { driver }) => {
+          element.addEventListener(
+            "click",
+            () => {
+              setTimeout(() => {
+                driver.moveNext();
+              }, 600);
+            },
+            { once: true },
+          );
         },
       },
       // En modo relacional solicitar al usuario que seleccione una entidad del canvas
@@ -237,6 +289,18 @@ export function startTutorialTour({ setMode, onFinish }) {
           description:
             "Selecciona una tabla en el área de trabajo relacional para explorar sus propiedades en el inspector.",
           position: "right",
+          showButtons: [""],
+        },
+        onHighlighted: (element, step, { driver }) => {
+          driver.refresh();
+
+          const handleSelection = () => {
+            setTimeout(() => {
+              driver.moveNext();
+            }, 300);
+          };
+
+          element.addEventListener("click", handleSelection, { once: true });
         },
       },
       // Inspecionar tabla en modo relacional
@@ -276,9 +340,6 @@ export function startTutorialTour({ setMode, onFinish }) {
           description:
             "Ahora estás listo para comenzar a crear tus propios diagramas. ¡Diviértete explorando todas las funciones de la aplicación!",
           position: "top",
-          onNextClick: () => {
-            tour.destroy();
-          },
         },
       },
     ],

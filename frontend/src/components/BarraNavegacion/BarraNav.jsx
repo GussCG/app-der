@@ -3,6 +3,7 @@ import Icons from "../Others/IconProvider.jsx";
 import BarraDesplegable from "./BarraDesplegable.jsx";
 import ValidationStatus from "./ValidationStatus.jsx";
 import ConfirmModal from "../Modals/ConfirmModal.jsx";
+import ExportModal from "../Modals/ExportModal.jsx";
 
 import { useEditorMode } from "../../context/EditorModeContext.jsx";
 import KeyboardShortcutsModal from "../Modals/KeyboardShortcutsModal.jsx";
@@ -102,6 +103,12 @@ function BarraNav() {
   const { isShortcutsModalOpen, setIsShortcutsModalOpen } = useKeyboard();
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
+  const [exportState, setExportState] = useState({
+    show: false,
+    progress: 0,
+    status: "idle",
+  });
+
   const menuActions = useMemo(
     () => ({
       "Nuevo diagrama": () => {
@@ -134,13 +141,23 @@ function BarraNav() {
       "Guardar diagrama": () =>
         executeValidation(() => saveDiagram(), "guardar"),
       "Exportar imagen": () =>
-        executeValidation(() => {
-          const nodes = getNodes();
-          const edges = getEdges();
+        executeValidation(async () => {
+          setSelectedElementIds([]);
 
-          if (nodes.length === 0) return;
+          setExportState({ show: true, progress: 0, status: "generating" });
 
-          exportDiagramAsPng(nodes, edges, diagramName);
+          const fakeInterval = setInterval(() => {
+            setExportState((prev) => ({
+              ...prev,
+              progress: Math.min(prev.progress + 5, 90),
+            }));
+          }, 100);
+
+          await exportDiagramAsPng(getNodes(), getEdges(), diagramName);
+
+          clearInterval(fakeInterval);
+
+          setExportState({ show: true, progress: 100, status: "done" });
         }, "exportar imagen"),
       Deshacer: () => mode === "er" && canUndo && undo(),
       Rehacer: () => mode === "er" && canRedo && redo(),
@@ -458,6 +475,16 @@ function BarraNav() {
 
         {isAboutModalOpen && (
           <AboutUsModal onClose={() => setIsAboutModalOpen(false)} />
+        )}
+
+        {exportState.show && (
+          <ExportModal
+            progress={exportState.progress}
+            status={exportState.status}
+            onClose={() =>
+              setExportState({ show: false, progress: 0, status: "idle" })
+            }
+          />
         )}
       </AnimatePresence>
 

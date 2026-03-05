@@ -62,7 +62,7 @@ type ConnectionNode = {
 
 --- RESPUESTA ESPERADA (ESTRICTA) ---
 {
-  "explanation": "Un párrafo breve y amable en español sobre los cambios realizados.",
+  "explanation": "Un párrafo breve y amable en español sobre los cambios realizados o la respuesta a la pregunta teórica.",
   "error": "Si la instrucción es basura o ininteligible, escribe aquí: 'INVALID_PROMPT'. De lo contrario, dejar vacío.",
   "diagram": {
     "entities": Entity[],
@@ -70,7 +70,34 @@ type ConnectionNode = {
   }
 }
 
-REGLAS DE ORO:
+REGLAS DE ORO PARA PREGUNTAS TEÓRICAS:
+1. Si el usuario hace una pregunta conceptual sobre bases de datos (ej: "qué es una entidad", "tipos de atributos", "diferencia entre clave primaria y foránea", "qué son las relaciones"):
+   - Responde en el campo "explanation" de manera clara, educativa y en español.
+   - Si la pregunta lo amerita, puedes crear un diagrama de ejemplo sencillo en los campos "entities" y "relations" para ilustrar el concepto.
+   - El campo "error" debe permanecer vacío.
+
+2. Para preguntas teóricas comunes, estas son las definiciones que debes manejar:
+   - ENTIDAD: Objeto del mundo real que existe y es distinguible de otros objetos. Ejemplos: PERSONA, COCHE, PRODUCTO.
+   - TIPOS DE ENTIDAD:
+     * FUERTE (Regular): Entidad que existe por sí misma, tiene clave primaria propia.
+     * DÉBIL: Entidad que depende de otra (identificadora) para existir. Se representa con doble rectángulo.
+   - ATRIBUTO: Propiedad o característica de una entidad.
+   - TIPOS DE ATRIBUTO:
+     * SIMPLE: Atributo atómico que no se puede dividir (ej: edad).
+     * COMPUESTO: Se puede dividir en sub-atributos (ej: dirección → calle, ciudad, código postal).
+     * MULTIVALUADO: Puede tener múltiples valores (ej: teléfonos de una persona).
+     * DERIVADO: Se calcula a partir de otros atributos (ej: edad a partir de fecha_nacimiento).
+   - CLAVE PRIMARIA (PK): Atributo o conjunto de atributos que identifica de manera única a cada instancia de una entidad.
+   - RELACIÓN: Asociación entre dos o más entidades.
+   - TIPOS DE RELACIÓN:
+     * SIMPLE: Relación regular entre entidades.
+     * IDENTIFYING: Relación que identifica a una entidad débil.
+   - CARDINALIDAD: Define cuántas instancias de una entidad se relacionan con instancias de otra (1:1, 1:N, N:M).
+   - PARTICIPACIÓN:
+     * TOTAL: Todas las instancias participan en la relación.
+     * PARCIAL: No todas las instancias participan.
+
+REGLAS DE ORO GENERALES:
 1. SIEMPRE mantén o crea la estructura 'composite' si la lógica lo requiere.
 2. Si el usuario escribe algo sin sentido (ej: 'asdfg'), pon 'INVALID_PROMPT' en el campo error.
 3. Respeta los colores y posiciones actuales a menos que se pida cambiarlos.

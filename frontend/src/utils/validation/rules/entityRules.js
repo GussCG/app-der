@@ -56,6 +56,40 @@ export function validateEntities(entities, relations) {
     if (!e.data.weak && e.data.attributes.some((attr) => attr.partial)) {
       errors.push(error(ERROR_TYPES.STRONG_ENTITY_HAS_PARTIAL_KEY, e));
     }
+
+    // Regla 22: Entidad con más de 15 atributos
+    if (e.data.attributes.length > 15) {
+      errors.push(error(ERROR_TYPES.MAX_ATTRIBUTES_ENTITY_EXCEEDED, e));
+    }
+
+    // Regla 24 y 25: Atributo compuesto con menos de 2 o más de 5 atributos hijos
+    e.data.attributes.forEach((attr) => {
+      if (attr.kind === "composite") {
+        const childCount = attr.children.length || 0;
+
+        if (childCount < 2) {
+          errors.push({
+            type: ERROR_TYPES.COMPOSITE_ATTRIBUTE_MIN_CHILDREN,
+            elementId: e.id,
+            elementKind: "entity",
+            meta: {
+              name: attr.name || "Atributo sin nombre",
+            },
+          });
+        }
+
+        if (childCount > 5) {
+          errors.push({
+            type: ERROR_TYPES.COMPOSITE_ATTRIBUTE_MAX_CHILDREN,
+            elementId: e.id,
+            elementKind: "entity",
+            meta: {
+              name: attr.name || "Atributo sin nombre",
+            },
+          });
+        }
+      }
+    });
   });
 
   return errors;

@@ -32,14 +32,6 @@ function ERLayout() {
     setPanels((p) => ({ ...p, [name]: !p[name] }));
   };
 
-  useEffect(() => {
-    if (selectedElementIds.length === 1) {
-      setPanels((p) => (p.inspector === true ? { ...p, inspector: false } : p));
-    } else {
-      setPanels((p) => ({ ...p, inspector: true }));
-    }
-  }, [selectedElementIds]);
-
   const [aiOpen, setAiOpen] = useState(false);
 
   const handleOpenAIPanel = (data) => {
@@ -49,6 +41,36 @@ function ERLayout() {
   const handleCloseAIPanel = () => {
     setAiOpen(false);
   };
+
+  const [lastSelectedId, setLastSelectedId] = useState(null);
+  const [shouldBounce, setShouldBounce] = useState(false);
+
+  useEffect(() => {
+    const currentId =
+      selectedElementIds.length === 1 ? selectedElementIds[0] : null;
+
+    // SOLO actuamos si el ID es diferente al anterior (nuevo elemento seleccionado)
+    if (currentId && currentId !== lastSelectedId) {
+      // Si el inspector está cerrado, lo abrimos automáticamente
+      if (panels.inspector) {
+        setPanels((p) => ({ ...p, inspector: false }));
+      }
+
+      // Activamos el rebote solo si acaba de cambiar el elemento
+      setShouldBounce(true);
+      const timer = setTimeout(() => setShouldBounce(false), 1000);
+
+      // Actualizamos el ID de referencia
+      setLastSelectedId(currentId);
+
+      return () => clearTimeout(timer);
+    }
+
+    // Si se deselecciona todo, reseteamos el ID de referencia
+    if (!currentId) {
+      setLastSelectedId(null);
+    }
+  }, [selectedElementIds, panels.inspector, lastSelectedId]);
 
   return (
     <>
@@ -61,6 +83,7 @@ function ERLayout() {
         <BarraInspector
           hidden={panels.inspector}
           onToggle={() => togglePanel("inspector")}
+          bounce={shouldBounce}
         />
         <BarraHerramientas />
         <ERCanvas />

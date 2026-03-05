@@ -16,6 +16,7 @@ const {
   CgShapeRhombus,
   IoClose,
   LuRectangleHorizontal,
+  FaNoteSticky,
 } = Icons;
 
 function BarraElementos({ hidden, onToggle }) {
@@ -38,6 +39,7 @@ function BarraElementos({ hidden, onToggle }) {
       const items = [
         ...(diagram.entities || []).map((e) => ({ ...e, type: "entity" })),
         ...(diagram.relations || []).map((r) => ({ ...r, type: "relation" })),
+        ...(diagram.notes || []).map((n) => ({ ...n, type: "note" })),
       ];
       return filterBySearch(items, search);
     }
@@ -49,12 +51,18 @@ function BarraElementos({ hidden, onToggle }) {
         relationalOverrides,
       );
 
-      const items = nodes.map((node) => ({
-        id: node.id,
-        name: node.data.name,
-        type: "table",
-        data: node.data,
-      }));
+      const items = nodes.map((node) => {
+        const isNote = node.type === "note";
+
+        return {
+          id: node.id,
+          name: isNote
+            ? node.data?.text?.slice(0, 30) || "Nota"
+            : node.data?.name,
+          type: isNote ? "note" : "table",
+          data: node.data,
+        };
+      });
       return filterBySearch(items, search);
     }
 
@@ -71,9 +79,11 @@ function BarraElementos({ hidden, onToggle }) {
   function filterBySearch(items, query) {
     if (!query.trim()) return items;
     const lowerQuery = query.toLowerCase();
+
     return items.filter((item) => {
-      const name = item.data?.name || item.name || "";
-      return name.toLowerCase().includes(lowerQuery);
+      const searchable = item.data?.name || item.data?.text || item.name || "";
+
+      return searchable.toLowerCase().includes(lowerQuery);
     });
   }
 
@@ -147,21 +157,22 @@ function BarraElementos({ hidden, onToggle }) {
                     {item.type === "entity" && <LuRectangleHorizontal />}
                     {item.type === "relation" && <CgShapeRhombus />}
                     {item.type === "table" && <HiOutlineTableCells />}
+                    {item.type === "note" && <FaNoteSticky />}
                   </div>
 
                   <span className="elements__item-name">
                     {(
                       item.data?.name ||
+                      item.data?.text ||
                       item.name ||
                       "Sin nombre"
                     ).toUpperCase()}
                   </span>
-                  {isER && (
+                  {(isER || (isRelational && item.type === "note")) && (
                     <button
                       className="elements__item-delete"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (!isER) return;
                         deleteElementsDiagram([item.id]);
                       }}
                     >

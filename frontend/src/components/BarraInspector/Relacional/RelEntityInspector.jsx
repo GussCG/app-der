@@ -138,7 +138,7 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
 
   return (
     <div className="properties__container" data-tour="inspector-rel">
-      <div className="properties__item">
+      <div className="properties__item ">
         <div
           className="item input--text"
           title="Si quieres editar el nombre de esta tabla, regresa al modo E-R"
@@ -150,272 +150,284 @@ function RelEntityInspector({ table, overrides = {}, updateOverride }) {
       </div>
 
       <div className="properties__attributes">
-        <h2>Columnas</h2>
+        {/* <div className="properties__attributes-header">
+          <h2>Columnas</h2>
+        </div> */}
 
-        <table className="attributes">
-          {table.columns.length > 0 && (
-            <thead>
-              <tr>
-                <th>Columna</th>
-                <th>Tipo SQL</th>
-                <th title="Primary Key">
-                  <FaKey size={12} />
-                </th>
-                <th title="Foreign Key">
-                  <LuKeySquare size={12} />
-                </th>
-                <th title="Not Null">NN</th>
-                <th title="Unique">UQ</th>
-                <th title="Auto Increment">AI</th>
-              </tr>
-            </thead>
-          )}
+        <div className="table-wrapper">
+          <table className="attributes">
+            {table.columns.length > 0 && (
+              <thead>
+                <tr>
+                  <th>Columna</th>
+                  <th>Tipo SQL</th>
+                  <th title="Primary Key">
+                    <FaKey size={12} />
+                  </th>
+                  <th title="Foreign Key">
+                    <LuKeySquare size={12} />
+                  </th>
+                  <th title="Not Null">NN</th>
+                  <th title="Unique">UQ</th>
+                  <th title="Auto Increment">AI</th>
+                </tr>
+              </thead>
+            )}
 
-          <tbody>
-            {table.columns.map((col) => {
-              const override = overrides?.[table.id]?.[col.name] ?? {};
-              const currentType = override.type ?? col.type;
+            <tbody>
+              {table.columns.map((col) => {
+                const override = overrides?.[table.id]?.[col.name] ?? {};
+                const currentType = override.type ?? col.type;
 
-              const isPK = col.isPk;
-              const isFK = col.isFk;
+                const isPK = col.isPk;
+                const isFK = col.isFk;
 
-              const effectiveNN = isPK
-                ? true
-                : (override.isNotNull ?? col.isNotNull);
-              const effectiveUQ = isPK
-                ? true
-                : (override.isUnique ?? col.isUnique);
+                const effectiveNN = isPK
+                  ? true
+                  : (override.isNotNull ?? col.isNotNull);
+                const effectiveUQ = isPK
+                  ? true
+                  : (override.isUnique ?? col.isUnique);
 
-              const canBeAi =
-                isPK &&
-                ["int", "bigint", "smallint", "tinyint"].includes(currentType);
-              const effectiveAI = canBeAi
-                ? (override.isAutoIncrement ?? col.isAutoIncrement)
-                : false;
+                const canBeAi =
+                  isPK &&
+                  ["int", "bigint", "smallint", "tinyint"].includes(
+                    currentType,
+                  );
+                const effectiveAI = canBeAi
+                  ? (override.isAutoIncrement ?? col.isAutoIncrement)
+                  : false;
 
-              const isTypeDisabled = isFK;
-              return (
-                <Fragment key={col.name}>
-                  <tr className={isFK ? "fk-column" : ""}>
-                    <td
-                      className="rel-name-column"
-                      title="Si quieres editar esta columna, regresa al modo E-R"
-                    >
-                      <input type="text" value={col.name || ""} readOnly />
-                      <FaLock />
-                      {isTypeDisabled && (
-                        <div
-                          className="fk-info"
-                          title="Toda esta información es derivada de la relación, por lo que no puede ser modificada aquí."
-                        >
-                          <FaCircleInfo />
-                        </div>
-                      )}
-                    </td>
-                    {/* Tipo SQL */}
-                    <td
-                      title={
-                        isTypeDisabled ? "Tipo derivado de la relación" : ""
-                      }
-                    >
-                      <div
-                        className={`type-cell ${isTypeDisabled ? "disabled-cell" : ""}`}
+                const isTypeDisabled = isFK;
+                return (
+                  <Fragment key={col.name}>
+                    <tr className={isFK ? "fk-column" : ""}>
+                      <td
+                        className="rel-name-column"
+                        title="Si quieres editar esta columna, regresa al modo E-R"
                       >
-                        <select
-                          value={currentType}
-                          disabled={isTypeDisabled}
-                          onChange={(e) =>
-                            updateOverride(table.id, col.name, {
-                              type: e.target.value,
-                            })
-                          }
-                        >
-                          <option value="int">INT</option>
-                          <option value="tinyint">TINYINT</option>
-                          <option value="smallint">SMALLINT</option>
-                          <option value="bigint">BIGINT</option>
-                          <option value="varchar">VARCHAR</option>
-                          <option value="char">CHAR</option>
-                          <option value="text">TEXT</option>
-                          <option value="enum">ENUM</option>
-                          <option value="set">SET</option>
-                          <option value="decimal">DECIMAL</option>
-                          <option value="numeric">NUMERIC</option>
-                          <option value="float">FLOAT</option>
-                          <option value="double">DOUBLE</option>
-                          <option value="date">DATE</option>
-                          <option value="time">TIME</option>
-                          <option value="datetime">DATETIME</option>
-                          <option value="timestamp">TIMESTAMP</option>
-                          <option value="year">YEAR</option>
-                          <option value="boolean">BOOLEAN</option>
-                        </select>
-
-                        {!isTypeDisabled && (
-                          <div className="type-params">
-                            <AnimatePresence mode="popLayout">
-                              {renderTypeParams(currentType, col, override)}
-                            </AnimatePresence>
+                        <input type="text" value={col.name || ""} readOnly />
+                        <FaLock />
+                        {isTypeDisabled && (
+                          <div
+                            className="fk-info"
+                            title="Toda esta información es derivada de la relación, por lo que no puede ser modificada aquí."
+                          >
+                            <FaCircleInfo />
                           </div>
                         )}
-                      </div>
-                    </td>
-
-                    {/* PK */}
-                    <td>
-                      <label className={`checkbox disabled`}>
-                        <input type="checkbox" checked={isPK} disabled />
-                        <span className="checkbox__box" />
-                      </label>
-                    </td>
-
-                    {/* FK */}
-                    <td>
-                      <label className="checkbox disabled">
-                        <input type="checkbox" checked={isFK} disabled />
-                        <span className="checkbox__box" />
-                      </label>
-                    </td>
-
-                    {/* Not Null */}
-                    <td>
-                      <label
-                        className={`checkbox ${isPK || isFK ? "disabled" : ""}`}
+                      </td>
+                      {/* Tipo SQL */}
+                      <td
+                        title={
+                          isTypeDisabled ? "Tipo derivado de la relación" : ""
+                        }
                       >
-                        <input
-                          type="checkbox"
-                          checked={effectiveNN}
-                          disabled={isPK || isFK}
-                          onChange={(e) => {
-                            updateOverride(table.id, col.name, {
-                              isNotNull: e.target.checked,
-                            });
-                          }}
-                        />
-                        <span className="checkbox__box" />
-                      </label>
-                    </td>
+                        <div
+                          className={`type-cell ${isTypeDisabled ? "disabled-cell" : ""}`}
+                        >
+                          <select
+                            value={currentType}
+                            disabled={isTypeDisabled}
+                            onChange={(e) =>
+                              updateOverride(table.id, col.name, {
+                                type: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="int">INT</option>
+                            <option value="tinyint">TINYINT</option>
+                            <option value="smallint">SMALLINT</option>
+                            <option value="bigint">BIGINT</option>
+                            <option value="varchar">VARCHAR</option>
+                            <option value="char">CHAR</option>
+                            <option value="text">TEXT</option>
+                            <option value="enum">ENUM</option>
+                            <option value="set">SET</option>
+                            <option value="decimal">DECIMAL</option>
+                            <option value="numeric">NUMERIC</option>
+                            <option value="float">FLOAT</option>
+                            <option value="double">DOUBLE</option>
+                            <option value="date">DATE</option>
+                            <option value="time">TIME</option>
+                            <option value="datetime">DATETIME</option>
+                            <option value="timestamp">TIMESTAMP</option>
+                            <option value="boolean">BOOLEAN</option>
+                          </select>
 
-                    {/* Unique */}
-                    <td>
-                      <label
-                        className={`checkbox ${isPK || isFK ? "disabled" : ""}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={effectiveUQ}
-                          disabled={isPK || isFK}
-                          onChange={(e) => {
-                            updateOverride(table.id, col.name, {
-                              isUnique: e.target.checked,
-                            });
-                          }}
-                        />
-                        <span className="checkbox__box" />
-                      </label>
-                    </td>
-
-                    {/* Auto Increment */}
-                    <td>
-                      <label
-                        className={`checkbox ${!canBeAi || isFK ? "disabled" : ""}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={effectiveAI}
-                          disabled={!canBeAi || isFK}
-                          onChange={(e) => {
-                            updateOverride(table.id, col.name, {
-                              isAutoIncrement: e.target.checked,
-                            });
-                          }}
-                        />
-                        <span className="checkbox__box" />
-                      </label>
-                    </td>
-                  </tr>
-
-                  <AnimatePresence>
-                    {!isTypeDisabled &&
-                      (currentType === "enum" || currentType === "set") && (
-                        <tr className="subattributes-row">
-                          <td colSpan={7}>
-                            <motion.div
-                              layout
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.2, ease: "easeInOut" }}
-                              style={{ overflow: "hidden" }}
-                            >
-                              <div className="subattributes">
-                                <div className="subattribute-item">
-                                  {renderEnumEditor(col, override)}
-                                  <FaCircleInfo
-                                    className="info"
-                                    title="Para agregar mas valores, dale enter"
-                                  />
-                                </div>
-                              </div>
-                            </motion.div>
-                          </td>
-                        </tr>
-                      )}
-                  </AnimatePresence>
-
-                  {/* Fila Extra para Opciones de Integridad Referencial solo si es FK */}
-                  {isFK && (
-                    <tr>
-                      <td colSpan={7}>
-                        <div className="fk-options">
-                          <div className="fk-option">
-                            <label>ON DELETE:</label>
-                            <select
-                              value={
-                                override.onDelete || col.onDelete || "RESTRICT"
-                              }
-                              onChange={(e) => {
-                                updateOverride(table.id, col.name, {
-                                  onDelete: e.target.value,
-                                });
-                              }}
-                            >
-                              <option value="RESTRICT">RESTRICT</option>
-                              <option value="CASCADE">CASCADE</option>
-                              <option value="SET NULL">SET NULL</option>
-                              <option value="NO ACTION">NO ACTION</option>
-                              <option value="SET DEFAULT">SET DEFAULT</option>
-                            </select>
-                          </div>
-
-                          <div className="fk-option">
-                            <label>ON UPDATE:</label>
-                            <select
-                              value={
-                                override.onUpdate || col.onUpdate || "RESTRICT"
-                              }
-                              onChange={(e) => {
-                                updateOverride(table.id, col.name, {
-                                  onUpdate: e.target.value,
-                                });
-                              }}
-                            >
-                              <option value="RESTRICT">RESTRICT</option>
-                              <option value="CASCADE">CASCADE</option>
-                              <option value="SET NULL">SET NULL</option>
-                              <option value="NO ACTION">NO ACTION</option>
-                              <option value="SET DEFAULT">SET DEFAULT</option>
-                            </select>
-                          </div>
+                          {!isTypeDisabled && (
+                            <div className="type-params">
+                              <AnimatePresence mode="popLayout">
+                                {renderTypeParams(currentType, col, override)}
+                              </AnimatePresence>
+                            </div>
+                          )}
                         </div>
                       </td>
+
+                      {/* PK */}
+                      <td>
+                        <label className={`checkbox disabled`}>
+                          <input type="checkbox" checked={isPK} disabled />
+                          <span className="checkbox__box" />
+                        </label>
+                      </td>
+
+                      {/* FK */}
+                      <td>
+                        <label className="checkbox disabled">
+                          <input type="checkbox" checked={isFK} disabled />
+                          <span className="checkbox__box" />
+                        </label>
+                      </td>
+
+                      {/* Not Null */}
+                      <td>
+                        <label
+                          className={`checkbox ${isPK || isFK ? "disabled" : ""}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={effectiveNN}
+                            disabled={isPK || isFK}
+                            onChange={(e) => {
+                              updateOverride(table.id, col.name, {
+                                isNotNull: e.target.checked,
+                              });
+                            }}
+                          />
+                          <span className="checkbox__box" />
+                        </label>
+                      </td>
+
+                      {/* Unique */}
+                      <td>
+                        <label
+                          className={`checkbox ${isPK || isFK ? "disabled" : ""}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={effectiveUQ}
+                            disabled={isPK || isFK}
+                            onChange={(e) => {
+                              updateOverride(table.id, col.name, {
+                                isUnique: e.target.checked,
+                              });
+                            }}
+                          />
+                          <span className="checkbox__box" />
+                        </label>
+                      </td>
+
+                      {/* Auto Increment */}
+                      <td>
+                        <label
+                          className={`checkbox ${!canBeAi || isFK ? "disabled" : ""}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={effectiveAI}
+                            disabled={!canBeAi || isFK}
+                            onChange={(e) => {
+                              updateOverride(table.id, col.name, {
+                                isAutoIncrement: e.target.checked,
+                              });
+                            }}
+                          />
+                          <span className="checkbox__box" />
+                        </label>
+                      </td>
                     </tr>
-                  )}
-                </Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+
+                    <AnimatePresence>
+                      {!isTypeDisabled &&
+                        (currentType === "enum" || currentType === "set") && (
+                          <tr className="subattributes-row">
+                            <td colSpan={7}>
+                              <motion.div
+                                layout
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{
+                                  duration: 0.2,
+                                  ease: "easeInOut",
+                                }}
+                                style={{ overflow: "hidden" }}
+                              >
+                                <div className="subattributes">
+                                  <div className="subattribute-item">
+                                    {renderEnumEditor(col, override)}
+                                    <FaCircleInfo
+                                      className="info"
+                                      title="Para agregar mas valores, dale enter"
+                                    />
+                                  </div>
+                                </div>
+                              </motion.div>
+                            </td>
+                          </tr>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Fila Extra para Opciones de Integridad Referencial solo si es FK */}
+                    {isFK && (
+                      <tr>
+                        <td colSpan={7}>
+                          <div className="fk-options">
+                            <div className="fk-option">
+                              <label>ON DELETE:</label>
+                              <select
+                                value={
+                                  override.onDelete ||
+                                  col.onDelete ||
+                                  "RESTRICT"
+                                }
+                                onChange={(e) => {
+                                  updateOverride(table.id, col.name, {
+                                    onDelete: e.target.value,
+                                  });
+                                }}
+                              >
+                                <option value="RESTRICT">RESTRICT</option>
+                                <option value="CASCADE">CASCADE</option>
+                                <option value="SET NULL">SET NULL</option>
+                                <option value="NO ACTION">NO ACTION</option>
+                                <option value="SET DEFAULT">SET DEFAULT</option>
+                              </select>
+                            </div>
+
+                            <div className="fk-option">
+                              <label>ON UPDATE:</label>
+                              <select
+                                value={
+                                  override.onUpdate ||
+                                  col.onUpdate ||
+                                  "RESTRICT"
+                                }
+                                onChange={(e) => {
+                                  updateOverride(table.id, col.name, {
+                                    onUpdate: e.target.value,
+                                  });
+                                }}
+                              >
+                                <option value="RESTRICT">RESTRICT</option>
+                                <option value="CASCADE">CASCADE</option>
+                                <option value="SET NULL">SET NULL</option>
+                                <option value="NO ACTION">NO ACTION</option>
+                                <option value="SET DEFAULT">SET DEFAULT</option>
+                              </select>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

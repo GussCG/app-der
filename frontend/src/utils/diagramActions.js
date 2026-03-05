@@ -29,19 +29,42 @@ export const exportDiagramAsPng = async (nodes, edges, diagramName) => {
 
   if (!viewport || nodes.length === 0) return;
 
+  const style = document.createElement("style");
+  style.innerHTML = `
+    .er__entity.selected,
+    .er__relation.selected,
+    .note__node.selected {
+      outline: none !important;
+      animation: none !important;
+    }
+
+    .er__delete-btn {
+      display: none !important;
+    }
+
+    .react-flow__selection {
+      display: none !important;
+    }
+  `;
+  document.head.appendChild(style);
+
   const bounds = getNodesBounds(nodes);
-  const padding = 100;
+  const padding = 200;
 
   const width = bounds.width + padding * 2;
   const height = bounds.height + padding * 2;
 
-  const transform = getViewportForBounds(bounds, width, height, 0.1, 4);
+  const transform = {
+    x: -bounds.x + padding,
+    y: -bounds.y + padding,
+  };
 
   try {
     const dataUrl = await toPng(viewport, {
       backgroundColor: "#00000000",
       width,
       height,
+      pixelRatio: 2,
       onCreateForeignObject: (node) => {
         const svg = node.querySelector("svg");
         if (svg) {
@@ -53,13 +76,15 @@ export const exportDiagramAsPng = async (nodes, edges, diagramName) => {
       style: {
         width: `${width}px`,
         height: `${height}px`,
-        transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
+        transform: `translate(${transform.x}px, ${transform.y}px)`,
       },
     });
 
     downloadImage(dataUrl, diagramName || "diagrama");
   } catch (err) {
     console.error("Error al exportar:", err);
+  } finally {
+    document.head.removeChild(style);
   }
 };
 

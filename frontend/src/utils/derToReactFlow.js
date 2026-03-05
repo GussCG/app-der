@@ -17,6 +17,49 @@ export function derToReactFlow(diagram) {
       position: relation.position ?? { x: 0, y: 0 },
       data: relation.data,
     })),
+    ...(diagram.notes || []).map((note) => ({
+      id: note.id,
+      type: "note",
+      position: note.erPosition ?? { x: 0, y: 0 },
+      width: note.width || 180,
+      height: note.height || 100,
+      data: {
+        ...note.data,
+        style: {
+          ...note.data.style,
+          fontFamily: note.data.style?.fontFamily || "Arial",
+          fontSize: note.data.style?.fontSize || 14,
+          fontWeight: note.data.style?.fontWeight || "normal",
+          fontStyle: note.data.style?.fontStyle || "normal",
+          textAlign: note.data.style?.textAlign || "left",
+          color: note.data.style?.color || "#000000",
+          backgroundColor: note.data.style?.backgroundColor || "#ffff88",
+          borderTopLeftRadius:
+            note.data.style?.borderTopLeftRadius ??
+            note.data.style?.borderRadius ??
+            8,
+          borderTopRightRadius:
+            note.data.style?.borderTopRightRadius ??
+            note.data.style?.borderRadius ??
+            8,
+          borderBottomLeftRadius:
+            note.data.style?.borderBottomLeftRadius ??
+            note.data.style?.borderRadius ??
+            8,
+          borderBottomRightRadius:
+            note.data.style?.borderBottomRightRadius ??
+            note.data.style?.borderRadius ??
+            8,
+          borderColor: note.data.style?.borderColor || "#000000",
+          borderWidth: note.data.style?.borderWidth ?? 1,
+          borderStyle: note.data.style?.borderStyle || "solid",
+          paddingTop: note.data.style?.paddingTop ?? 8,
+          paddingRight: note.data.style?.paddingRight ?? 8,
+          paddingBottom: note.data.style?.paddingBottom ?? 8,
+          paddingLeft: note.data.style?.paddingLeft ?? 8,
+        },
+      },
+    })),
   ];
 
   const nodeMap = Object.fromEntries(nodes.map((n) => [n.id, n]));

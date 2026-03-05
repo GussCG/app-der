@@ -5,9 +5,24 @@ const EditorModeContext = createContext(null);
 
 export function EditorModeProvider({ children }) {
   const [mode, setMode] = useState("er");
-  const { setSelectedElementIds } = useEditor();
+  const { setSelectedElementIds, validationState, isDiagramEmpty } =
+    useEditor();
 
-  const handleSetMode = (newMode) => {
+  const handleSetMode = (newMode, force = false) => {
+    if (force) {
+      setSelectedElementIds([]);
+      setMode(newMode);
+      return;
+    }
+
+    if (isDiagramEmpty) {
+      return;
+    }
+
+    if (newMode === "relational" && validationState !== "valid") {
+      return;
+    }
+
     if (newMode !== mode) {
       setSelectedElementIds([]);
       setMode(newMode);
