@@ -98,7 +98,7 @@ function ERLayout() {
           )}
         </AnimatePresence>
 
-        <AnimatePresence mode="wait">
+        {/* <AnimatePresence mode="wait">
           {!aiOpen && <AIButton onClick={handleOpenAIPanel} active={aiOpen} />}
         </AnimatePresence>
 
@@ -110,7 +110,7 @@ function ERLayout() {
               onClose={handleCloseAIPanel}
             />
           )}
-        </AnimatePresence>
+        </AnimatePresence> */}
       </div>
     </>
   );
