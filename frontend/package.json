@@ -15,6 +15,7 @@
     "@google/genai": "^1.40.0",
     "@mui/material": "^7.3.7",
     "@uiw/react-color": "^2.9.3",
+    "@vercel/analytics": "^2.0.1",
     "@xyflow/react": "^12.10.0",
     "downloadjs": "^1.4.7",
     "driver.js": "^1.4.0",
