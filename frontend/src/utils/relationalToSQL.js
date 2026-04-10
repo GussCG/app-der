@@ -78,14 +78,14 @@ export function relationalTOSQL(nodes, edges) {
   // Crear tablas
   sql += "-- TABLES\n\n";
   nodes.forEach((node) => {
-    const tableName = `\`${node.data.name.replace(/\s+/g, "_")}\``;
+    const tableName = `\`${(node.data?.name ?? "tabla").replace(/\s+/g, "_")}\``;
     const columns = node.data.columns || [];
     const pks = columns.filter((c) => c.isPk);
 
     sql += `CREATE TABLE ${tableName} (\n`;
 
     const defs = columns.map((col) => {
-      const colName = `\`${col.name.replace(/\s+/g, "_")}\``;
+      const colName = `\`${(col.name ?? "col").replace(/\s+/g, "_")}\``;
       let def = `  ${colName} ${mapType(col)}`;
       if (col.isNotNull) def += " NOT NULL";
       if (col.isUnique) def += " UNIQUE";
@@ -96,7 +96,7 @@ export function relationalTOSQL(nodes, edges) {
     sql += defs.join(",\n");
 
     if (pks.length > 0) {
-      sql += `,\n  PRIMARY KEY (${pks.map((c) => `\`${c.name.replace(/\s+/g, "_")}\``).join(", ")})`;
+      sql += `,\n  PRIMARY KEY (${pks.map((c) => `\`${(c.name ?? "col").replace(/\s+/g, "_")}\``).join(", ")})`;
     }
 
     sql += `\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;\n\n`;
@@ -113,20 +113,22 @@ export function relationalTOSQL(nodes, edges) {
 
     // FILTRADO CRÍTICO: Solo las FKs que pertenecen a esta relación específica
     // Buscamos columnas cuyo ID contenga el ID del edge o el ID de la relación original
-    const relId = edge.id.replace("rel-edge-", "").replace("mv-edge-", "");
+    const relId = (edge.id ?? "")
+      .replace("rel-edge-", "")
+      .replace("mv-edge-", "");
     const fkCols = child.data.columns.filter(
       (c) => c.isFk && (c.id.includes(relId) || c.id.includes(edge.source)),
     );
 
     if (parentPKs.length === 0 || fkCols.length === 0) return;
 
-    const parentTable = `\`${parent.data.name.replace(/\s+/g, "_")}\``;
-    const childTable = `\`${child.data.name.replace(/\s+/g, "_")}\``;
+    const parentTable = `\`${(parent.data.name ?? "tabla").replace(/\s+/g, "_")}\``;
+    const childTable = `\`${(child.data.name ?? "tabla").replace(/\s+/g, "_")}\``;
 
     sql += `ALTER TABLE ${childTable}\n`;
-    sql += `  ADD CONSTRAINT \`fk_${child.data.name}_${parent.data.name}_${Math.floor(Math.random() * 1000)}\`\n`;
-    sql += `  FOREIGN KEY (${fkCols.map((c) => `\`${c.name}\``).join(", ")})\n`;
-    sql += `  REFERENCES ${parentTable} (${parentPKs.map((c) => `\`${c.name}\``).join(", ")})`;
+    sql += `  ADD CONSTRAINT \`fk_${child.data.name ?? "tabla"}_${parent.data.name ?? "tabla"}_${Math.floor(Math.random() * 1000)}\`\n`;
+    sql += `  FOREIGN KEY (${fkCols.map((c) => `\`${c.name ?? "col"}\``).join(", ")})\n`;
+    sql += `  REFERENCES ${parentTable} (${parentPKs.map((c) => `\`${c.name ?? "col"}\``).join(", ")})`;
 
     // Aquí es donde actúan onDelete y onUpdate del edge.data
     const { onDelete, onUpdate } = edge.data || {};
