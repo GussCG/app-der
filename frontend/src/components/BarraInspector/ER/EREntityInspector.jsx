@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useEditor } from "../../../context/EditorContext.jsx";
 import Icons from "../../Others/IconProvider.jsx";
 import { Colorful } from "@uiw/react-color";
@@ -11,52 +11,69 @@ const { FaKey, LuKeySquare, IoClose } = Icons;
 
 function EREntityInspector() {
   const { selectedElement, updateElement, usedColors } = useEditor();
+  const latestDataRef = useRef(selectedElement?.data);
+
+  useEffect(() => {
+    latestDataRef.current = selectedElement?.data;
+  }, [selectedElement]);
+
   if (!selectedElement) return null;
 
   const { name, weak, attributes = [] } = selectedElement.data;
 
   const [showColorPicker, setShowColorPicker] = useState(false);
 
-  const updateAttribute = (id, field, value) => {
+  const patchData = (changes) => {
+    const currentData = latestDataRef.current || selectedElement.data;
+
+    const newData = {
+      ...currentData,
+      ...changes,
+    };
+
+    latestDataRef.current = newData;
+
     updateElement({
       ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        attributes: attributes.map((attr) => {
-          if (attr.id !== id) return attr;
-
-          let updated = { ...attr, [field]: value };
-
-          // PK / Partial
-          if (field === "pk" && value) updated.partial = false;
-          if (field === "partial" && value) updated.pk = false;
-
-          // Tipo ER
-          if (field === "kind") {
-            if (value === "derived") {
-              updated.pk = false;
-              updated.partial = false;
-              updated.children = [];
-            }
-
-            if (value !== "composite") {
-              updated.children = [];
-            }
-          }
-          return updated;
-        }),
-      },
+      data: newData,
     });
   };
 
-  const addAttribute = () => {
-    if (attributes.length >= 15) {
-      return;
-    }
+  const updateAttribute = (id, field, value) => {
+    const currentAttributes = latestDataRef.current?.attributes || [];
 
-    const newId = crypto.randomUUID();
+    const updatedAttributes = currentAttributes.map((attr) => {
+      if (attr.id !== id) return attr;
+
+      let updated = { ...attr, [field]: value };
+
+      // PK / Partial logic
+      if (field === "pk" && value) updated.partial = false;
+      if (field === "partial" && value) updated.pk = false;
+
+      // Tipo ER logic
+      if (field === "kind") {
+        if (value === "derived") {
+          updated.pk = false;
+          updated.partial = false;
+          updated.children = [];
+        }
+        if (value !== "composite") {
+          updated.children = [];
+        }
+      }
+      return updated;
+    });
+
+    patchData({ attributes: updatedAttributes });
+  };
+
+  const addAttribute = () => {
+    const currentAttributes = latestDataRef.current?.attributes || attributes;
+    if (currentAttributes.length >= 15) return;
+
     const newAttribute = {
-      id: newId,
+      id: crypto.randomUUID(),
       name: "",
       kind: "simple",
       pk: false,
@@ -64,82 +81,64 @@ function EREntityInspector() {
       children: [],
     };
 
-    updateElement({
-      ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        attributes: [...attributes, newAttribute],
-      },
-    });
+    patchData({ attributes: [...currentAttributes, newAttribute] });
   };
 
   const removeAttribute = (id) => {
-    updateElement({
-      ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        attributes: attributes.filter((attr) => attr.id !== id),
-      },
+    const currentAttributes = latestDataRef.current?.attributes || attributes;
+    patchData({
+      attributes: currentAttributes.filter((attr) => attr.id !== id),
     });
   };
 
   const addSubattribute = (parentId) => {
-    const parentAttr = attributes.find((attr) => attr.id === parentId);
-    if (parentAttr.children.length >= 5) return;
+    const currentAttributes = latestDataRef.current?.attributes || attributes;
 
-    const newId = crypto.randomUUID();
-    const newSubattribute = {
-      id: newId,
-      name: "",
-      kind: "simple",
-    };
-    updateElement({
-      ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        attributes: attributes.map((attr) => {
-          if (attr.id !== parentId) return attr;
-          return {
-            ...attr,
-            children: [...attr.children, newSubattribute],
-          };
-        }),
-      },
+    const updated = currentAttributes.map((attr) => {
+      if (attr.id !== parentId) return attr;
+      // Validamos límite de hijos
+      if ((attr.children || []).length >= 5) return attr;
+
+      return {
+        ...attr,
+        children: [
+          ...(attr.children || []),
+          { id: crypto.randomUUID(), name: "", kind: "simple" },
+        ],
+      };
     });
+
+    patchData({ attributes: updated });
   };
 
   const removeSubattribute = (parentId, subId) => {
-    updateElement({
-      ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        attributes: attributes.map((attr) => {
-          if (attr.id !== parentId) return attr;
-          return {
-            ...attr,
-            children: attr.children.filter((child) => child.id !== subId),
-          };
-        }),
-      },
+    const currentAttributes = latestDataRef.current?.attributes || attributes;
+
+    const updated = currentAttributes.map((attr) => {
+      if (attr.id !== parentId) return attr;
+      return {
+        ...attr,
+        children: attr.children.filter((child) => child.id !== subId),
+      };
     });
+
+    patchData({ attributes: updated });
   };
 
   const updateSubattribute = (parentId, subId, value) => {
-    updateElement({
-      ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        attributes: attributes.map((attr) => {
-          if (attr.id !== parentId) return attr;
-          return {
-            ...attr,
-            children: attr.children.map((c) =>
-              c.id === subId ? { ...c, name: value } : c,
-            ),
-          };
-        }),
-      },
+    const currentAttributes = latestDataRef.current?.attributes || attributes;
+
+    const updated = currentAttributes.map((attr) => {
+      if (attr.id !== parentId) return attr;
+      return {
+        ...attr,
+        children: attr.children.map((c) =>
+          c.id === subId ? { ...c, name: value } : c,
+        ),
+      };
     });
+
+    patchData({ attributes: updated });
   };
 
   return (
@@ -153,15 +152,7 @@ function EREntityInspector() {
             placeholder="Nombre de la entidad"
             validator={validateERName}
             transform={(v) => v.toUpperCase()}
-            onChange={(v) =>
-              updateElement({
-                ...selectedElement,
-                data: {
-                  ...selectedElement.data,
-                  name: v,
-                },
-              })
-            }
+            onChange={(v) => patchData({ name: v })}
           />
         </div>
 
@@ -170,23 +161,8 @@ function EREntityInspector() {
           <label className="checkbox">
             <input
               type="checkbox"
-              checked={weak || false}
-              onChange={(e) => {
-                const isWeak = e.target.checked;
-
-                updateElement({
-                  ...selectedElement,
-                  data: {
-                    ...selectedElement.data,
-                    weak: isWeak,
-                    attributes: attributes.map((a) => ({
-                      ...a,
-                      pk: isWeak ? false : a.pk,
-                      partial: !isWeak ? false : a.partial,
-                    })),
-                  },
-                });
-              }}
+              checked={!!weak}
+              onChange={(e) => patchData({ weak: e.target.checked })}
             />
             <span className="checkbox__box" />
           </label>
@@ -208,16 +184,7 @@ function EREntityInspector() {
               boxShadow: "none",
             }}
             color={selectedElement.data.color || "#323c4c"}
-            onChange={(color) => {
-              const updatedData = {
-                ...selectedElement,
-                data: {
-                  ...selectedElement.data,
-                  color: color.hex,
-                },
-              };
-              updateElement(updatedData);
-            }}
+            onChange={(c) => patchData({ color: c.hex })}
           />
         </div>
 
@@ -236,16 +203,7 @@ function EREntityInspector() {
               }}
               color={selectedElement.data.color || "#323c4c"}
               colors={usedColors}
-              onChange={(color) => {
-                const updatedData = {
-                  ...selectedElement,
-                  data: {
-                    ...selectedElement.data,
-                    color: color.hex,
-                  },
-                };
-                updateElement(updatedData);
-              }}
+              onChange={(c) => patchData({ color: c.hex })}
             />
           </div>
         )}

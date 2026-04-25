@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useEditor } from "../../../context/EditorContext";
 import { Compact } from "@uiw/react-color";
 import Icons from "../../Others/IconProvider";
@@ -14,107 +14,121 @@ function ERRelationInspector() {
 
   const { name, connections, attributes = [] } = selectedElement.data;
 
-  const updateConnection = (side, field, value) => {
+  const latestDataRef = useRef(selectedElement?.data);
+
+  useEffect(() => {
+    latestDataRef.current = selectedElement?.data;
+  }, [selectedElement]);
+
+  const patchData = (changes) => {
+    const currentData = latestDataRef.current || selectedElement.data;
+
+    const newData = {
+      ...currentData,
+      ...changes,
+    };
+
+    latestDataRef.current = newData;
+
     updateElement({
       ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        connections: {
-          ...connections,
-          [side]: { ...connections[side], [field]: value },
-        },
-      },
+      data: newData,
     });
+  };
+
+  const updateConnection = (side, field, value) => {
+    const currentConnections =
+      latestDataRef.current?.connections || connections;
+
+    const newConnections = {
+      ...currentConnections,
+      [side]: { ...currentConnections[side], [field]: value },
+    };
+
+    patchData({ connections: newConnections });
   };
 
   const updateAttribute = (id, field, value) => {
-    updateElement({
-      ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        attributes: attributes.map((attr) => {
-          if (attr.id !== id) return attr;
-          let updated = { ...attr, [field]: value };
+    const currentAttributes = latestDataRef.current?.attributes || attributes;
 
-          // Limpiar hijos si deja de ser compuesto
-          if (field === "kind" && value !== "composite") {
-            updated.children = [];
-          }
-          if (field === "kind" && value === "composite") {
-            updated.children = updated.children || [];
-          }
-          return updated;
-        }),
-      },
+    const updatedAttributes = currentAttributes.map((attr) => {
+      if (attr.id !== id) return attr;
+      let updated = { ...attr, [field]: value };
+
+      if (field === "kind" && value !== "composite") {
+        updated.children = [];
+      }
+      return updated;
     });
+
+    patchData({ attributes: updatedAttributes });
   };
 
   const addAttribute = () => {
-    if (attributes.length >= 6) {
-      return;
-    }
-    updateElement({
-      ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        attributes: [
-          ...attributes,
-          {
-            id: crypto.randomUUID(),
-            name: "",
-            kind: "simple",
-            children: [],
-          },
-        ],
-      },
-    });
+    const currentAttributes = latestDataRef.current?.attributes || attributes;
+    if (currentAttributes.length >= 6) return;
+
+    const newAttr = {
+      id: crypto.randomUUID(),
+      name: "",
+      kind: "simple",
+      children: [],
+    };
+
+    patchData({ attributes: [...currentAttributes, newAttr] });
   };
 
   const removeAttribute = (id) => {
-    updateElement({
-      ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        attributes: attributes.filter((attr) => attr.id !== id),
-      },
+    const currentAttributes = latestDataRef.current?.attributes || attributes;
+    patchData({
+      attributes: currentAttributes.filter((attr) => attr.id !== id),
     });
   };
 
   const addSubattribute = (parentId) => {
-    const parentAttr = attributes.find((attr) => attr.id === parentId);
-    if (!parentAttr || parentAttr.kind !== "composite") return;
-    if (parentAttr.children.length >= 5) return;
-
-    const newSub = { id: crypto.randomUUID(), name: "", kind: "simple" };
-    updateElement({
-      ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        attributes: attributes.map((attr) =>
-          attr.id === parentId
-            ? { ...attr, children: [...(attr.children || []), newSub] }
-            : attr,
-        ),
-      },
-    });
+    const currentAttributes = latestDataRef.current?.attributes || attributes;
+    const updated = currentAttributes.map((attr) =>
+      attr.id === parentId
+        ? {
+            ...attr,
+            children: [
+              ...(attr.children || []),
+              { id: crypto.randomUUID(), name: "", kind: "simple" },
+            ],
+          }
+        : attr,
+    );
+    patchData({ attributes: updated });
   };
 
   const updateSubattribute = (parentId, subId, value) => {
-    updateElement({
-      ...selectedElement,
-      data: {
-        ...selectedElement.data,
-        attributes: attributes.map((attr) => {
-          if (attr.id !== parentId) return attr;
-          return {
-            ...attr,
-            children: attr.children.map((c) =>
-              c.id === subId ? { ...c, name: value } : c,
-            ),
-          };
-        }),
-      },
+    const currentAttributes = latestDataRef.current?.attributes || attributes;
+
+    const updated = currentAttributes.map((attr) => {
+      if (attr.id !== parentId) return attr;
+      return {
+        ...attr,
+        children: attr.children.map((c) =>
+          c.id === subId ? { ...c, name: value } : c,
+        ),
+      };
     });
+
+    patchData({ attributes: updated });
+  };
+
+  const removeSubattribute = (parentId, subId) => {
+    const currentAttributes = latestDataRef.current?.attributes || attributes;
+
+    const updated = currentAttributes.map((attr) => {
+      if (attr.id !== parentId) return attr;
+      return {
+        ...attr,
+        children: attr.children.filter((child) => child.id !== subId),
+      };
+    });
+
+    patchData({ attributes: updated });
   };
 
   return (
@@ -128,12 +142,11 @@ function ERRelationInspector() {
             placeholder="Nombre de la relación"
             validator={validateERName}
             transform={(v) => v.toUpperCase()}
-            onChange={(v) => {
-              updateElement({
-                ...selectedElement,
-                data: { ...selectedElement.data, name: v },
-              });
-            }}
+            onChange={(v) =>
+              patchData({
+                name: v,
+              })
+            }
           />
         </div>
 
@@ -142,15 +155,11 @@ function ERRelationInspector() {
           <select
             id="relation-type"
             value={selectedElement.data.type || "simple"}
-            onChange={(e) => {
-              updateElement({
-                ...selectedElement,
-                data: {
-                  ...selectedElement.data,
-                  type: e.target.value,
-                },
-              });
-            }}
+            onChange={(e) =>
+              patchData({
+                type: e.target.value,
+              })
+            }
           >
             <option value="simple">Simple</option>
             <option value="identifying">Identificadora</option>
@@ -173,16 +182,7 @@ function ERRelationInspector() {
               boxShadow: "none",
             }}
             color={selectedElement.data.color || "#323c4c"}
-            onChange={(color) => {
-              const updatedData = {
-                ...selectedElement,
-                data: {
-                  ...selectedElement.data,
-                  color: color.hex,
-                },
-              };
-              updateElement(updatedData);
-            }}
+            onChange={(c) => patchData({ color: c.hex })}
           />
         </div>
 
@@ -201,16 +201,7 @@ function ERRelationInspector() {
               }}
               color={selectedElement.data.color || "#323c4c"}
               colors={usedColors}
-              onChange={(color) => {
-                const updatedData = {
-                  ...selectedElement,
-                  data: {
-                    ...selectedElement.data,
-                    color: color.hex,
-                  },
-                };
-                updateElement(updatedData);
-              }}
+              onChange={(c) => patchData({ color: c.hex })}
             />
           </div>
         )}
