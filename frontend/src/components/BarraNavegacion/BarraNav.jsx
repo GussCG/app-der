@@ -302,6 +302,13 @@ function BarraNav() {
     e.target.value = null;
   };
 
+  const isDemo = import.meta.env.VITE_IS_DEMO === "true";
+
+  // Array de los menus que se muestran en la barra de navegación, dependiendo si es demo o no
+  const menuHeaders = isDemo
+    ? ["archivo", "editar"]
+    : ["archivo", "editar", "ver", "ayuda"];
+
   return (
     <>
       <header className="barra__nav" data-tour="navigation-bar">
@@ -329,7 +336,7 @@ function BarraNav() {
             }}
           />
           <nav className="nav__tabs">
-            {["archivo", "editar", "ver", "ayuda"].map((tipo) => (
+            {menuHeaders.map((tipo) => (
               <div
                 key={tipo}
                 className="nav__tab"
@@ -362,19 +369,21 @@ function BarraNav() {
                 }
                 progress={validationProgress}
               />
-              <button
-                className="nav__button"
-                onClick={() =>
-                  executeValidation(
-                    () => setMode("relational"),
-                    "cambiar a relacional",
-                  )
-                }
-                data-tour="switch-to-relational-mode-button"
-              >
-                <FaTable />
-                Ver en Relacional
-              </button>
+              {!isDemo && (
+                <button
+                  className="nav__button"
+                  onClick={() =>
+                    executeValidation(
+                      () => setMode("relational"),
+                      "cambiar a relacional",
+                    )
+                  }
+                  data-tour="switch-to-relational-mode-button"
+                >
+                  <FaTable />
+                  Ver en Relacional
+                </button>
+              )}
             </>
           )}
 
